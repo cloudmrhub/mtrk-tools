@@ -1,0 +1,90 @@
+##-----------------------------------------------------------------------------
+##  Copyright (C) Siemens AG 1998  All Rights Reserved.  Confidential
+##-----------------------------------------------------------------------------
+##
+## Project: NUMARIS/4
+##    File: \n4_servers1\pkg\MrServers\MrImaging\seq\a_MiniFLASH\makefile.trs
+## Version: \main\13
+##  Author: LANDWIPD
+##  Charge: Michael Zwanger, MRIA-Seq, +9131/84-2672
+##    Date: 2014-06-02 13:27:08 +02:00
+##
+##    Lang: make
+##
+## Descrip: Makefile fuer Sequenz-DLL
+##
+##-----------------------------------------------------------------------------
+
+##-----------------------------------------------------------------------------
+## Naehere Informationen zum den moeglichen Macros im Makefile siehe
+## MedMake-Dokumentation Q:/csw/MedMake/html/contents_t6.html
+##
+NOSYNGO() 
+
+##-----------------------------------------------------------------------------
+## enter local compiler flags
+##
+
+CPPFLAGS (-D_CONSOLE)
+CPPFLAGS (-DBUILD_SEQU)
+CPPFLAGS (-DSEQUENCE_CLASS)
+CPPFLAGS (-DSEQUENCE_CLASS_mtrk)
+CPPFLAGS (-DMRPROT_DEP_OPT)
+CPPFLAGS (-DSEQ_NAMESPACE=SEQ_mtrk)
+
+##-----------------------------------------------------------------------------
+## enter include paths
+##
+
+INCLPATHS (-I /n4_extsw/x86/extsw/MedCom/include)
+
+##-----------------------------------------------------------------------------
+## enter source files
+##
+
+CPPSOURCES (mtrk)
+CPPSOURCES (mtrk_UI)
+CSOURCES(cJSON)
+CPPSOURCES(fparser)
+CPPSOURCES(fpoptimizer)
+CPPSOURCES (mtrk_api)
+
+
+##-----------------------------------------------------------------------------
+## enter link libraries
+##
+
+# Base framework
+LDLIBS (MrTrace)
+LDLIBS (UTrace)
+LDLIBS (MrGenericDC)
+LDLIBS (MrParc)
+
+# Parameters
+LDLIBS (MrProt)
+LDLIBS (libSeqSysProp)
+LDLIBS (MeasSections)
+
+# Measurement system
+#LDLIBS (Sequence)
+LDLIBS (libMES)
+LDLIBS (MeasNucleiBase)
+LDLIBS (libSSL)
+
+# Application libraries
+LDLIBS (libSBB)
+LDLIBS (libSeqUtil)
+LDLIBS (libSeqUT)
+LDLIBS (libUICtrl)
+MSDEV_i586_WinNT400(LDLIBS (libUILink))
+
+
+##-----------------------------------------------------------------------------
+## enter target name
+##
+
+LIB(mtrk)
+
+##-----------------------------------------------------------------------------
+##  Copyright (C) Siemens AG 1998  All Rights Reserved.  Confidential
+##-----------------------------------------------------------------------------
