@@ -43,6 +43,7 @@ mtrk::mtrk()
             , m_sOscBit             ("m_sOscBit")
             , m_pUI                 (NULL)
 {
+    mapi.setParent(this);
 }
 
 
@@ -102,7 +103,7 @@ NLSStatus mtrk::initialize(SeqLim &rSeqLim)
 
 NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExpo &rSeqExpo)
 {
-    mapi.readFile();
+    mapi.prepare(rSeqLim.isContextPrepForBinarySearch());
 
     static const char *ptModule = {"mtrk::prepare"};
     NLS_STATUS   lStatus = SEQU__NORMAL;
