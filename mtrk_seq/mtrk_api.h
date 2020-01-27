@@ -73,6 +73,9 @@ namespace SEQ_NAMESPACE
 
         bool run();
         bool runBlock(cJSON* block);
+
+        bool runActionLoop(cJSON* item);
+        bool runActionBlock(cJSON* item);
     };
 
 }

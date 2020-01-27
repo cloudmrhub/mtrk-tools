@@ -40,6 +40,7 @@
 
 #define MTRK_ACTIONS_LOOP           "loop"
 #define MTRK_ACTIONS_CONDITION      "condition"
+#define MTRK_ACTIONS_RUN_BLOCK      "run_block"
 #define MTRK_ACTIONS_INIT           "init"
 #define MTRK_ACTIONS_SUBMIT         "submit"
 #define MTRK_ACTIONS_RF             "rf"

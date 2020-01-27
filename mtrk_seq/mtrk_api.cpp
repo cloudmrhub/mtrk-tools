@@ -263,17 +263,98 @@ bool mtrk_api::runBlock(cJSON* block)
         return false;
     }
 
+    bool success=true;
     cJSON* step=0;
     cJSON_ArrayForEach(step, steps)
     {
         cJSON *action = cJSON_GetObjectItemCaseSensitive(step, MTRK_PROPERTIES_ACTION);
 
-        MTRK_LOG(action->valuestring)
-    
-    }    
+        if (strcmp(action->valuestring,MTRK_ACTIONS_LOOP)==0)
+        {
+            success=runActionLoop(action);
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_RUN_BLOCK)==0)
+        {
+            success=runActionBlock(action);
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_CONDITION)==0)
+        {
+            
+        }
+        else      
+        if (strcmp(action->valuestring,MTRK_ACTIONS_INIT)==0)
+        {
 
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_SUBMIT)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_RF)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_ADC)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_GRAD)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_SYNC)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_MARK)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_CALC)==0)
+        {
+
+        }
+        else
+        if (strcmp(action->valuestring,MTRK_ACTIONS_DEBUG)==0)
+        {
+
+        }
+        else
+        {
+            MTRK_LOG("ERROR: Unknown action found " << action->valuestring)
+        }
+
+        if (!success)
+        {
+            MTRK_LOG("Processing steps terminated")
+            break;
+        }
+    }    
     recursions--;
+    return success;
 }
+
+
+bool mtrk_api::runActionLoop(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionBlock(cJSON* item)
+{
+    return true;
+}
+
 
 
 bool mtrk_api::run()
