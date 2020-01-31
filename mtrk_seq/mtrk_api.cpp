@@ -268,6 +268,7 @@ bool mtrk_api::runBlock(cJSON* block)
     cJSON_ArrayForEach(step, steps)
     {
         cJSON* action = cJSON_GetObjectItemCaseSensitive(step, MTRK_PROPERTIES_ACTION);
+        //MTRK_LOG("RunBlock " << state.counters[0]  << " " << state.counters[1]  << " "  << state.counters[2])
 
         if (strcmp(action->valuestring, MTRK_ACTIONS_LOOP)==0)
         {
@@ -276,48 +277,47 @@ bool mtrk_api::runBlock(cJSON* block)
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_RUN_BLOCK)==0)
         {
-            MTRK_LOG("RunBlock " << state.counters[0]  << " " << state.counters[1]  << " "  << state.counters[2])
             success=runActionBlock(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_CONDITION)==0)
         {
-            
+            success=runActionCondition(step);
         }
         else      
         if (strcmp(action->valuestring, MTRK_ACTIONS_INIT)==0)
         {
-
+            success=runActionInit(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_SUBMIT)==0)
         {
-
+            success=runActionSubmit(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_RF)==0)
         {
-
+            success=runActionRF(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_ADC)==0)
         {
-
+            success=runActionADC(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_GRAD)==0)
         {
-
+            success=runActionGrad(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_SYNC)==0)
         {
-
+            success=runActionSync(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_MARK)==0)
         {
-
+            success=runActionMark(step);
         }
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_CALC)==0)
@@ -327,7 +327,7 @@ bool mtrk_api::runBlock(cJSON* block)
         else
         if (strcmp(action->valuestring, MTRK_ACTIONS_DEBUG)==0)
         {
-
+            success=runActionDebug(step);
         }
         else
         {
@@ -345,11 +345,13 @@ bool mtrk_api::runBlock(cJSON* block)
 }
 
 
+#define MTRK_GETITEM(a,b,c) cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (a==NULL) { MTRK_LOG("Missing item " << MTRK_PROPERTIES_RANGE) return false; }
+
 bool mtrk_api::runActionLoop(cJSON* item)
 {
-    cJSON* range   = cJSON_GetObjectItemCaseSensitive(item, MTRK_PROPERTIES_RANGE);
-    cJSON* counter = cJSON_GetObjectItemCaseSensitive(item, MTRK_PROPERTIES_COUNTER);
-    
+    MTRK_GETITEM(item, MTRK_PROPERTIES_RANGE, range)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
+       
     int range_int=range->valueint;
     int counter_int=counter->valueint;
 
@@ -364,21 +366,86 @@ bool mtrk_api::runActionLoop(cJSON* item)
 
 bool mtrk_api::runActionBlock(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_BLOCK, blockName)
+    cJSON* block = sections.getBlock(blockName->valuestring);    
+    return runBlock(block);
+}
+
+
+bool mtrk_api::runActionCondition(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionInit(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionSubmit(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionRF(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionADC(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionGrad(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionSync(cJSON* item)
+{
+    return true;
+}
+
+
+bool mtrk_api::runActionMark(cJSON* item)
+{
     return true;
 }
 
 
 bool mtrk_api::runActionCalc(cJSON* item)
 {
-    cJSON* type = cJSON_GetObjectItemCaseSensitive(item, MTRK_PROPERTIES_TYPE);
-    cJSON* counter = cJSON_GetObjectItemCaseSensitive(item, MTRK_PROPERTIES_COUNTER);
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TYPE, type)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
 
     if (strcmp(type->valuestring, MTRK_OPTIONS_COUNTER_INC)==0)
     {
         int counter_int=counter->valueint;
         state.counters[counter_int]++;
     }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_COUNTER_SET)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_VALUE, value)
 
+        int counter_int=counter->valueint;
+        int value_int=value->valueint;
+        state.counters[counter_int]=value_int;
+    }
+
+    return true;
+}
+
+
+bool mtrk_api::runActionDebug(cJSON* item)
+{
     return true;
 }
 
@@ -394,3 +461,4 @@ bool mtrk_api::run()
    
     return true;
 }
+
