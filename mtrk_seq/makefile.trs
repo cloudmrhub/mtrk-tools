@@ -47,6 +47,7 @@ CPPSOURCES (mtrk_UI)
 CSOURCES(cJSON)
 CPPSOURCES(fparser)
 CPPSOURCES(fpoptimizer)
+CPPSOURCES (mtrk_equations)
 CPPSOURCES (mtrk_api)
 
 

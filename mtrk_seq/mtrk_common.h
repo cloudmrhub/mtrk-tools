@@ -1,6 +1,11 @@
 #ifndef mtrk_common_h
 #define mtrk_common_h 1
 
+#include <iostream>
+#include <string>
+#include <fstream>
+
+
 #define MTRK_DEFS_COUNTERS 8
 #define MTRK_DEFS_FLOATS   8
 
@@ -18,6 +23,8 @@
 #define MTRK_PROPERTIES_TYPE        "type"
 #define MTRK_PROPERTIES_RANGE       "range"
 #define MTRK_PROPERTIES_COUNTER     "counter"
+#define MTRK_PROPERTIES_FLOAT       "float"
+#define MTRK_PROPERTIES_INDEX       "index"
 #define MTRK_PROPERTIES_BLOCK       "block"
 #define MTRK_PROPERTIES_ARRAY       "array"
 #define MTRK_PROPERTIES_VALUE       "value"
@@ -28,6 +35,8 @@
 #define MTRK_PROPERTIES_TIME        "time"
 #define MTRK_PROPERTIES_DURATION    "duration"
 #define MTRK_PROPERTIES_OBJECT      "object"
+#define MTRK_PROPERTIES_EQUATION    "equation"
+#define MTRK_PROPERTIES_MEMINDEX    "memindex"
 
 #define MTRK_OPTIONS_MAIN           "main"
 #define MTRK_OPTIONS_BLOCK          "block"
@@ -54,5 +63,8 @@
 #define MTRK_LOG(x)                std::cout << x << std::endl;
 #define MTRK_DELETE(x)             if (x!=0) { delete x; x=0; }
 #define MTRK_RETONFAIL(x)          if (!x) { return false; }
+
+#define MTRK_GETITEM(a,b,c) cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (c==NULL) { MTRK_LOG("Missing item " << b) return false; }
+
 
 #endif

@@ -4,7 +4,7 @@
 #include "cJSON.h"
 
 #include "mtrk_common.h"
-
+#include "mtrk_equations.h"
 
 namespace SEQ_NAMESPACE
 {  
@@ -57,9 +57,11 @@ namespace SEQ_NAMESPACE
         bool loadSequence(std::string filename, bool forceLoad=false);
         void unloadSequence();
 
-        cJSON*        sequence;
-        mtrk_sections sections;
-        mtrk_state    state;
+        cJSON*         sequence;
+        mtrk_sections  sections;
+        mtrk_state     state;
+        mtrk_equations equations;
+
         int           recursions;
 
         char*    loadedMeasurementID;

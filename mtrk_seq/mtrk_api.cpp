@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 
-
 #include "fparser.hh"
 #include "mtrk_api.h"
 #include "mtrk.h"
@@ -115,6 +114,7 @@ mtrk_api::mtrk_api()
     parent=0;
     sequence=0;
     loadedMeasurementID=0;
+    equations.setStateInstance(&state);
 }
 
 
@@ -232,6 +232,7 @@ bool mtrk_api::prepareObjects()
 
 bool mtrk_api::prepareEquations()
 {
+    equations.prepare(sections.equations);
     return true;
 }
 
@@ -345,7 +346,6 @@ bool mtrk_api::runBlock(cJSON* block)
 }
 
 
-#define MTRK_GETITEM(a,b,c) cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (a==NULL) { MTRK_LOG("Missing item " << MTRK_PROPERTIES_RANGE) return false; }
 
 bool mtrk_api::runActionLoop(cJSON* item)
 {
@@ -423,21 +423,85 @@ bool mtrk_api::runActionMark(cJSON* item)
 bool mtrk_api::runActionCalc(cJSON* item)
 {
     MTRK_GETITEM(item, MTRK_PROPERTIES_TYPE, type)
-    MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
 
     if (strcmp(type->valuestring, MTRK_OPTIONS_COUNTER_INC)==0)
     {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
         int counter_int=counter->valueint;
+        if ((counter_int<0) || (counter_int>=MTRK_DEFS_COUNTERS))
+        {
+            return false;
+        }
         state.counters[counter_int]++;
     }
     else
     if (strcmp(type->valuestring, MTRK_OPTIONS_COUNTER_SET)==0)
     {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
         MTRK_GETITEM(item, MTRK_PROPERTIES_VALUE, value)
-
         int counter_int=counter->valueint;
-        int value_int=value->valueint;
-        state.counters[counter_int]=value_int;
+        if ((counter_int<0) || (counter_int>=MTRK_DEFS_COUNTERS))
+        {
+            return false;
+        }       
+        state.counters[counter_int]=value->valueint;
+    }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_INC)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, index)
+        int index_int=index->valueint;
+        if ((index_int<0) || (index_int>=MTRK_DEFS_FLOATS))
+        {
+            return false;
+        }        
+        state.floats[index_int]+=1.;
+    }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_SET)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, index)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_VALUE, value)
+        int index_int=index->valueint;
+        if ((index_int<0) || (index_int>=MTRK_DEFS_FLOATS))
+        {
+            return false;
+        }              
+        state.floats[index_int]=value->valuedouble;
+    }
+    if (strcmp(type->valuestring, MTRK_OPTIONS_EQUATION)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_EQUATION, equation)
+
+        int index=0;
+        bool targetIsFloat=true;
+        cJSON* float_target = cJSON_GetObjectItemCaseSensitive(item,MTRK_PROPERTIES_FLOAT); 
+        if (float_target!=NULL) 
+        { 
+            index=float_target->valueint;
+        }
+        else
+        {
+            targetIsFloat=false;
+            cJSON* counter_target = cJSON_GetObjectItemCaseSensitive(item,MTRK_PROPERTIES_COUNTER); 
+            if (counter_target==NULL)
+            {
+                MTRK_LOG("Missing item " << MTRK_PROPERTIES_COUNTER);
+                return false; 
+            }
+            index=float_target->valueint;
+        }
+
+        double equationValue=equations.evaluate(equation->valuestring);
+
+        if (targetIsFloat) 
+        {
+            state.floats[index]=equationValue;
+        }
+        else
+        {
+            state.counters[index]=int(equationValue);
+        }
     }
 
     return true;
@@ -459,6 +523,9 @@ bool mtrk_api::run()
     MTRK_LOG("RunBlock")
     MTRK_RETONFAIL(runBlock(sections.getBlock(MTRK_OPTIONS_MAIN)))
    
+    MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
+    MTRK_LOG("EQ2 = " << equations.evaluate("test"))
+
     return true;
 }
 
