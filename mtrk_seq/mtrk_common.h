@@ -21,6 +21,7 @@
 #define MTRK_PROPERTIES_STEPS       "steps"
 #define MTRK_PROPERTIES_ID          "id"
 #define MTRK_PROPERTIES_TYPE        "type"
+#define MTRK_PROPERTIES_ENCODING    "encoding"
 #define MTRK_PROPERTIES_RANGE       "range"
 #define MTRK_PROPERTIES_COUNTER     "counter"
 #define MTRK_PROPERTIES_FLOAT       "float"
@@ -37,6 +38,8 @@
 #define MTRK_PROPERTIES_OBJECT      "object"
 #define MTRK_PROPERTIES_EQUATION    "equation"
 #define MTRK_PROPERTIES_INCREMENT   "increment"
+#define MTRK_PROPERTIES_DATA        "data"
+#define MTRK_PROPERTIES_SIZE        "size"
 #define MTRK_PROPERTIES_MEMINDEX    "memindex"
 
 #define MTRK_OPTIONS_MAIN           "main"
@@ -48,6 +51,13 @@
 #define MTRK_OPTIONS_FLOAT_GET      "float_get"
 #define MTRK_OPTIONS_RFSPOIL        "float_rfspoil"
 #define MTRK_OPTIONS_EQUATION       "equation"
+#define MTRK_OPTIONS_BASE64         "base64"
+#define MTRK_OPTIONS_TEXT           "text"
+#define MTRK_OPTIONS_INTEGER        "int"
+#define MTRK_OPTIONS_FLOAT          "float"
+#define MTRK_OPTIONS_COMPLEX_FLOAT  "complex_float"
+#define MTRK_OPTIONS_DOUBLE         "double"
+#define MTRK_OPTIONS_COMPLEX_DOUBLE "complex_double"
 
 #define MTRK_ACTIONS_LOOP           "loop"
 #define MTRK_ACTIONS_CONDITION      "condition"
@@ -66,7 +76,7 @@
 #define MTRK_DELETE(x)             if (x!=0) { delete x; x=0; }
 #define MTRK_RETONFAIL(x)          if (!x) { return false; }
 
-#define MTRK_GETITEM(a,b,c) cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (c==NULL) { MTRK_LOG("Missing item " << b) return false; }
+#define MTRK_GETITEM(a,b,c) cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (c==NULL) { MTRK_LOG("Missing item: " << b) return false; }
 
 
 #endif

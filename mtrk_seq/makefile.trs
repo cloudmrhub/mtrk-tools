@@ -50,6 +50,7 @@ CPPSOURCES(fpoptimizer)
 CPPSOURCES (mtrk_equations)
 CPPSOURCES (mtrk_api)
 CPPSOURCES (mtrk_b64)
+CPPSOURCES (mtrk_arrays)
 
 
 ##-----------------------------------------------------------------------------

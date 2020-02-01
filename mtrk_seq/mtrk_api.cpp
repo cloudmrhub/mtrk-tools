@@ -207,9 +207,9 @@ bool mtrk_api::prepare(bool isBinarySearch)
     }
     
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
-    MTRK_RETONFAIL(prepareArrays())
+    MTRK_RETONFAIL(arrays.prepare(sections.arrays))
     MTRK_RETONFAIL(prepareObjects())    
-    MTRK_RETONFAIL(prepareEquations())    
+    MTRK_RETONFAIL(equations.prepare(sections.equations))    
     MTRK_RETONFAIL(prepareBlocks())    
 
     // DEBUG
@@ -219,21 +219,8 @@ bool mtrk_api::prepare(bool isBinarySearch)
 }
 
 
-bool mtrk_api::prepareArrays()
-{
-    return true;
-}
-
-
 bool mtrk_api::prepareObjects()
 {
-    return true;
-}
-
-
-bool mtrk_api::prepareEquations()
-{
-    equations.prepare(sections.equations);
     return true;
 }
 

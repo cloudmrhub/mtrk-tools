@@ -1,6 +1,10 @@
 #ifndef mtrk_b64_h
 #define mtrk_b64_h 1
 
+#include <iostream>
+#include <string>
+#include <fstream>
+
 namespace SEQ_NAMESPACE
 { 
 

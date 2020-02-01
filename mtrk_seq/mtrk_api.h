@@ -6,9 +6,10 @@
 #include "MrServers/MrMeasSrv/SeqIF/libRT/libRT.h"
 #include "MrServers/MrMeasSrv/MeasUtils/NLSStatus.h"
 
-
 #include "mtrk_common.h"
 #include "mtrk_equations.h"
+#include "mtrk_arrays.h"
+
 
 namespace SEQ_NAMESPACE
 {  
@@ -78,15 +79,14 @@ namespace SEQ_NAMESPACE
         mtrk_sections  sections;
         mtrk_state     state;
         mtrk_equations equations;
+        mtrk_arrays    arrays;
 
         int            recursions;
         char*          loadedMeasurementID;
 
         bool prepare(bool isBinarySearch=false);
 
-        bool prepareArrays();
         bool prepareObjects();
-        bool prepareEquations();
         bool prepareBlocks();
 
         bool run();
