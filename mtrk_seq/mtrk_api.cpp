@@ -93,7 +93,7 @@ mtrk_state::mtrk_state()
 }
 
 
-void mtrk_state::reset()
+void mtrk_state::reset(bool dryRun)
 {
     for (int i=0; i<MTRK_DEFS_COUNTERS; i++)
     {
@@ -104,8 +104,9 @@ void mtrk_state::reset()
         floats[i]=0.;
     }
     clock=0;
-    table_start=0;
-    table_duration=0;    
+    tableStart=0;
+    tableDuration=0;    
+    isDryRun=dryRun;
 }
 
 
@@ -337,7 +338,6 @@ bool mtrk_api::runBlock(cJSON* block)
 
         if (!success)
         {
-            MTRK_LOG("Processing steps terminated")
             break;
         }
     }    
@@ -357,7 +357,10 @@ bool mtrk_api::runActionLoop(cJSON* item)
 
     for (state.counters[counter_int]=0; state.counters[counter_int]<range_int; state.counters[counter_int]++)
     {
-        runBlock(item);
+        if (!runBlock(item)) 
+        {
+            return false;
+        }
     }
 
     return true;
@@ -374,18 +377,71 @@ bool mtrk_api::runActionBlock(cJSON* item)
 
 bool mtrk_api::runActionCondition(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TARGET, target)
+    int counter_int=counter->valueint;
+    if ((counter_int<0) || (counter_int>=MTRK_DEFS_COUNTERS))
+    {
+        return false;
+    }
+
+    if (state.counters[counter_int]==target->valueint)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_TRUE, trueBlock);
+        if (cJSON_GetObjectItemCaseSensitive(trueBlock,MTRK_PROPERTIES_STEPS) != NULL) 
+        {
+            return runBlock(trueBlock);
+        }        
+    }
+    else
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FALSE, falseBlock);
+        if (cJSON_GetObjectItemCaseSensitive(falseBlock,MTRK_PROPERTIES_STEPS) != NULL) 
+        {           
+            return runBlock(falseBlock);
+        }
+    }
+
     return true;
 }
 
 
 bool mtrk_api::runActionInit(cJSON* item)
 {
+    if (!state.isDryRun)
+    {    
+        // TODO: Update slice object
+        NLSStatus result=fRTEBInit(parent->m_asSLC[0].getROT_MATRIX());
+        if (result.isError())
+        {
+            MTRK_LOG("ERROR running fRTEBInit")
+            return false;            
+        }
+    }
+    
+    state.tableDuration = 0;
+    state.tableStart = 0;
+    
     return true;
 }
 
 
 bool mtrk_api::runActionSubmit(cJSON* item)
 {
+    if (!state.isDryRun)
+    {    
+        NLSStatus result=fRTEBFinish();
+        if (result.isError())
+        {
+            MTRK_LOG("ERROR running fRTEBFinish")
+            return false;            
+        }
+    }
+
+    state.clock += state.tableDuration;
+    state.tableDuration = -1;
+    state.tableStart = -1;
+
     return true;
 }
 
@@ -416,6 +472,14 @@ bool mtrk_api::runActionSync(cJSON* item)
 
 bool mtrk_api::runActionMark(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
+
+    if (!state.isDryRun)
+    {
+        fRTEI(time->valueint, 0, 0, 0, 0, 0, 0, 0);
+    }
+    state.updateDuration(time->valueint);
+    
     return true;
 }
 
@@ -469,6 +533,7 @@ bool mtrk_api::runActionCalc(cJSON* item)
         }              
         state.floats[index_int]=value->valuedouble;
     }
+    else
     if (strcmp(type->valuestring, MTRK_OPTIONS_EQUATION)==0)
     {
         MTRK_GETITEM(item, MTRK_PROPERTIES_EQUATION, equation)
@@ -503,6 +568,42 @@ bool mtrk_api::runActionCalc(cJSON* item)
             state.counters[index]=int(equationValue);
         }
     }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_RFSPOIL)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_INCREMENT, increment)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, index)
+        int index_int=index->valueint;
+
+        // Note: Two floats are needed for the RF spoiling scheme
+        if ((index_int<0) || (index_int>=MTRK_DEFS_FLOATS-1))
+        {
+            return false;
+        }
+
+        // Increase the increment
+        state.floats[index_int+1]+=increment->valuedouble;
+
+        // Increase the actual RF phase with the increment
+        state.floats[index_int]+=state.floats[index_int+1];
+    }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_GET)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_ARRAY, array)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, target)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
+        int target_int=target->valueint;      
+        int counter_int=counter->valueint;      
+
+        if ((target_int<0) || (target_int>=MTRK_DEFS_FLOATS))
+        {
+            return false;
+        }
+
+        // TODO
+        state.floats[target_int]=0.;
+    }
 
     return true;
 }
@@ -522,6 +623,11 @@ bool mtrk_api::run()
 
     MTRK_LOG("RunBlock")
     MTRK_RETONFAIL(runBlock(sections.getBlock(MTRK_OPTIONS_MAIN)))
+    if (state.tableStart != -1)
+    {
+        MTRK_LOG("ERROR: Sequence not properly terminated")
+        return false;
+    }
    
     MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
     MTRK_LOG("EQ2 = " << equations.evaluate("test"))

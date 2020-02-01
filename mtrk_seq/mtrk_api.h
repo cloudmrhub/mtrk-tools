@@ -3,6 +3,10 @@
 
 #include "cJSON.h"
 
+#include "MrServers/MrMeasSrv/SeqIF/libRT/libRT.h"
+#include "MrServers/MrMeasSrv/MeasUtils/NLSStatus.h"
+
+
 #include "mtrk_common.h"
 #include "mtrk_equations.h"
 
@@ -38,11 +42,24 @@ namespace SEQ_NAMESPACE
         int      counters[MTRK_DEFS_COUNTERS];
         double   floats  [MTRK_DEFS_FLOATS];
         long int clock;
-        long int table_start;
-        long int table_duration;
+        long int tableStart;
+        long int tableDuration;
 
-        void reset();
+        bool     isDryRun;
+
+        void reset(bool dryRun=true);
+
+        void updateDuration(int time);
     };
+
+
+    inline void mtrk_state::updateDuration(int time)
+    {
+        if (time > tableDuration)
+        {
+            tableDuration=time;
+        }
+    }
 
 
     class mtrk_api
@@ -62,9 +79,8 @@ namespace SEQ_NAMESPACE
         mtrk_state     state;
         mtrk_equations equations;
 
-        int           recursions;
-
-        char*    loadedMeasurementID;
+        int            recursions;
+        char*          loadedMeasurementID;
 
         bool prepare(bool isBinarySearch=false);
 

@@ -36,6 +36,7 @@
 #define MTRK_PROPERTIES_DURATION    "duration"
 #define MTRK_PROPERTIES_OBJECT      "object"
 #define MTRK_PROPERTIES_EQUATION    "equation"
+#define MTRK_PROPERTIES_INCREMENT   "increment"
 #define MTRK_PROPERTIES_MEMINDEX    "memindex"
 
 #define MTRK_OPTIONS_MAIN           "main"
@@ -44,6 +45,7 @@
 #define MTRK_OPTIONS_COUNTER_SET    "counter_set"
 #define MTRK_OPTIONS_FLOAT_INC      "float_inc"
 #define MTRK_OPTIONS_FLOAT_SET      "float_set"
+#define MTRK_OPTIONS_FLOAT_GET      "float_get"
 #define MTRK_OPTIONS_RFSPOIL        "float_rfspoil"
 #define MTRK_OPTIONS_EQUATION       "equation"
 

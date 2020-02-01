@@ -56,7 +56,6 @@ namespace SEQ_NAMESPACE
 
         mtrk_api mapi;
 
-    protected:
         double m_dRFSpoilPhase;
         double m_dRFSpoilIncrement;
         int32_t m_lCenterLine;
