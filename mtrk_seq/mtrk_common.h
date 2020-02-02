@@ -53,7 +53,7 @@
 #define MTRK_OPTIONS_EQUATION       "equation"
 #define MTRK_OPTIONS_BASE64         "base64"
 #define MTRK_OPTIONS_TEXT           "text"
-#define MTRK_OPTIONS_INTEGER        "int"
+#define MTRK_OPTIONS_INT            "int"
 #define MTRK_OPTIONS_FLOAT          "float"
 #define MTRK_OPTIONS_COMPLEX_FLOAT  "complex_float"
 #define MTRK_OPTIONS_DOUBLE         "double"

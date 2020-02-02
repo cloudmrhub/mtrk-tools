@@ -208,19 +208,13 @@ bool mtrk_api::prepare(bool isBinarySearch)
     
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
     MTRK_RETONFAIL(arrays.prepare(sections.arrays))
-    MTRK_RETONFAIL(prepareObjects())    
+    MTRK_RETONFAIL(objects.prepare(sections.objects))    
     MTRK_RETONFAIL(equations.prepare(sections.equations))    
     MTRK_RETONFAIL(prepareBlocks())    
 
     // DEBUG
     run();
 
-    return true;
-}
-
-
-bool mtrk_api::prepareObjects()
-{
     return true;
 }
 
@@ -618,6 +612,8 @@ bool mtrk_api::run()
    
     MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
     MTRK_LOG("EQ2 = " << equations.evaluate("test"))
+
+    arrays.dumpAll();
 
     return true;
 }

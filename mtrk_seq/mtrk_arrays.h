@@ -13,7 +13,7 @@ namespace SEQ_NAMESPACE
         enum
         {
             INVALID=-1,
-            INTEGER=0,
+            INT=0,
             FLOAT=1,
             COMPLEX_FLOAT=2,
             DOUBLE=3,
@@ -42,6 +42,8 @@ namespace SEQ_NAMESPACE
 
         float* getData();
         
+        void dump();
+
         void* data;
         int size;
         int type;
@@ -57,6 +59,10 @@ namespace SEQ_NAMESPACE
         
         void clear();
         bool prepare(cJSON* section);
+        mtrk_array* getArray(int index);
+        mtrk_array* getArray(char* name);      
+
+        void dumpAll();
 
         mtrk_array** arrayData;
         cJSON* arrays;

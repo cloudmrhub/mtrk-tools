@@ -9,6 +9,7 @@
 #include "mtrk_common.h"
 #include "mtrk_equations.h"
 #include "mtrk_arrays.h"
+#include "mtrk_objects.h"
 
 
 namespace SEQ_NAMESPACE
@@ -80,13 +81,12 @@ namespace SEQ_NAMESPACE
         mtrk_state     state;
         mtrk_equations equations;
         mtrk_arrays    arrays;
+        mtrk_objects   objects;
 
         int            recursions;
         char*          loadedMeasurementID;
 
         bool prepare(bool isBinarySearch=false);
-
-        bool prepareObjects();
         bool prepareBlocks();
 
         bool run();

@@ -28,7 +28,7 @@ bool mtrk_array::allocate(int dataType, int dataSize)
 {
     switch (dataType)
     {
-    case INTEGER:
+    case INT:
         elementSize=sizeof(int);
         break;
     case FLOAT:
@@ -94,7 +94,7 @@ bool mtrk_array::loadText(cJSON* dataItem)
     int i=0;
     cJSON* entry=0;
 
-    if (type==INTEGER)
+    if (type==INT)
     {
         cJSON_ArrayForEach(entry, dataItem)
         {
@@ -205,6 +205,8 @@ bool mtrk_array::loadBase64(cJSON* dataItem)
         MTRK_LOG("ERROR: Data item is not a base64 string.");
     }
     
+    // TODO
+
     return true;
 }
 
@@ -218,7 +220,7 @@ double mtrk_array::getDouble(int index)
     
     switch (type)
     {
-    case INTEGER:
+    case INT:
         return ((int*) data)[index];
         break;
     case FLOAT:
@@ -251,7 +253,7 @@ int mtrk_array::getInt(int index)
 
     switch (type)
     {
-    case INTEGER:
+    case INT:
         return ((int*) data)[index];
         break;
     case FLOAT:
@@ -290,7 +292,7 @@ double mtrk_array::getFreqency(int index)
     case COMPLEX_DOUBLE:
         return ((double*) data)[2*index+1];
         break;   
-    case INTEGER:
+    case INT:
     case FLOAT:
     case DOUBLE:
     case INVALID:
@@ -318,7 +320,7 @@ double mtrk_array::getPhase(int index)
     case COMPLEX_DOUBLE:
         return ((double*) data)[2*index+1];
         break;   
-    case INTEGER:
+    case INT:
     case FLOAT:
     case DOUBLE:
     case INVALID:
@@ -334,6 +336,16 @@ double mtrk_array::getPhase(int index)
 float* mtrk_array::getData()
 {
     return (float*) data;
+}
+
+
+void mtrk_array::dump()
+{
+    for (int i=0; i<size; i++)
+    {
+        std::cout << getDouble(i) << " ";
+    }
+    std::cout << std::endl;
 }
 
 
@@ -409,9 +421,9 @@ bool mtrk_arrays::prepare(cJSON* section)
             encoding_int=mtrk_array::BASE64;
         }
 
-        if (strcmp(arrayType->valuestring, MTRK_OPTIONS_INTEGER)==0)
+        if (strcmp(arrayType->valuestring, MTRK_OPTIONS_INT)==0)
         {
-            type_int=mtrk_array::INTEGER;
+            type_int=mtrk_array::INT;
         }
         else
         if (strcmp(arrayType->valuestring, MTRK_OPTIONS_FLOAT)==0)
@@ -449,4 +461,39 @@ bool mtrk_arrays::prepare(cJSON* section)
     arrays=section;
     
     return true;
+}
+
+
+mtrk_array* mtrk_arrays::getArray(int index)
+{
+    if ((index < 0) || (index > count))
+    {
+        return 0;
+    }
+    return arrayData[index];
+}
+
+
+mtrk_array* mtrk_arrays::getArray(char* name)
+{
+    cJSON* array = cJSON_GetObjectItemCaseSensitive(arrays, name);
+    if (array==NULL)
+    {
+        return 0;
+    }
+    cJSON* index = cJSON_GetObjectItemCaseSensitive(array, MTRK_PROPERTIES_MEMINDEX);
+    if (index==NULL)
+    {
+        return 0;
+    }
+    return arrayData[index->valueint];
+}
+
+
+void mtrk_arrays::dumpAll()
+{
+    for (int i=0; i<count; i++)
+    {
+        getArray(i)->dump();        
+    }
 }
