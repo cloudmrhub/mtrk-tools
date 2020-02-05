@@ -16,6 +16,12 @@ class Sequence;
 
 namespace SEQ_NAMESPACE
 {
+    namespace MTRK_UI
+    {
+        bool getLimitsReadoutFOV(LINK_DOUBLE_TYPE* const pThis, std::vector<MrLimitDouble>& rLimitVector, unsigned long& rulVerify, long /*lIndex*/);
+        double setValueReadFOV(LINK_DOUBLE_TYPE* const pThis, double dDesiredPhaseFOV, long lIndex);
+    }
+    
     class mtrkUI 
     {
     public:
@@ -23,6 +29,11 @@ namespace SEQ_NAMESPACE
         mtrkUI();
         virtual ~mtrkUI();
         NLS_STATUS registerUI (SeqLim &rSeqLim);
+
+        UILimitedElement<LINK_DOUBLE_TYPE> m_ReadFoV;
+        UILimitedElement<LINK_DOUBLE_TYPE> m_PhaseFoV;
+
+        void test(SeqLim& rSeqLim);
 
     };
 };

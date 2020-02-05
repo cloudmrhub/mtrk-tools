@@ -80,6 +80,7 @@ LDLIBS (libSBB)
 LDLIBS (libSeqUtil)
 LDLIBS (libSeqUT)
 LDLIBS (libUICtrl)
+LDLIBS (MrBasicObjects)
 MSDEV_i586_WinNT400(LDLIBS (libUILink))
 
 

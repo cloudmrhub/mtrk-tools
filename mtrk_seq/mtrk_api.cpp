@@ -11,6 +11,13 @@ using namespace SEQ_NAMESPACE;
 
 mtrk_sections::mtrk_sections()
 {
+    loadedMeasurementID=0;
+    clear();
+}
+
+
+mtrk_sections::~mtrk_sections()
+{
     clear();
 }
 
@@ -23,6 +30,7 @@ void mtrk_sections::clear()
     objects=0;
     arrays=0;
     equations=0; 
+    MTRK_DELETE(loadedMeasurementID);
 }
 
 
@@ -42,6 +50,9 @@ bool mtrk_sections::load(cJSON* sequence)
         if (strcmp(section->string,MTRK_SECTIONS_FILE)==0)
         {
             file=section;
+            cJSON* measurementID=cJSON_GetObjectItemCaseSensitive(section, MTRK_PROPERTIES_MEASUREMENT);
+            loadedMeasurementID=new char[strlen(measurementID->valuestring)+1];
+            strcpy(loadedMeasurementID,measurementID->valuestring);
         }
         else
         if (strcmp(section->string,MTRK_SECTIONS_SETTINGS)==0)
@@ -114,7 +125,6 @@ mtrk_api::mtrk_api()
 {
     parent=0;
     sequence=0;
-    loadedMeasurementID=0;
     equations.setStateInstance(&state);
 }
 
@@ -158,7 +168,7 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
     cJSON* measurement_item=cJSON_GetObjectItemCaseSensitive(file_section, MTRK_PROPERTIES_MEASUREMENT);
     if (cJSON_IsString(measurement_item) && (measurement_item->valuestring != NULL))
     {
-        if ((!forceLoad) && (loadedMeasurementID!=0) && (strcmp(loadedMeasurementID,measurement_item->valuestring)==0))
+        if ((!forceLoad) && (sections.loadedMeasurementID!=0) && (strcmp(sections.loadedMeasurementID,measurement_item->valuestring)==0))
         {
             MTRK_LOG("Sequence already loaded")
             cJSON_Delete(tempSequence);
@@ -183,6 +193,11 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
         return false;
     }
 
+    MTRK_RETONFAIL(arrays.prepare(sections.arrays))
+    MTRK_RETONFAIL(objects.prepare(sections.objects))    
+    MTRK_RETONFAIL(equations.prepare(sections.equations))    
+    MTRK_RETONFAIL(prepareBlocks())    
+
     MTRK_LOG("Sequence instructions loaded.")
     return true;
 }
@@ -190,12 +205,16 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
 
 void mtrk_api::unloadSequence()
 {
+    sections.clear();
+    arrays.clear();
+    equations.clear();
+    objects.clear();
+
     if (sequence)
     {
         cJSON_Delete(sequence);
         sequence=0;
     }
-    MTRK_DELETE(loadedMeasurementID)    
 }
 
 
@@ -207,13 +226,9 @@ bool mtrk_api::prepare(bool isBinarySearch)
     }
     
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
-    MTRK_RETONFAIL(arrays.prepare(sections.arrays))
-    MTRK_RETONFAIL(objects.prepare(sections.objects))    
-    MTRK_RETONFAIL(equations.prepare(sections.equations))    
-    MTRK_RETONFAIL(prepareBlocks())    
 
     // DEBUG
-    run();
+    //run();
 
     return true;
 }
@@ -612,9 +627,51 @@ bool mtrk_api::run()
    
     MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
     MTRK_LOG("EQ2 = " << equations.evaluate("test"))
+    MTRK_LOG("SEQNAME = " << getSettingString(MTRK_SETTINGS_SEQSTRING,"M"))
 
     arrays.dumpAll();
 
     return true;
 }
 
+
+int mtrk_api::getSettingInt(char* name, int defaultValue)
+{
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,name);
+    if (item==NULL)
+    {
+        return defaultValue;
+    }    
+    else
+    {
+        return item->valueint;    
+    }
+}
+
+
+double mtrk_api::getSettingDouble(char* name, double defaultValue)
+{
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,name);
+    if (item==NULL)
+    {
+        return defaultValue;
+    }    
+    else
+    {
+        return item->valuedouble;
+    }
+}
+
+
+char* mtrk_api::getSettingString(char* name, char* defaultValue)
+{
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,name);
+    if (item==NULL)
+    {
+        return defaultValue;
+    }    
+    else
+    {
+        return item->valuestring;    
+    }
+}

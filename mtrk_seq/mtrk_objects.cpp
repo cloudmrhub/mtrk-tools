@@ -73,8 +73,6 @@ bool mtrk_objects::prepare(cJSON* section)
 }
 
 
-
-
 mtrk_object::mtrk_object()
 {
     type=INVALID;

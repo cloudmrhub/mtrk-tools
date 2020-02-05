@@ -20,6 +20,7 @@ namespace SEQ_NAMESPACE
     {
     public:
         mtrk_sections();
+        ~mtrk_sections();
 
         cJSON* file;
         cJSON* settings;
@@ -27,6 +28,8 @@ namespace SEQ_NAMESPACE
         cJSON* objects;
         cJSON* arrays;
         cJSON* equations;
+
+        char*  loadedMeasurementID;
 
         void clear();
         bool isComplete();
@@ -84,7 +87,6 @@ namespace SEQ_NAMESPACE
         mtrk_objects   objects;
 
         int            recursions;
-        char*          loadedMeasurementID;
 
         bool prepare(bool isBinarySearch=false);
         bool prepareBlocks();
@@ -104,6 +106,10 @@ namespace SEQ_NAMESPACE
         bool runActionMark     (cJSON* item);
         bool runActionCalc     (cJSON* item);        
         bool runActionDebug    (cJSON* item);
+
+        int    getSettingInt   (char* name, int defaultValue);
+        double getSettingDouble(char* name, double defaultValue);
+        char*  getSettingString(char* name, char* defaultValue);
     };
 
 }

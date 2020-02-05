@@ -56,6 +56,7 @@ namespace SEQ_NAMESPACE
 
         mtrk_api mapi;
 
+        /*
         double m_dRFSpoilPhase;
         double m_dRFSpoilIncrement;
         int32_t m_lCenterLine;
@@ -63,8 +64,11 @@ namespace SEQ_NAMESPACE
         double m_dGradMaxAmpl;
         int32_t m_lLinesPerSec;
         int32_t m_lLinesToMeasure;
+        */
 
-        sSLICE_POS       m_asSLC[1];
+        sSLICE_POS       m_asSLC[K_NO_SLI_MAX];
+
+        /*
         sRF_PULSE_SINC   m_sSRF01;
         sFREQ_PHASE      m_sSRF01zSet;
         sFREQ_PHASE      m_sSRF01zNeg;
@@ -79,6 +83,7 @@ namespace SEQ_NAMESPACE
         sGRAD_PULSE_PE   m_sGPhasEncRew;
         sGRAD_PULSE      m_sGSpoil;
         sSYNC_OSC        m_sOscBit;
+        */
 
         mtrkUI* m_pUI;
         NLS_STATUS createUI (SeqLim &rSeqLim);

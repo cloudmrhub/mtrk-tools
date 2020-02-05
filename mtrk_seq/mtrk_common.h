@@ -75,6 +75,10 @@
 #define MTRK_ACTIONS_CALC           "calc"
 #define MTRK_ACTIONS_DEBUG          "debug"
 
+#define MTRK_SETTINGS_SLICES        "slices"
+#define MTRK_SETTINGS_FOV           "fov"
+#define MTRK_SETTINGS_SEQSTRING     "seqstring"
+
 #define MTRK_LOG(x)                std::cout << x << std::endl;
 #define MTRK_DELETE(x)             if (x!=0) { delete x; x=0; }
 #define MTRK_RETONFAIL(x)          if (!x) { return false; }

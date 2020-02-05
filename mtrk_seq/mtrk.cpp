@@ -20,7 +20,9 @@
 using namespace SEQ_NAMESPACE;
 
 mtrk::mtrk()
-            : m_dRFSpoilPhase       (0.0)
+            : m_pUI                 (NULL)      
+            /*      
+            , m_dRFSpoilPhase       (0.0)
             , m_dRFSpoilIncrement   (0.0)
             , m_lCenterLine         (0)
             , m_dMinRiseTime        (100000.0)
@@ -41,7 +43,7 @@ mtrk::mtrk()
             , m_sGPhasEncRew        ("sGPhasEncRew")
             , m_sGSpoil             ("m_sGSpoil")
             , m_sOscBit             ("m_sOscBit")
-            , m_pUI                 (NULL)
+            */
 {
     mapi.setParent(this);
 }
@@ -60,37 +62,38 @@ mtrk::~mtrk()
 NLSStatus mtrk::initialize(SeqLim &rSeqLim)
 {
     static const char *ptModule = {"mtrk::initialize"};
-
     NLS_STATUS lStatus = SEQU__NORMAL;
 
-    rSeqLim.setAllowedFrequency     (    8000000,  500000000);
-    rSeqLim.setTR                   (    0,  100,    5000000,           10,    20000);
-    rSeqLim.setTE                   (    0,  100,     100000,           10,    10000);
-    rSeqLim.setBandWidthPerPixel    (    0,   80,        900,           10,      260);
-    rSeqLim.setFlipAngle            (       10.0,       90.0,          1.0,   15.000);
-    rSeqLim.setBaseResolution       (         64,        512,  SEQ::INC_64,      128);
+    rSeqLim.setAllowedFrequency(8000000,500000000);
+    rSeqLim.enableSliceShift();
+    rSeqLim.enableMSMA();
+    rSeqLim.enableOffcenter();
+    rSeqLim.setAllowedSliceOrientation(SEQ::DOUBLE_OBLIQUE);   
+    //rSeqLim.setBandWidthPerPixel  (    0,   80,        900,           10,      260);
+    //rSeqLim.setFlipAngle          (       10.0,       90.0,          1.0,   15.000);
+    //rSeqLim.setBaseResolution     (         64,        512,  SEQ::INC_64,      128);
     rSeqLim.setReadoutFOV           (        100,        500,            1,      300);
     rSeqLim.setPhaseFOV             (        100,        500,            1,      300);
-    rSeqLim.setPELines              (         32,       1024,            1,      128);
-    rSeqLim.setSlices               (          1,          1,            1,        1);
-    rSeqLim.setSliceThickness       (      2.000,     10.000,        0.500,    5.000);
+    rSeqLim.setSlices               (          1,         K_NO_SLI_MAX,            1,        1);
+    rSeqLim.setMultipleSeriesMode(SEQ::MULTIPLE_SERIES_OFF, SEQ::MULTIPLE_SERIES_EACH_MEASUREMENT, SEQ::MULTIPLE_SERIES_EACH_SLICE, SEQ::MULTIPLE_SERIES_EACH_SLICE_AND_MEASUREMENT);
+    rSeqLim.setAdjShim(SEQ::ADJSHIM_STANDARD, SEQ::ADJSHIM_TUNEUP);
 
     if((MRRESULT_SEV & (lStatus = createUI(rSeqLim))) == MRRESULT_SEV) 
     {
-        MRTRACE("Instantiation of MiniFlashUI class failed!");
+        MRTRACE("Instantiation of UI class failed!");
         return lStatus;
     }
 
 #ifdef WIN32
     if(NULL == m_pUI) 
     {
-        MRTRACE("MiniFlashUI object pointer is null (creation failed probably)!");
+        MRTRACE("UI object pointer is null (creation failed probably)!");
         return ( SEQU_ERROR );
     }
     lStatus = m_pUI->registerUI(rSeqLim);
     if(MrSeverity(lStatus) != MRRESULT_SUCCESS) 
     {
-        MRTRACE("Registering MiniFlashUI object failed! Errorcode: %i", lStatus);
+        MRTRACE("Registering UI object failed! Errorcode: %i", lStatus);
         return lStatus;
     }
 
@@ -107,6 +110,24 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
 
     static const char *ptModule = {"mtrk::prepare"};
     NLS_STATUS   lStatus = SEQU__NORMAL;
+
+    //if (rSeqLim.isContextPrepForBinarySearch())
+    //{
+     //   if (rMrProt.sliceSeries().getlSize() != mapi.getSettingInt(MTRK_SETTINGS_SLICES,2))
+     //   {
+     //       return SEQU_ERROR;
+     //   }
+    // }
+    //rMrProt.sliceSeries().setlSize(5);
+
+    //rMrProt.sliceSeries().setlSize(mapi.getSettingInt(MTRK_SETTINGS_SLICES,2));
+    //rMrProt.getsSliceArray()[0].setdReadoutFOV(320);
+    //rMrProt.sliceGroupList().aFront().setdReadoutFOV(320);
+    //rMrProt.sliceSeries().aFront().setdReadoutFOV(320);
+    //rMrProt.sliceSeries().aFront().setdPhaseFOV(320);
+    //rMrProt.sliceSeries().aFront().getSliceData().setdReadoutFOV(320);
+
+    /*
 
     int32_t lMinRequiredTE, lMinRequiredTR, lPhaseEncTotalTime;
     double dMeasureTimeUsec = 0.0;
@@ -209,15 +230,19 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
     m_sOscBit.setCode(SYNCCODE_OSC0);
     m_sOscBit.setDuration(10);
 
+    */
+
+    double dMeasureTimeUsec = 0.;
+    int lLinesToMeasure=0;
+
     OnErrorReturn(fSSLSetRxGain(K_RX_GAIN_CODE_HIGH, rMrProt, rSeqLim));
     OnErrorReturn(fSUPrepSlicePosArray (rMrProt, rSeqLim, m_asSLC));
+    fSUSetSequenceString(mapi.getSettingString(MTRK_SETTINGS_SEQSTRING,"MTRK"), rMrProt, rSeqExpo);
 
-    fSUSetSequenceString               ("fl", rMrProt, rSeqExpo);
-
-    rSeqExpo.setRFInfo                (m_lLinesToMeasure * m_sSRF01.getRFInfo());
+    //rSeqExpo.setRFInfo                (m_lLinesToMeasure * m_sSRF01.getRFInfo());
     rSeqExpo.setMeasureTimeUsec       (dMeasureTimeUsec);
     rSeqExpo.setTotalMeasureTimeUsec  (dMeasureTimeUsec);
-    rSeqExpo.setMeasuredPELines       (m_lLinesToMeasure);
+    rSeqExpo.setMeasuredPELines       (lLinesToMeasure);
     rSeqExpo.setOnlineFFT             (SEQ::ONLINE_FFT_PHASE);
     rSeqExpo.setICEProgramFilename    ("%SiemensIceProgs%\\IceProgram2D");
 
@@ -253,10 +278,9 @@ NLSStatus mtrk::run(MrProt  &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExpo &
         mSEQTest(rMrProt, rSeqLim, rSeqExpo, RTEB_ORIGIN_fSEQRunStart, 0, 0, 0, 0, 0);
     }
 
+    /*
     int32_t lLine;
     int32_t lCurrKernelCalls = 0;
-
-    OnErrorReturn(fSBBMeasRepetDelaysRun (rMrProt, rSeqLim, rSeqExpo, 0));
 
     m_sADC01.getMDH().addToEvalInfoMask(MDH_ONLINE);
     m_sADC01.getMDH().setKSpaceCentreLineNo((unsigned short)rMrProt.kSpace().echoLine());
@@ -280,6 +304,8 @@ NLSStatus mtrk::run(MrProt  &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExpo &
         OnErrorReturn(runKernel(rMrProt, rSeqLim, rSeqExpo, KERNEL_IMAGE, 0, 0, lLine));
     }
 
+    */
+
     if(IS_UNIT_TEST_ACTIVE(rSeqLim))
     {
         mSEQTest(rMrProt, rSeqLim, rSeqExpo, RTEB_ORIGIN_fSEQRunFinish, 0, 0, 0, 0, 0);
@@ -294,6 +320,7 @@ NLS_STATUS mtrk::runKernel(MrProt &rMrProt, SeqLim &rSeqLim,  MrProtocolData::Se
     static const char *ptModule = {"mtrk::runKernel"};
     NLS_STATUS lStatus  = SEQU__NORMAL;
 
+    /*
     if(!m_sGPhasEnc.prepPE(rMrProt, lLine - m_lCenterLine))    return (m_sGPhasEnc.getNLSStatus());
     if(!m_sGPhasEncRew.prepPE(rMrProt, m_lCenterLine - lLine)) return (m_sGPhasEncRew.getNLSStatus());
 
@@ -317,10 +344,6 @@ NLS_STATUS mtrk::runKernel(MrProt &rMrProt, SeqLim &rSeqLim,  MrProtocolData::Se
     m_sADC01zNeg.decreasePhase(m_dRFSpoilPhase);
 
     fRTEBInit(m_asSLC[0].getROT_MATRIX());
-    // - **************************************** S E Q U E N C E   T I M I N G ******************************************
-    // - *           Start Time    |    NCO    |   SRF   |   ADC   |            Gradient Events            |   Sync
-    // - *             (usec)      |   Event   |  Event  |  Event  |    phase   |   read     |    slice    |   Event
-    // - *****************************************************************************************************************
     fRTEI(                        0,          0,        0,        0,            0,            0,  &m_sGSliSel,&m_sOscBit);
 
     fRTEI(m_sGSliSel.getDuration()
@@ -353,6 +376,7 @@ NLS_STATUS mtrk::runKernel(MrProt &rMrProt, SeqLim &rSeqLim,  MrProtocolData::Se
     }
 
     OnErrorReturn(fRTEBFinish());
+    */
 
     return(lStatus);
 }
