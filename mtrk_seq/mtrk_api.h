@@ -24,6 +24,7 @@ namespace SEQ_NAMESPACE
 
         cJSON* file;
         cJSON* settings;
+        cJSON* infos;
         cJSON* instructions;
         cJSON* objects;
         cJSON* arrays;
@@ -107,9 +108,9 @@ namespace SEQ_NAMESPACE
         bool runActionCalc     (cJSON* item);        
         bool runActionDebug    (cJSON* item);
 
-        int    getSettingInt   (char* name, int defaultValue);
-        double getSettingDouble(char* name, double defaultValue);
-        char*  getSettingString(char* name, char* defaultValue);
+        int    getInfoInt   (char* name, int defaultValue);
+        double getInfoDouble(char* name, double defaultValue);
+        char*  getInfoString(char* name, char* defaultValue);
     };
 
 }

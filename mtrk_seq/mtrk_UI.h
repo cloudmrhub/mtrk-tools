@@ -20,6 +20,7 @@ namespace SEQ_NAMESPACE
     {
         bool getLimitsReadoutFOV(LINK_DOUBLE_TYPE* const pThis, std::vector<MrLimitDouble>& rLimitVector, unsigned long& rulVerify, long /*lIndex*/);
         double setValueReadFOV(LINK_DOUBLE_TYPE* const pThis, double dDesiredPhaseFOV, long lIndex);
+        double getValuePhaseFOV(LINK_DOUBLE_TYPE* const pThis, long lIndex);
     }
     
     class mtrkUI 

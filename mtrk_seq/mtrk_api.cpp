@@ -26,6 +26,7 @@ void mtrk_sections::clear()
 {
     file=0;
     settings=0;
+    infos=0;
     instructions=0;
     objects=0;
     arrays=0;
@@ -58,6 +59,11 @@ bool mtrk_sections::load(cJSON* sequence)
         if (strcmp(section->string,MTRK_SECTIONS_SETTINGS)==0)
         {
             settings=section;
+        }   
+        else     
+        if (strcmp(section->string,MTRK_SECTIONS_INFOS)==0)
+        {
+            infos=section;
         }   
         else     
         if (strcmp(section->string,MTRK_SECTIONS_INSTRUCTIONS)==0)
@@ -627,7 +633,7 @@ bool mtrk_api::run()
    
     MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
     MTRK_LOG("EQ2 = " << equations.evaluate("test"))
-    MTRK_LOG("SEQNAME = " << getSettingString(MTRK_SETTINGS_SEQSTRING,"M"))
+    MTRK_LOG("SEQNAME = " << getInfoString(MTRK_INFOS_SEQSTRING,"M"))
 
     arrays.dumpAll();
 
@@ -635,9 +641,9 @@ bool mtrk_api::run()
 }
 
 
-int mtrk_api::getSettingInt(char* name, int defaultValue)
+int mtrk_api::getInfoInt(char* name, int defaultValue)
 {
-    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,name);
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.infos,name);
     if (item==NULL)
     {
         return defaultValue;
@@ -649,9 +655,9 @@ int mtrk_api::getSettingInt(char* name, int defaultValue)
 }
 
 
-double mtrk_api::getSettingDouble(char* name, double defaultValue)
+double mtrk_api::getInfoDouble(char* name, double defaultValue)
 {
-    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,name);
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.infos,name);
     if (item==NULL)
     {
         return defaultValue;
@@ -663,9 +669,9 @@ double mtrk_api::getSettingDouble(char* name, double defaultValue)
 }
 
 
-char* mtrk_api::getSettingString(char* name, char* defaultValue)
+char* mtrk_api::getInfoString(char* name, char* defaultValue)
 {
-    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,name);
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.infos,name);
     if (item==NULL)
     {
         return defaultValue;

@@ -14,6 +14,14 @@ using namespace SEQ_NAMESPACE;
 
 #ifdef WIN32
 
+
+enum eSeqSpecialParameters 
+{
+    WIP_Checkbox_1 = 1, 
+    WIP_Checkbox_2
+};
+
+
 mtrk* getSeq (MrUILinkBase* const pThis)
 {
     return ( static_cast<mtrk*>(pThis->sequence().getSeq()) );
@@ -66,7 +74,7 @@ double MTRK_UI::setValueReadFOV(LINK_DOUBLE_TYPE* const pThis, double dDesiredFO
 {   
     std::cout << "Set Call " <<  dDesiredFOV << std::endl;
 
-    dDesiredFOV=380;
+    //dDesiredFOV=380;
 
     const mtrkUI* pSeqUI = static_cast<mtrk*>(pThis->sequence().getSeq())->m_pUI;
     if ( pSeqUI->m_ReadFoV.getOrigSetValueHandler() )
@@ -75,7 +83,7 @@ double MTRK_UI::setValueReadFOV(LINK_DOUBLE_TYPE* const pThis, double dDesiredFO
     }
 
 
-    double dMin = 380.;
+    //double dMin = 380.;
 
 /*
     LINK_DOUBLE_TYPE* pItem = _search<LINK_DOUBLE_TYPE>(pThis, MR_TAG_READOUT_FOV);
@@ -90,25 +98,108 @@ double MTRK_UI::setValueReadFOV(LINK_DOUBLE_TYPE* const pThis, double dDesiredFO
 }
 
 
+double MTRK_UI::getValuePhaseFOV(LINK_DOUBLE_TYPE* const pThis, long lIndex)
+{   
+    std::cout << "Get Call ";
+
+    double value=0;
+
+    const mtrkUI* pSeqUI = static_cast<mtrk*>(pThis->sequence().getSeq())->m_pUI;
+    if ( pSeqUI->m_PhaseFoV.getOrigGetValueHandler() )
+    {
+        value = ( *pSeqUI->m_PhaseFoV.getOrigGetValueHandler() )(pThis, lIndex);
+    }    
+/*
+    if ( pSeqUI->m_ReadFoV.getOrigSetValueHandler() )
+    {
+        ( *pSeqUI->m_ReadFoV.getOrigSetValueHandler() )(pThis, 380., lIndex);
+    }
+*/
+    return value;
+}
+
+
+
+unsigned wipCheckboxGetToolTipId(LINK_BOOL_TYPE* const pThis, char* arg_list[], long lIndex)
+{
+    static char tLine    [100];
+    static char tToolTip[1000];
+    MrProt rMrProt (pThis->prot());
+
+    tToolTip[0] = '\0';
+
+    switch (lIndex)
+    {
+    case WIP_Checkbox_1 :
+        sprintf(tLine,"A spoiler a day"); strcat(tToolTip,tLine);
+        sprintf(tLine,"\nKeeps the doctor away"); strcat(tToolTip,tLine);
+        sprintf(tLine,"\nIf selected, spoiler gradients are used" ); strcat(tToolTip,tLine);
+        arg_list[0] = tToolTip;
+        return MRI_STD_STRING;
+        break;
+
+    default : break;
+    }
+
+    return 0;
+}
+
+
+unsigned wipCheckboxGetLabelId(LINK_BOOL_TYPE* const, char* arg_list[], long lIndex)
+{
+    static const char* const pszLabel0 = "MTRK";
+
+    switch(lIndex)
+    {
+    case WIP_Checkbox_1: 
+        arg_list[0] = (char*)pszLabel0   ; break;
+    default: 
+        break;
+    }
+    return MRI_STD_STRING;
+}
+
+
+bool wipCheckboxGetOptions(LINK_BOOL_TYPE* const /*pThis*/ , std::vector<unsigned>& rOptionVector, unsigned long& rulVerify, long /*lIndex*/)
+{
+    rulVerify = LINK_BOOL_TYPE::VERIFY_ON;
+    rOptionVector.resize(2);
+    rOptionVector[0] = false;
+    rOptionVector[1] = true;
+    return true;
+}
+
+
+bool wipCheckboxGetValue(LINK_BOOL_TYPE* const pThis , long lIndex)
+{
+    return false;
+}
+
+
+bool wipCheckboxSetValue(LINK_BOOL_TYPE* const pThis, bool value, long lIndex)
+{
+    return true;
+}
+
+
 NLS_STATUS mtrkUI::registerUI(SeqLim& rSeqLim)
 {
     static const char * const ptModule = {"mtrkUI::registerUI"};
 
-    std::cout << "Registering UI" << std::endl;
+    //m_ReadFoV.registerGetLimitsHandler(rSeqLim, MR_TAG_READOUT_FOV,MTRK_UI::getLimitsReadoutFOV);
+    //m_ReadFoV.registerSetValueHandler (rSeqLim, MR_TAG_READOUT_FOV,MTRK_UI::setValueReadFOV);
+    //m_PhaseFoV.registerGetValueHandler(rSeqLim, MR_TAG_PHASE_FOV,MTRK_UI::getValuePhaseFOV);
 
-    m_ReadFoV.registerGetLimitsHandler(rSeqLim, MR_TAG_READOUT_FOV,MTRK_UI::getLimitsReadoutFOV);
-    m_ReadFoV.registerSetValueHandler (rSeqLim, MR_TAG_READOUT_FOV,MTRK_UI::setValueReadFOV);
-
-/*
-    if( LINK_LONG_TYPE* pFOV = _search<LINK_LONG_TYPE>(rSeqLim, MR_TAG_READOUT_FOV) )
-    {  
-        std::cout << "GetLimits" << std::endl;
-        pFOV->registerGetLimitsHandler(MTRK_UI::getLimitsReadoutFOV);  
-    }
-*/
     //MR_TAG_SG_SIZE
 
-    std::cout << "Done" << std::endl;
+    if (LINK_BOOL_TYPE* pBool = _create< LINK_BOOL_TYPE >(rSeqLim, MR_TAG_SEQ_WIP1, WIP_Checkbox_1))
+    {       
+        pBool->registerGetLabelIdHandler  (wipCheckboxGetLabelId);
+        pBool->registerGetToolTipIdHandler(wipCheckboxGetToolTipId);
+        pBool->registerGetOptionsHandler  (wipCheckboxGetOptions);
+        pBool->registerGetValueHandler    (wipCheckboxGetValue);
+        pBool->registerSetValueHandler    (wipCheckboxSetValue);        
+    }
 
     return ( SEQU__NORMAL );
 };

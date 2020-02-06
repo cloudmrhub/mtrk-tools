@@ -108,6 +108,16 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
 {
     mapi.prepare(rSeqLim.isContextPrepForBinarySearch());
 
+    //if (!rSeqLim.isContextPrepForBinarySearch())
+    {
+        Slice test(rMrProt.sliceSeries()[0]);
+        test.readoutFOV(mapi.getInfoDouble(MTRK_INFOS_FOV,300.));
+        test.phaseFOV(mapi.getInfoDouble(MTRK_INFOS_FOV,300.));
+        //rMrProt.sliceSe
+       // rMrProt.sliceGroupList().;
+    }
+    
+
     static const char *ptModule = {"mtrk::prepare"};
     NLS_STATUS   lStatus = SEQU__NORMAL;
 
@@ -237,7 +247,7 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
 
     OnErrorReturn(fSSLSetRxGain(K_RX_GAIN_CODE_HIGH, rMrProt, rSeqLim));
     OnErrorReturn(fSUPrepSlicePosArray (rMrProt, rSeqLim, m_asSLC));
-    fSUSetSequenceString(mapi.getSettingString(MTRK_SETTINGS_SEQSTRING,"MTRK"), rMrProt, rSeqExpo);
+    fSUSetSequenceString(mapi.getInfoString(MTRK_INFOS_SEQSTRING,"MTRK"), rMrProt, rSeqExpo);
 
     //rSeqExpo.setRFInfo                (m_lLinesToMeasure * m_sSRF01.getRFInfo());
     rSeqExpo.setMeasureTimeUsec       (dMeasureTimeUsec);
