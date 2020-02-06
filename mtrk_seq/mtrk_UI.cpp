@@ -3,6 +3,7 @@
     #include "MrServers/MrProtSrv/MrProtocol/UILink/MrStdNameTags.h"
 #endif
 #include "MrServers/MrImaging/seq/mtrk/mtrk.h"
+#include "MrServers/MrImaging/seq/mtrk/mtrk_common.h"
 #include "MrServers/MrImaging/seq/mtrk/mtrk_UI.h"
 
 #ifndef SEQ_NAMESPACE
@@ -126,15 +127,17 @@ unsigned wipCheckboxGetToolTipId(LINK_BOOL_TYPE* const pThis, char* arg_list[], 
     static char tToolTip[1000];
     MrProt rMrProt (pThis->prot());
 
-    const mtrk* pSeq = static_cast<mtrk*>(pThis->sequence().getSeq());
+    mtrk* pSeq = static_cast<mtrk*>(pThis->sequence().getSeq());
 
     tToolTip[0] = '\0';
     std::string fname=pSeq->mapi.sections.loadedFilename;
+    char* pname = pSeq->mapi.getInfoString(MTRK_INFOS_DESCRIPTION,"");
 
     switch (lIndex)
     {
     case WIP_Checkbox_1 :
-        sprintf(tLine,"Loaded File: %s",fname.c_str()); strcat(tToolTip,tLine);
+        sprintf(tLine,"Loaded File: %s\n",fname.c_str()); strcat(tToolTip,tLine);
+        sprintf(tLine,"Loaded Protocol: %s",pname); strcat(tToolTip,tLine);
         arg_list[0] = tToolTip;
         return MRI_STD_STRING;
         break;

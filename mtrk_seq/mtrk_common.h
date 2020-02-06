@@ -79,6 +79,7 @@
 #define MTRK_INFOS_SLICES           "slices"
 #define MTRK_INFOS_FOV              "fov"
 #define MTRK_INFOS_SEQSTRING        "seqstring"
+#define MTRK_INFOS_DESCRIPTION      "description"
 
 #define MTRK_LOG(x)                std::cout << x << std::endl;
 #define MTRK_DELETE(x)             if (x!=0) { delete x; x=0; }
