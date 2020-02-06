@@ -126,14 +126,15 @@ unsigned wipCheckboxGetToolTipId(LINK_BOOL_TYPE* const pThis, char* arg_list[], 
     static char tToolTip[1000];
     MrProt rMrProt (pThis->prot());
 
+    const mtrk* pSeq = static_cast<mtrk*>(pThis->sequence().getSeq());
+
     tToolTip[0] = '\0';
+    std::string fname=pSeq->mapi.sections.loadedFilename;
 
     switch (lIndex)
     {
     case WIP_Checkbox_1 :
-        sprintf(tLine,"A spoiler a day"); strcat(tToolTip,tLine);
-        sprintf(tLine,"\nKeeps the doctor away"); strcat(tToolTip,tLine);
-        sprintf(tLine,"\nIf selected, spoiler gradients are used" ); strcat(tToolTip,tLine);
+        sprintf(tLine,"Loaded File: %s",fname.c_str()); strcat(tToolTip,tLine);
         arg_list[0] = tToolTip;
         return MRI_STD_STRING;
         break;
@@ -147,7 +148,7 @@ unsigned wipCheckboxGetToolTipId(LINK_BOOL_TYPE* const pThis, char* arg_list[], 
 
 unsigned wipCheckboxGetLabelId(LINK_BOOL_TYPE* const, char* arg_list[], long lIndex)
 {
-    static const char* const pszLabel0 = "MTRK";
+    static const char* const pszLabel0 = MTRK_SEQ_LABEL;
 
     switch(lIndex)
     {

@@ -30,7 +30,8 @@ namespace SEQ_NAMESPACE
         cJSON* arrays;
         cJSON* equations;
 
-        char*  loadedMeasurementID;
+        char*       loadedMeasurementID;
+        std::string loadedFilename;
 
         void clear();
         bool isComplete();

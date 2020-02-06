@@ -32,6 +32,8 @@
 #include "mtrk_api.h"
 
 
+#define MTRK_SEQ_LABEL "MTRK Driver Sequence v 0.1a"
+
 class MrProt;
 class SeqLim;
 class SeqExpo;

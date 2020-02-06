@@ -32,12 +32,13 @@ void mtrk_sections::clear()
     arrays=0;
     equations=0; 
     MTRK_DELETE(loadedMeasurementID);
+    loadedFilename="";
 }
 
 
 bool mtrk_sections::isComplete()
 {
-    return (file && settings && instructions && objects && arrays && equations);
+    return (file && settings && infos && instructions && objects && arrays && equations);
 }
 
 
@@ -52,6 +53,7 @@ bool mtrk_sections::load(cJSON* sequence)
         {
             file=section;
             cJSON* measurementID=cJSON_GetObjectItemCaseSensitive(section, MTRK_PROPERTIES_MEASUREMENT);
+            
             loadedMeasurementID=new char[strlen(measurementID->valuestring)+1];
             strcpy(loadedMeasurementID,measurementID->valuestring);
         }
@@ -198,6 +200,7 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
         unloadSequence();
         return false;
     }
+    sections.loadedFilename=filename;
 
     MTRK_RETONFAIL(arrays.prepare(sections.arrays))
     MTRK_RETONFAIL(objects.prepare(sections.objects))    
