@@ -1,6 +1,8 @@
 #ifndef mtrk_h
 #define mtrk_h 1
 
+#define MTRK_SEQ_LABEL "MTRK Driver Sequence v 0.1a"
+
 #include "MrServers/MrImaging/libSBB/StdSeqIF.h"
 #include "MrServers/MrImaging/libSeqUtil/libSeqUtil.h"
 #include "MrServers/MrMeasSrv/SeqFW/libGSL/libGSL.h"
@@ -27,12 +29,9 @@
     #define __OWNER
 #endif
 
-#include "MrCommon/MrGlobalDefinitions/ImpExpCtrl.h"
-
 #include "mtrk_api.h"
 
-
-#define MTRK_SEQ_LABEL "MTRK Driver Sequence v 0.1a"
+#include "MrCommon/MrGlobalDefinitions/ImpExpCtrl.h"
 
 class MrProt;
 class SeqLim;
@@ -54,41 +53,13 @@ namespace SEQ_NAMESPACE
         NLSStatus run(MrProt& rMrProt, SeqLim& rSeqLim, MrProtocolData::SeqExpo& rSeqExpo);
         NLS_STATUS runKernel(MrProt& rMrProt, SeqLim& rSeqLim, MrProtocolData::SeqExpo& rSeqExpo, long lKernelMode, long lSlice, long lPartition, long lLine);
 
+        mtrkUI* m_pUI;
+        NLS_STATUS createUI (SeqLim &rSeqLim);
         const mtrkUI* getUI (void) const;
-
-        mtrk_api mapi;
-
-        /*
-        double m_dRFSpoilPhase;
-        double m_dRFSpoilIncrement;
-        int32_t m_lCenterLine;
-        double m_dMinRiseTime;
-        double m_dGradMaxAmpl;
-        int32_t m_lLinesPerSec;
-        int32_t m_lLinesToMeasure;
-        */
 
         sSLICE_POS       m_asSLC[K_NO_SLI_MAX];
 
-        /*
-        sRF_PULSE_SINC   m_sSRF01;
-        sFREQ_PHASE      m_sSRF01zSet;
-        sFREQ_PHASE      m_sSRF01zNeg;
-        sREADOUT         m_sADC01;
-        sFREQ_PHASE      m_sADC01zSet;
-        sFREQ_PHASE      m_sADC01zNeg;
-        sGRAD_PULSE      m_sGSliSel;
-        sGRAD_PULSE      m_sGSliSelReph;
-        sGRAD_PULSE_RO   m_sGradRO;
-        sGRAD_PULSE      m_sGReadDeph;
-        sGRAD_PULSE_PE   m_sGPhasEnc;
-        sGRAD_PULSE_PE   m_sGPhasEncRew;
-        sGRAD_PULSE      m_sGSpoil;
-        sSYNC_OSC        m_sOscBit;
-        */
-
-        mtrkUI* m_pUI;
-        NLS_STATUS createUI (SeqLim &rSeqLim);
+        mtrk_api mapi;
 
         template< class TYPE > void UnusedArg (TYPE Argument) const { if( false ) { TYPE Dummy; Dummy = Argument; } };
 

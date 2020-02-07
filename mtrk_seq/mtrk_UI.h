@@ -1,7 +1,6 @@
 #ifndef mtrk_UI_h
 #define mtrk_UI_h 1
 
-#include "MrServers/MrImaging/seq/mtrk/mtrk.h"
 #include "MrServers/MrProtSrv/MrProtocol/libUICtrl/UICtrl.h"
 
 #ifdef WIN32
@@ -40,4 +39,3 @@ namespace SEQ_NAMESPACE
 };
 
 #endif
-

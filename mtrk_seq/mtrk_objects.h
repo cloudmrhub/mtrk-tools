@@ -21,7 +21,7 @@ namespace SEQ_NAMESPACE
     public:
         enum {
             INVALID=-1,
-            GRADIENT=0,
+            GRAD=0,
             RF=1,
             ADC=2,
             SYNC=3

@@ -237,7 +237,7 @@ bool mtrk_api::prepare(bool isBinarySearch)
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
 
     // DEBUG
-    //run();
+    run();
 
     return true;
 }
@@ -471,6 +471,14 @@ bool mtrk_api::runActionGrad(cJSON* item)
 
 bool mtrk_api::runActionSync(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
+
+    if (!state.isDryRun)
+    {
+        //fRTEI(time->valueint, 0, 0, 0, 0, 0, 0, 0);
+    }
+    state.updateDuration(time->valueint);
+      
     return true;
 }
 

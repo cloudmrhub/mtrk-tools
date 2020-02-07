@@ -122,8 +122,32 @@ bool mtrk_object::prepare(cJSON* entry)
         type=RF;
         eventRF=new sRF_PULSE_ARB();
         eventRF->setIdent(entry->string);
-    }
+    }   
+    else
+    if (strcmp(objectType->valuestring, MTRK_ACTIONS_ADC)==0)
+    {    
+        MTRK_LOG("Preparing ADC")
+        type=ADC;
+        eventADC=new sREADOUT();
+        eventADC->setIdent(entry->string);
+    }   
+    else
+    if (strcmp(objectType->valuestring, MTRK_ACTIONS_GRAD)==0)
+    {    
+        MTRK_LOG("Preparing GRAD")
+        type=GRAD;
+        eventGrad=new sGRAD_PULSE_ARB();
+        eventGrad->setIdent(entry->string);
+    }   
+    else
+    if (strcmp(objectType->valuestring, MTRK_ACTIONS_SYNC)==0)
+    {    
+        MTRK_LOG("Preparing SYNC")
+        type=SYNC;
+        // TODO: Distinguish dending on the event type
+        eventSync=(sSYNC*) new sSYNC_OSC();
+        eventSync->setIdent(entry->string);
+    }      
 
     object=entry;
 }
-
