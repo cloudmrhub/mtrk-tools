@@ -56,15 +56,17 @@ namespace SEQ_NAMESPACE
 
         void reset(bool dryRun=true);
 
-        void updateDuration(int time);
+        void updateDuration(int startTime, int duration=0);
     };
 
 
-    inline void mtrk_state::updateDuration(int time)
+    inline void mtrk_state::updateDuration(int startTime, int duration)
     {
-        if (time > tableDuration)
+        int endTime=startTime + duration;
+        
+        if (endTime > tableDuration)
         {
-            tableDuration=time;
+            tableDuration=endTime;
         }
     }
 

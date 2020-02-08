@@ -43,6 +43,8 @@ namespace SEQ_NAMESPACE
         sFREQ_PHASE*     eventNCOSet;
         sFREQ_PHASE*     eventNCOReset;
 
+        sSYNC           eventTest;
+        
         cJSON* object;
 
         //bool insert(cJSON* item);
@@ -58,6 +60,9 @@ namespace SEQ_NAMESPACE
         
         void clear();
         bool prepare(cJSON* section);
+
+        mtrk_object* getObject(char* name);
+        mtrk_object* getObject(int index);
 
         mtrk_object** eventObjects;
         cJSON* objects;

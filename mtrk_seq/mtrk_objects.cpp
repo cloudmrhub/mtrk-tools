@@ -73,6 +73,32 @@ bool mtrk_objects::prepare(cJSON* section)
 }
 
 
+mtrk_object* mtrk_objects::getObject(char* name)
+{
+    cJSON* object = cJSON_GetObjectItemCaseSensitive(objects, name);
+    if (object==NULL)
+    {
+        return NULL;
+    }
+    cJSON* indexItem = cJSON_GetObjectItemCaseSensitive(object, MTRK_PROPERTIES_MEMINDEX);
+    if (indexItem==NULL)
+    {
+        return NULL;
+    }
+    return getObject(indexItem->valueint);
+}
+
+
+mtrk_object* mtrk_objects::getObject(int index)
+{
+    if ((index < 0) || (index >= count))
+    {
+        return NULL;
+    }
+    return eventObjects[index];
+}
+
+
 mtrk_object::mtrk_object()
 {
     type=INVALID;
@@ -115,6 +141,7 @@ void mtrk_object::clear()
 bool mtrk_object::prepare(cJSON* entry)
 {
     MTRK_GETITEM(entry, MTRK_PROPERTIES_TYPE, objectType)
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_DURATION, objectDuration)    
 
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_RF)==0)
     {    
@@ -144,10 +171,43 @@ bool mtrk_object::prepare(cJSON* entry)
     {    
         MTRK_LOG("Preparing SYNC")
         type=SYNC;
-        // TODO: Distinguish dending on the event type
-        eventSync=(sSYNC*) new sSYNC_OSC();
+
+        MTRK_GETITEM(entry, MTRK_PROPERTIES_EVENT, eventChannel)
+
+        // Distinguish dending on the event type
+        if (strcmp(objectType->valuestring, "osc0")==0)
+        {
+            sSYNC_OSC* eventInstance=new sSYNC_OSC();
+            eventInstance->setCode(SYNCCODE_OSC0);
+            eventSync=(sSYNC*) eventInstance;
+        }
+        else   
+        if (strcmp(objectType->valuestring, "osc1")==0)
+        {
+            sSYNC_OSC* eventInstance=new sSYNC_OSC();
+            eventInstance->setCode(SYNCCODE_OSC1);
+            eventSync=(sSYNC*) eventInstance;
+        }
+        else   
+        if (strcmp(objectType->valuestring, "trig0")==0)
+        {
+            sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
+            eventInstance->setCode(SYNCCODE_EXT_TRIG0);
+            eventSync=(sSYNC*) eventInstance;
+        }
+        else   
+        if (strcmp(objectType->valuestring, "trig1")==0)
+        {
+            sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
+            eventInstance->setCode(SYNCCODE_EXT_TRIG1);
+            eventSync=(sSYNC*) eventInstance;
+        }
+
         eventSync->setIdent(entry->string);
+        eventSync->setDuration(objectDuration->valueint);        
     }      
 
     object=entry;
 }
+
+

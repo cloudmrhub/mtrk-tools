@@ -472,12 +472,16 @@ bool mtrk_api::runActionGrad(cJSON* item)
 bool mtrk_api::runActionSync(cJSON* item)
 {
     MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
+
+    mtrk_object* object = objects.getObject(objectName->valuestring);
+    state.updateDuration(time->valueint, object->duration);
+
 
     if (!state.isDryRun)
-    {
-        //fRTEI(time->valueint, 0, 0, 0, 0, 0, 0, 0);
+    {       
+        fRTEI(time->valueint, 0, 0, 0, 0, 0, 0, &(*(sSYNC_OSC*) object->eventSync));
     }
-    state.updateDuration(time->valueint);
       
     return true;
 }
