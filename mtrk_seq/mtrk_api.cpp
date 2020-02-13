@@ -469,19 +469,29 @@ bool mtrk_api::runActionGrad(cJSON* item)
 }
 
 
+#define MTRK_ADD_SYNC_CASE(A,B) case mtrk_object::A: fRTEI(time->valueint, 0, 0, 0, 0, 0, 0, &(*(B*) object->eventSync)); break;
+
 bool mtrk_api::runActionSync(cJSON* item)
 {
     MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
     MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
 
     mtrk_object* object = objects.getObject(objectName->valuestring);
-    state.updateDuration(time->valueint, object->duration);
-
 
     if (!state.isDryRun)
     {       
-        fRTEI(time->valueint, 0, 0, 0, 0, 0, 0, &(*(sSYNC_OSC*) object->eventSync));
+        switch (object->syncClass)
+        {
+            MTRK_ADD_SYNC_CASE(SYNC_OSC,sSYNC_OSC)
+            MTRK_ADD_SYNC_CASE(SYNC_EXTTRIGGER,sSYNC_EXTTRIGGER)
+            // TODO: Add remaining classes
+        default:
+        case mtrk_object::SYNC_INVALID:
+            MTRK_LOG("ERROR: Invalid sync object requested")
+            break;            
+        }
     }
+    state.updateDuration(time->valueint, object->duration);
       
     return true;
 }

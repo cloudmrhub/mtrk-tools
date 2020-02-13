@@ -3,6 +3,7 @@
 #include "mtrk_api.h"
 
 
+
 using namespace SEQ_NAMESPACE;
 
 mtrk_objects::mtrk_objects()
@@ -102,6 +103,7 @@ mtrk_object* mtrk_objects::getObject(int index)
 mtrk_object::mtrk_object()
 {
     type=INVALID;
+    syncClass=SYNC_INVALID;
     duration=0;
 
     eventGrad=0;
@@ -134,6 +136,7 @@ void mtrk_object::clear()
 
     object=0;
     type=INVALID;
+    syncClass=SYNC_INVALID;
     duration=0;    
 }
 
@@ -177,6 +180,7 @@ bool mtrk_object::prepare(cJSON* entry)
         // Distinguish dending on the event type
         if (strcmp(objectType->valuestring, "osc0")==0)
         {
+            syncClass=SYNC_OSC;
             sSYNC_OSC* eventInstance=new sSYNC_OSC();
             eventInstance->setCode(SYNCCODE_OSC0);
             eventSync=(sSYNC*) eventInstance;
@@ -184,6 +188,7 @@ bool mtrk_object::prepare(cJSON* entry)
         else   
         if (strcmp(objectType->valuestring, "osc1")==0)
         {
+            syncClass=SYNC_OSC;            
             sSYNC_OSC* eventInstance=new sSYNC_OSC();
             eventInstance->setCode(SYNCCODE_OSC1);
             eventSync=(sSYNC*) eventInstance;
@@ -191,6 +196,7 @@ bool mtrk_object::prepare(cJSON* entry)
         else   
         if (strcmp(objectType->valuestring, "trig0")==0)
         {
+            syncClass=SYNC_EXTTRIGGER;            
             sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
             eventInstance->setCode(SYNCCODE_EXT_TRIG0);
             eventSync=(sSYNC*) eventInstance;
@@ -198,6 +204,7 @@ bool mtrk_object::prepare(cJSON* entry)
         else   
         if (strcmp(objectType->valuestring, "trig1")==0)
         {
+            syncClass=SYNC_EXTTRIGGER;            
             sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
             eventInstance->setCode(SYNCCODE_EXT_TRIG1);
             eventSync=(sSYNC*) eventInstance;

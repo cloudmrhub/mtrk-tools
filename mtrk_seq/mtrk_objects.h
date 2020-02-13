@@ -27,6 +27,12 @@ namespace SEQ_NAMESPACE
             SYNC=3
         };
 
+        enum {
+            SYNC_INVALID=0,
+            SYNC_OSC,
+            SYNC_EXTTRIGGER
+        };
+
         mtrk_object();
         virtual ~mtrk_object();
         void clear();
@@ -35,6 +41,7 @@ namespace SEQ_NAMESPACE
 
         int type;
         int duration;
+        int syncClass;
 
         sGRAD_PULSE_ARB* eventGrad;
         sSYNC*           eventSync;
@@ -42,8 +49,6 @@ namespace SEQ_NAMESPACE
         sRF_PULSE_ARB*   eventRF;
         sFREQ_PHASE*     eventNCOSet;
         sFREQ_PHASE*     eventNCOReset;
-
-        sSYNC           eventTest;
         
         cJSON* object;
 
