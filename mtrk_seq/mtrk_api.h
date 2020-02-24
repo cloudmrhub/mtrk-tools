@@ -55,8 +55,9 @@ namespace SEQ_NAMESPACE
         bool     isDryRun;
 
         void reset(bool dryRun=true);
-
         void updateDuration(int startTime, int duration=0);
+
+        long int totalDuration;        
     };
 
 
@@ -95,7 +96,7 @@ namespace SEQ_NAMESPACE
         bool prepare(bool isBinarySearch=false);
         bool prepareBlocks();
 
-        bool run();
+        bool run(bool isDryRun=false);
         bool runBlock(cJSON* block);
 
         bool runActionLoop     (cJSON* item);

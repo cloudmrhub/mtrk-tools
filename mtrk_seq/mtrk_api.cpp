@@ -126,6 +126,8 @@ void mtrk_state::reset(bool dryRun)
     tableStart=0;
     tableDuration=0;    
     isDryRun=dryRun;
+
+    totalDuration=0;
 }
 
 
@@ -236,8 +238,10 @@ bool mtrk_api::prepare(bool isBinarySearch)
     
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
 
-    // DEBUG
-    run();
+    // Perform a dry run to calculate the time and SAR
+    run(true);
+
+    MTRK_LOG("Total time: " << state.totalDuration)
 
     return true;
 }
@@ -642,10 +646,10 @@ bool mtrk_api::runActionDebug(cJSON* item)
 }
 
 
-bool mtrk_api::run()
+bool mtrk_api::run(bool isDryRun)
 {
     MTRK_LOG("Running sequence")
-    state.reset();
+    state.reset(isDryRun);
     recursions=0;
 
     MTRK_LOG("RunBlock")
@@ -655,12 +659,12 @@ bool mtrk_api::run()
         MTRK_LOG("ERROR: Sequence not properly terminated")
         return false;
     }
+    state.totalDuration=state.clock;
    
-    MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
-    MTRK_LOG("EQ2 = " << equations.evaluate("test"))
-    MTRK_LOG("SEQNAME = " << getInfoString(MTRK_INFOS_SEQSTRING,"M"))
-
-    arrays.dumpAll();
+    //MTRK_LOG("EQ1 = " << equations.evaluate("kspace_pe"))
+    //MTRK_LOG("EQ2 = " << equations.evaluate("test"))
+    //MTRK_LOG("SEQNAME = " << getInfoString(MTRK_INFOS_SEQSTRING,"M"))
+    //arrays.dumpAll();
 
     return true;
 }
