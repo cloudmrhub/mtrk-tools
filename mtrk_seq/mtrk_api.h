@@ -93,10 +93,10 @@ namespace SEQ_NAMESPACE
 
         int            recursions;
 
-        bool prepare(bool isBinarySearch=false);
+        bool prepare(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool isBinarySearch=false);
         bool prepareBlocks();
 
-        bool run(bool isDryRun=false);
+        bool run(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool isDryRun=false);
         bool runBlock(cJSON* block);
 
         bool runActionLoop     (cJSON* item);
@@ -116,8 +116,10 @@ namespace SEQ_NAMESPACE
         double getInfoDouble(char* name, double defaultValue);
         char*  getInfoString(char* name, char* defaultValue);
         double getMeasureTimeUsec();
-    };
 
+        MrProt*                  ptrMrProt; 
+        MrProtocolData::SeqExpo* ptrSeqExpo;
+    };
 }
 
 

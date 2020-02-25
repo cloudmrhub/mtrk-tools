@@ -82,7 +82,7 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
     static const char *ptModule = {"mtrk::prepare"};
     NLS_STATUS   lStatus = SEQU__NORMAL;
 
-    mapi.prepare(rSeqLim.isContextPrepForBinarySearch());
+    mapi.prepare(&rMrProt,&rSeqExpo,rSeqLim.isContextPrepForBinarySearch());
 
     //if (!rSeqLim.isContextPrepForBinarySearch())
     {
@@ -137,7 +137,7 @@ NLSStatus mtrk::run(MrProt  &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExpo &
         mSEQTest(rMrProt, rSeqLim, rSeqExpo, RTEB_ORIGIN_fSEQRunStart, 0, 0, 0, 0, 0);
     }
 
-    mapi.run();
+    mapi.run(&rMrProt,&rSeqExpo);
 
     if(IS_UNIT_TEST_ACTIVE(rSeqLim))
     {

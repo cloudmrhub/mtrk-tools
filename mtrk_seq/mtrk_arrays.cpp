@@ -277,7 +277,7 @@ int mtrk_array::getInt(int index)
 }
 
 
-double mtrk_array::getFreqency(int index)
+double mtrk_array::getFrequency(int index)
 {
     if ((index<0) || (index>=size))
     {

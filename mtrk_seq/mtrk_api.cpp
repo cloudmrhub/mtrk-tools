@@ -135,7 +135,10 @@ mtrk_api::mtrk_api()
 {
     parent=0;
     sequence=0;
+    ptrMrProt=0;
+    ptrSeqExpo=0;
     equations.setStateInstance(&state);
+    objects.setMapiInstance(this);
 }
 
 
@@ -229,17 +232,19 @@ void mtrk_api::unloadSequence()
 }
 
 
-bool mtrk_api::prepare(bool isBinarySearch)
+bool mtrk_api::prepare(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool isBinarySearch)
 {
     if (isBinarySearch)
     {
         //return true;
     }
     
+    ptrMrProt=pMrProt;
+    ptrSeqExpo=pSeqExpo;    
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
 
     // Perform a dry run to calculate the time and SAR
-    if (!run(true)) 
+    if (!run(pMrProt,pSeqExpo,true)) 
     {
         MTRK_LOG("ERROR: Unable to run sequence")
     }
@@ -460,6 +465,20 @@ bool mtrk_api::runActionSubmit(cJSON* item)
 
 bool mtrk_api::runActionRF(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
+
+    mtrk_object* object = objects.getObject(objectName->valuestring);
+    if (object==0)
+    {
+        MTRK_LOG("ERROR: Unable to find object " << objectName->valuestring)
+        return false;
+    }
+
+    // TODO: Add NCO setup
+    fRTEI(time->valueint, 0, &(*object->eventRF), 0, 0, 0, 0, 0); 
+    state.updateDuration(time->valueint, object->duration);
+
     return true;
 }
 
@@ -654,9 +673,12 @@ bool mtrk_api::runActionDebug(cJSON* item)
 }
 
 
-bool mtrk_api::run(bool isDryRun)
+bool mtrk_api::run(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool isDryRun)
 {
     MTRK_LOG("Running sequence")
+
+    ptrMrProt=pMrProt;
+    ptrSeqExpo=pSeqExpo;    
     state.reset(isDryRun);
     recursions=0;
 

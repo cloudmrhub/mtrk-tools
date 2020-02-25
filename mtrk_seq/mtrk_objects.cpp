@@ -3,8 +3,15 @@
 #include "mtrk_api.h"
 
 
+#include "MrServers/MrMeasSrv/SeqIF/libRT/libRT.h"
+#include "MrServers/MrMeasSrv/MeasUtils/NLSStatus.h"
+#include "MrServers/MrProtSrv/MrProt/MrProt.h"
+
 
 using namespace SEQ_NAMESPACE;
+
+mtrk_api* mapiInstance=0;
+
 
 mtrk_objects::mtrk_objects()
 {
@@ -17,6 +24,12 @@ mtrk_objects::mtrk_objects()
 mtrk_objects::~mtrk_objects()
 {
     clear();
+}
+
+
+void mtrk_objects::setMapiInstance(mtrk_api* pointer)
+{
+    mapiInstance=pointer;
 }
 
 
@@ -153,9 +166,7 @@ bool mtrk_object::prepare(cJSON* entry)
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_RF)==0)
     {    
         MTRK_LOG("Preparing RF")
-        type=RF;
-        eventRF=new sRF_PULSE_ARB();
-        eventRF->setIdent(entry->string);
+        MTRK_RETONFAILMSG(prepareRF(entry),"ERROR: Preparing RF object failed " << entry->string)
     }   
     else
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_ADC)==0)
@@ -224,6 +235,57 @@ bool mtrk_object::prepare(cJSON* entry)
     }      
 
     object=entry;
+    return true;
 }
 
 
+bool mtrk_object::prepareRF(cJSON* entry)
+{
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_FLIPANGLE, flipAngle)
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_THICKNESS, thickness)
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_INITIAL_PHASE, initialPhase)
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_DURATION, duration)            
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_ARRAY, arrayName)
+
+    mtrk_array* array=mapiInstance->arrays.getArray(arrayName->valuestring);
+
+    if (array==0)
+    {
+        MTRK_LOG("ERROR: Array not found " << arrayName->valuestring)
+        return false;
+    }
+    if (array->type!=mtrk_array::COMPLEX_FLOAT)
+    {
+        MTRK_LOG("ERROR: Invalid type of array " << arrayName->valuestring)
+        return false;
+    }
+
+    double realAmpl = 0.; 
+    double imagAmpl = 0.;    
+
+    for (int i=0; i<array->size; i++)
+    {  
+        realAmpl += array->getAbsolute(i) * cos(array->getPhase(i));   
+        imagAmpl += array->getAbsolute(i) * sin(array->getPhase(i));  
+    } 
+
+    double effectiveAmplIntegral = sqrt(realAmpl*realAmpl + imagAmpl*imagAmpl);
+
+    MTRK_LOG("PREPPED THE RF")
+
+    type=RF;
+    eventRF=new sRF_PULSE_ARB();    
+    eventRF->setIdent(entry->string);
+    eventRF->setDuration(duration->valueint);
+    eventRF->setFlipAngle(flipAngle->valuedouble);
+    eventRF->setInitialPhase(initialPhase->valuedouble);
+    eventRF->setThickness(thickness->valuedouble);
+    eventRF->setSamples(array->size);
+    if (!eventRF->prepArbitrary(mapiInstance->ptrMrProt->getProtData(), mapiInstance->ptrSeqExpo, (sSample*) array->data, effectiveAmplIntegral))  
+    {   
+        //cout << "ERROR: "<<myRFPulse.getNLSStatus()<<endl;   
+        return false;  
+    };
+
+    return true;
+}

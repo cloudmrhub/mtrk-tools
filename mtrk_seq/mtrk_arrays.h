@@ -35,10 +35,11 @@ namespace SEQ_NAMESPACE
         bool loadText(cJSON* dataItem);
         bool loadBase64(cJSON* dataItem);
 
-        double getDouble  (int index);
-        int    getInt     (int index);
-        double getFreqency(int index);
-        double getPhase   (int index);
+        double getDouble   (int index);
+        int    getInt      (int index);
+        double getFrequency(int index);
+        double getAbsolute (int index);
+        double getPhase    (int index);
 
         float* getData();
         
@@ -49,6 +50,13 @@ namespace SEQ_NAMESPACE
         int type;
         size_t elementSize;
     };
+
+
+    inline double mtrk_array::getAbsolute(int index)
+    {
+        return getFrequency(index);
+    }
+
 
 
     class mtrk_arrays

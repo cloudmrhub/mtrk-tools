@@ -15,6 +15,7 @@
 namespace SEQ_NAMESPACE
 {  
     class mtrk_state;
+    class mtrk_api;
 
     class mtrk_object
     {
@@ -38,6 +39,7 @@ namespace SEQ_NAMESPACE
         void clear();
 
         bool prepare(cJSON* entry);
+        bool prepareRF(cJSON* entry);                
 
         int type;
         int duration;
@@ -50,7 +52,7 @@ namespace SEQ_NAMESPACE
         sFREQ_PHASE*     eventNCOSet;
         sFREQ_PHASE*     eventNCOReset;
         
-        cJSON* object;
+        cJSON*    object;
 
         //bool insert(cJSON* item);
         //int  getDuration(bool includeOverhang);    
@@ -62,7 +64,8 @@ namespace SEQ_NAMESPACE
     public:
         mtrk_objects();
         virtual ~mtrk_objects();
-        
+        void setMapiInstance(mtrk_api* pointer);
+
         void clear();
         bool prepare(cJSON* section);
 
