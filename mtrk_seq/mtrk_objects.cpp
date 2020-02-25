@@ -52,17 +52,21 @@ bool mtrk_objects::prepare(cJSON* section)
         count++;
     }        
     
+    MTRK_LOG("Found objects: " << count)
+
     eventObjects=new mtrk_object*[count];
     for (int i=0; i<count; i++)
     {
         eventObjects[i]=new mtrk_object();
     }
 
-    int index=0;
+    MTRK_LOG("Pointers prepared")
 
+    int index=0;
     entry=0;
     cJSON_ArrayForEach(entry, section)
     {
+        MTRK_LOG("Preparing object " << index)    
         eventObjects[index]->prepare(entry);       
         cJSON_AddNumberToObject(entry, MTRK_PROPERTIES_MEMINDEX, index);
         index++;
@@ -178,7 +182,7 @@ bool mtrk_object::prepare(cJSON* entry)
         MTRK_GETITEM(entry, MTRK_PROPERTIES_EVENT, eventChannel)
 
         // Distinguish dending on the event type
-        if (strcmp(objectType->valuestring, "osc0")==0)
+        if (strcmp(eventChannel->valuestring, "osc0")==0)
         {
             syncClass=SYNC_OSC;
             sSYNC_OSC* eventInstance=new sSYNC_OSC();
@@ -186,7 +190,7 @@ bool mtrk_object::prepare(cJSON* entry)
             eventSync=(sSYNC*) eventInstance;
         }
         else   
-        if (strcmp(objectType->valuestring, "osc1")==0)
+        if (strcmp(eventChannel->valuestring, "osc1")==0)
         {
             syncClass=SYNC_OSC;            
             sSYNC_OSC* eventInstance=new sSYNC_OSC();
@@ -194,7 +198,7 @@ bool mtrk_object::prepare(cJSON* entry)
             eventSync=(sSYNC*) eventInstance;
         }
         else   
-        if (strcmp(objectType->valuestring, "trig0")==0)
+        if (strcmp(eventChannel->valuestring, "trig0")==0)
         {
             syncClass=SYNC_EXTTRIGGER;            
             sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
@@ -202,12 +206,17 @@ bool mtrk_object::prepare(cJSON* entry)
             eventSync=(sSYNC*) eventInstance;
         }
         else   
-        if (strcmp(objectType->valuestring, "trig1")==0)
+        if (strcmp(eventChannel->valuestring, "trig1")==0)
         {
             syncClass=SYNC_EXTTRIGGER;            
             sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
             eventInstance->setCode(SYNCCODE_EXT_TRIG1);
             eventSync=(sSYNC*) eventInstance;
+        }
+        else
+        {
+            MTRK_LOG("ERROR: Unknown event type " << eventChannel->valuestring)
+            return false;
         }
 
         eventSync->setIdent(entry->string);

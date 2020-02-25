@@ -239,7 +239,10 @@ bool mtrk_api::prepare(bool isBinarySearch)
     MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
 
     // Perform a dry run to calculate the time and SAR
-    run(true);
+    if (!run(true)) 
+    {
+        MTRK_LOG("ERROR: Unable to run sequence")
+    }
 
     MTRK_LOG("Total time: " << state.totalDuration)
 
@@ -481,6 +484,11 @@ bool mtrk_api::runActionSync(cJSON* item)
     MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
 
     mtrk_object* object = objects.getObject(objectName->valuestring);
+    if (object==0)
+    {
+        MTRK_LOG("ERROR: Unable to find object " << objectName->valuestring)
+        return false;
+    }
 
     if (!state.isDryRun)
     {       
@@ -709,4 +717,10 @@ char* mtrk_api::getInfoString(char* name, char* defaultValue)
     {
         return item->valuestring;    
     }
+}
+
+
+double mtrk_api::getMeasureTimeUsec()
+{
+    return (double) state.totalDuration;
 }

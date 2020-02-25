@@ -92,15 +92,15 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
        // rMrProt.sliceGroupList().;
     }
     
-    double dMeasureTimeUsec = 0.;
+
     int lLinesToMeasure=0;
 
     OnErrorReturn(fSSLSetRxGain(K_RX_GAIN_CODE_HIGH, rMrProt, rSeqLim));
     OnErrorReturn(fSUPrepSlicePosArray (rMrProt, rSeqLim, m_asSLC));
     fSUSetSequenceString(mapi.getInfoString(MTRK_INFOS_SEQSTRING,"MTRK"), rMrProt, rSeqExpo);
     //rSeqExpo.setRFInfo                (m_lLinesToMeasure * m_sSRF01.getRFInfo());
-    rSeqExpo.setMeasureTimeUsec       (dMeasureTimeUsec);
-    rSeqExpo.setTotalMeasureTimeUsec  (dMeasureTimeUsec);
+    rSeqExpo.setMeasureTimeUsec       (mapi.getMeasureTimeUsec());
+    rSeqExpo.setTotalMeasureTimeUsec  (mapi.getMeasureTimeUsec());
     rSeqExpo.setMeasuredPELines       (lLinesToMeasure);
     rSeqExpo.setOnlineFFT             (SEQ::ONLINE_FFT_PHASE);
     rSeqExpo.setICEProgramFilename    (mapi.getInfoString(MTRK_INFOS_RECONSTRUCTION,"%SiemensIceProgs%\\IceProgram2D"));

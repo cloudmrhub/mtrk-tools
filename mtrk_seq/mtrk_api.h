@@ -115,6 +115,7 @@ namespace SEQ_NAMESPACE
         int    getInfoInt   (char* name, int defaultValue);
         double getInfoDouble(char* name, double defaultValue);
         char*  getInfoString(char* name, char* defaultValue);
+        double getMeasureTimeUsec();
     };
 
 }
