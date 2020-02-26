@@ -50,6 +50,7 @@
 #define MTRK_PROPERTIES_THICKNESS     "thickness"
 #define MTRK_PROPERTIES_FLIPANGLE     "flipangle"
 #define MTRK_PROPERTIES_PURPOSE       "purpose"
+#define MTRK_PROPERTIES_DWELLTIME     "dwelltime"
 
 #define MTRK_OPTIONS_MAIN             "main"
 #define MTRK_OPTIONS_BLOCK            "block"

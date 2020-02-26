@@ -40,6 +40,9 @@ namespace SEQ_NAMESPACE
 
         bool prepare(cJSON* entry);
         bool prepareRF(cJSON* entry);                
+        bool prepareADC(cJSON* entry);
+        bool prepareGrad(cJSON* entry);
+        bool prepareSync(cJSON* entry);
 
         int type;
         int duration;

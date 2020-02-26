@@ -50,6 +50,7 @@ NLSStatus mtrk::initialize(SeqLim &rSeqLim)
     rSeqLim.setSlices               (          1,         K_NO_SLI_MAX,            1,        1);
     rSeqLim.setMultipleSeriesMode(SEQ::MULTIPLE_SERIES_OFF, SEQ::MULTIPLE_SERIES_EACH_MEASUREMENT, SEQ::MULTIPLE_SERIES_EACH_SLICE, SEQ::MULTIPLE_SERIES_EACH_SLICE_AND_MEASUREMENT);
     rSeqLim.setAdjShim(SEQ::ADJSHIM_STANDARD, SEQ::ADJSHIM_TUNEUP);
+    rSeqLim.setReadoutOSFactor(1.0);
 
     if((MRRESULT_SEV & (lStatus = createUI(rSeqLim))) == MRRESULT_SEV) 
     {
@@ -98,12 +99,12 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
     OnErrorReturn(fSSLSetRxGain(K_RX_GAIN_CODE_HIGH, rMrProt, rSeqLim));
     OnErrorReturn(fSUPrepSlicePosArray (rMrProt, rSeqLim, m_asSLC));
     fSUSetSequenceString(mapi.getInfoString(MTRK_INFOS_SEQSTRING,"MTRK"), rMrProt, rSeqExpo);
-    //rSeqExpo.setRFInfo                (m_lLinesToMeasure * m_sSRF01.getRFInfo());
-    rSeqExpo.setMeasureTimeUsec       (mapi.getMeasureTimeUsec());
-    rSeqExpo.setTotalMeasureTimeUsec  (mapi.getMeasureTimeUsec());
-    rSeqExpo.setMeasuredPELines       (lLinesToMeasure);
-    rSeqExpo.setOnlineFFT             (SEQ::ONLINE_FFT_PHASE);
-    rSeqExpo.setICEProgramFilename    (mapi.getInfoString(MTRK_INFOS_RECONSTRUCTION,"%SiemensIceProgs%\\IceProgram2D"));
+    rSeqExpo.setRFInfo              (mapi.getRFInfo());
+    rSeqExpo.setMeasureTimeUsec     (mapi.getMeasureTimeUsec());
+    rSeqExpo.setTotalMeasureTimeUsec(mapi.getMeasureTimeUsec());
+    rSeqExpo.setMeasuredPELines     (lLinesToMeasure);
+    rSeqExpo.setOnlineFFT           (SEQ::ONLINE_FFT_PHASE);
+    rSeqExpo.setICEProgramFilename  (mapi.getInfoString(MTRK_INFOS_RECONSTRUCTION,"%SiemensIceProgs%\\IceProgram2D"));
 
     return (lStatus);
 }

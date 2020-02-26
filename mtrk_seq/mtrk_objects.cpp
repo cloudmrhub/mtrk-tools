@@ -173,66 +173,19 @@ bool mtrk_object::prepare(cJSON* entry)
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_ADC)==0)
     {    
         MTRK_LOG("Preparing ADC")
-        type=ADC;
-        eventADC=new sREADOUT();
-        eventADC->setIdent(entry->string);
+        MTRK_RETONFAILMSG(prepareADC(entry),"ERROR: Preparing ADC object failed " << entry->string)
     }   
     else
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_GRAD)==0)
     {    
         MTRK_LOG("Preparing GRAD")
-        type=GRAD;
-        eventGrad=new sGRAD_PULSE_ARB();
-        eventGrad->setIdent(entry->string);
+        MTRK_RETONFAILMSG(prepareGrad(entry),"ERROR: Preparing Grad object failed " << entry->string)
     }   
     else
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_SYNC)==0)
     {    
         MTRK_LOG("Preparing SYNC")
-        type=SYNC;
-
-        MTRK_GETITEM(entry, MTRK_PROPERTIES_EVENT, eventChannel)
-
-        // Distinguish dending on the event type
-        if (strcmp(eventChannel->valuestring, "osc0")==0)
-        {
-            syncClass=SYNC_OSC;
-            sSYNC_OSC* eventInstance=new sSYNC_OSC();
-            eventInstance->setCode(SYNCCODE_OSC0);
-            eventSync=(sSYNC*) eventInstance;
-        }
-        else   
-        if (strcmp(eventChannel->valuestring, "osc1")==0)
-        {
-            syncClass=SYNC_OSC;            
-            sSYNC_OSC* eventInstance=new sSYNC_OSC();
-            eventInstance->setCode(SYNCCODE_OSC1);
-            eventSync=(sSYNC*) eventInstance;
-        }
-        else   
-        if (strcmp(eventChannel->valuestring, "trig0")==0)
-        {
-            syncClass=SYNC_EXTTRIGGER;            
-            sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
-            eventInstance->setCode(SYNCCODE_EXT_TRIG0);
-            eventSync=(sSYNC*) eventInstance;
-        }
-        else   
-        if (strcmp(eventChannel->valuestring, "trig1")==0)
-        {
-            syncClass=SYNC_EXTTRIGGER;            
-            sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
-            eventInstance->setCode(SYNCCODE_EXT_TRIG1);
-            eventSync=(sSYNC*) eventInstance;
-        }
-        else
-        {
-            MTRK_LOG("ERROR: Unknown event type " << eventChannel->valuestring)
-            return false;
-        }
-
-        eventSync->setIdent(entry->string);        
-        eventSync->setDuration(duration);  
+        MTRK_RETONFAILMSG(prepareSync(entry),"ERROR: Preparing sybc object failed " << entry->string)
     }      
 
     object=entry;
@@ -242,6 +195,7 @@ bool mtrk_object::prepare(cJSON* entry)
 
 bool mtrk_object::prepareRF(cJSON* entry)
 {
+    type=RF;    
     MTRK_GETITEM(entry, MTRK_PROPERTIES_FLIPANGLE, flipAngle)
     MTRK_GETITEM(entry, MTRK_PROPERTIES_THICKNESS, thickness)
     MTRK_GETITEM(entry, MTRK_PROPERTIES_INITIAL_PHASE, initialPhase)           
@@ -272,7 +226,6 @@ bool mtrk_object::prepareRF(cJSON* entry)
 
     double effectiveAmplIntegral = sqrt(realAmpl*realAmpl + imagAmpl*imagAmpl);
 
-    type=RF;
     eventRF=new sRF_PULSE_ARB();    
     eventRF->setIdent(entry->string);
     eventRF->setDuration(duration);
@@ -300,7 +253,48 @@ bool mtrk_object::prepareRF(cJSON* entry)
         return false;  
     };
 
-    //eventRF->prep(mapiInstance->ptrMrProt->getProtData(), mapiInstance->ptrSeqExpo);
+    char* buffer=0;
+    buffer=new char[1024];
+
+    strcpy(buffer,entry->string);
+    strcat(buffer,"_NCOSet");
+    eventNCOSet=new sFREQ_PHASE();
+    eventNCOSet->setIdent(buffer);
+    eventNCOSet->setFrequency(0.);
+    eventNCOSet->setPhase(0.);
+
+    strcpy(buffer,entry->string);
+    strcat(buffer,"_NCOReset");
+    eventNCOReset=new sFREQ_PHASE();
+    eventNCOReset->setIdent(buffer);
+    eventNCOReset->setFrequency(0.);
+    eventNCOReset->setPhase(0.);
+
+    MTRK_DELETE(buffer)
+
+    return true;
+
+    //For later update: eventRF->prep(mapiInstance->ptrMrProt->getProtData(), mapiInstance->ptrSeqExpo);    
+}
+
+
+bool mtrk_object::prepareADC(cJSON* entry)
+{
+    type=ADC;
+
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_SAMPLES, samples)
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_DWELLTIME, dwelltime)
+  
+    eventADC=new sREADOUT();
+    eventADC->setIdent(entry->string);
+    eventADC->setColumns(samples->valueint);
+    eventADC->setDwellTime(dwelltime->valueint);
+
+    if (!eventADC->prep())
+    {
+        MTRK_LOG("ERROR: Preparing ADC " << entry->string << " Reason: " << eventADC->getNLSStatus())
+        return false;  
+    }
 
     char* buffer=0;
     buffer=new char[1024];
@@ -309,14 +303,79 @@ bool mtrk_object::prepareRF(cJSON* entry)
     strcat(buffer,"_NCOSet");
     eventNCOSet=new sFREQ_PHASE();
     eventNCOSet->setIdent(buffer);
+    eventNCOSet->setFrequency(0.);
+    eventNCOSet->setPhase(0.);
 
     strcpy(buffer,entry->string);
     strcat(buffer,"_NCOReset");
     eventNCOReset=new sFREQ_PHASE();
     eventNCOReset->setIdent(buffer);
+    eventNCOReset->setFrequency(0.);
+    eventNCOReset->setPhase(0.);
 
-    MTRK_DELETE(buffer)
+    // TODO: Configure MDH
+
+    MTRK_DELETE(buffer)    
+           
+    return true;
+}
+
+
+bool mtrk_object::prepareGrad(cJSON* entry)
+{
+    type=GRAD;
+    eventGrad=new sGRAD_PULSE_ARB();
+    eventGrad->setIdent(entry->string);
 
     return true;
 }
 
+
+bool mtrk_object::prepareSync(cJSON* entry)
+{
+    type=SYNC;
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_EVENT, eventChannel)
+
+    // Distinguish dending on the event type
+    if (strcmp(eventChannel->valuestring, "osc0")==0)
+    {
+        syncClass=SYNC_OSC;
+        sSYNC_OSC* eventInstance=new sSYNC_OSC();
+        eventInstance->setCode(SYNCCODE_OSC0);
+        eventSync=(sSYNC*) eventInstance;
+    }
+    else   
+    if (strcmp(eventChannel->valuestring, "osc1")==0)
+    {
+        syncClass=SYNC_OSC;            
+        sSYNC_OSC* eventInstance=new sSYNC_OSC();
+        eventInstance->setCode(SYNCCODE_OSC1);
+        eventSync=(sSYNC*) eventInstance;
+    }
+    else   
+    if (strcmp(eventChannel->valuestring, "trig0")==0)
+    {
+        syncClass=SYNC_EXTTRIGGER;            
+        sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
+        eventInstance->setCode(SYNCCODE_EXT_TRIG0);
+        eventSync=(sSYNC*) eventInstance;
+    }
+    else   
+    if (strcmp(eventChannel->valuestring, "trig1")==0)
+    {
+        syncClass=SYNC_EXTTRIGGER;            
+        sSYNC_EXTTRIGGER* eventInstance=new sSYNC_EXTTRIGGER();
+        eventInstance->setCode(SYNCCODE_EXT_TRIG1);
+        eventSync=(sSYNC*) eventInstance;
+    }
+    else
+    {
+        MTRK_LOG("ERROR: Unknown event type " << eventChannel->valuestring)
+        return false;
+    }
+
+    eventSync->setIdent(entry->string);        
+    eventSync->setDuration(duration);  
+    
+    return true;
+}

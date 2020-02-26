@@ -57,7 +57,8 @@ namespace SEQ_NAMESPACE
         void reset(bool dryRun=true);
         void updateDuration(int startTime, int duration=0);
 
-        long int totalDuration;        
+        long int                      totalDuration;
+        MrProtocolData::SeqExpoRFInfo rfInfo;       
     };
 
 
@@ -116,6 +117,7 @@ namespace SEQ_NAMESPACE
         double getInfoDouble(char* name, double defaultValue);
         char*  getInfoString(char* name, char* defaultValue);
         double getMeasureTimeUsec();
+        MrProtocolData::SeqExpoRFInfo getRFInfo();
 
         MrProt*                  ptrMrProt; 
         MrProtocolData::SeqExpo* ptrSeqExpo;

@@ -128,6 +128,7 @@ void mtrk_state::reset(bool dryRun)
     isDryRun=dryRun;
 
     totalDuration=0;
+    rfInfo.clear();
 }
 
 
@@ -479,8 +480,13 @@ bool mtrk_api::runActionRF(cJSON* item)
     object->eventNCOSet->prepSet(parent->m_asSLC[0], &(*object->eventRF));
     object->eventNCOReset->prepNeg(parent->m_asSLC[0], &(*object->eventRF));  
 
-    fRTEI(time->valueint, &(*object->eventNCOSet), &(*object->eventRF), 0, 0, 0, 0, 0); 
-    fRTEI(time->valueint+object->duration, &(*object->eventNCOReset), 0, 0, 0, 0, 0, 0);
+    if (!state.isDryRun)
+    {   
+        fRTEI(time->valueint, &(*object->eventNCOSet), &(*object->eventRF), 0, 0, 0, 0, 0); 
+        fRTEI(time->valueint+object->duration, &(*object->eventNCOReset), 0, 0, 0, 0, 0, 0);
+    }
+
+    state.rfInfo += object->eventRF->getRFInfo();
     state.updateDuration(time->valueint, object->duration);
 
     return true;
@@ -489,6 +495,28 @@ bool mtrk_api::runActionRF(cJSON* item)
 
 bool mtrk_api::runActionADC(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
+
+    mtrk_object* object = objects.getObject(objectName->valuestring);
+    if (object==0)
+    {
+        MTRK_LOG("ERROR: Unable to find object " << objectName->valuestring)
+        return false;
+    }
+
+    // TODO: Add NCO setup and update of RF object
+    //object->eventNCOSet->prepSet(parent->m_asSLC[0], &(*object->eventRF));
+    //object->eventNCOReset->prepNeg(parent->m_asSLC[0], &(*object->eventRF));  
+
+    if (!state.isDryRun)
+    {   
+        fRTEI(time->valueint, &(*object->eventNCOSet),0, &(*object->eventADC), 0, 0, 0, 0); 
+        fRTEI(time->valueint+object->duration, &(*object->eventNCOReset), 0, 0, 0, 0, 0, 0);
+    }
+
+    state.updateDuration(time->valueint, object->duration);
+    
     return true;
 }
 
@@ -749,4 +777,10 @@ char* mtrk_api::getInfoString(char* name, char* defaultValue)
 double mtrk_api::getMeasureTimeUsec()
 {
     return (double) state.totalDuration;
+}
+
+
+MrProtocolData::SeqExpoRFInfo mtrk_api::getRFInfo()
+{
+    return state.rfInfo;
 }
