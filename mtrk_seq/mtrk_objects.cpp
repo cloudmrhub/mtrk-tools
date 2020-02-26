@@ -162,6 +162,7 @@ bool mtrk_object::prepare(cJSON* entry)
 {
     MTRK_GETITEM(entry, MTRK_PROPERTIES_TYPE, objectType)
     MTRK_GETITEM(entry, MTRK_PROPERTIES_DURATION, objectDuration)    
+    duration=objectDuration->valueint;
 
     if (strcmp(objectType->valuestring, MTRK_ACTIONS_RF)==0)
     {    
@@ -230,8 +231,8 @@ bool mtrk_object::prepare(cJSON* entry)
             return false;
         }
 
-        eventSync->setIdent(entry->string);
-        eventSync->setDuration(objectDuration->valueint);        
+        eventSync->setIdent(entry->string);        
+        eventSync->setDuration(duration);  
     }      
 
     object=entry;
@@ -243,9 +244,9 @@ bool mtrk_object::prepareRF(cJSON* entry)
 {
     MTRK_GETITEM(entry, MTRK_PROPERTIES_FLIPANGLE, flipAngle)
     MTRK_GETITEM(entry, MTRK_PROPERTIES_THICKNESS, thickness)
-    MTRK_GETITEM(entry, MTRK_PROPERTIES_INITIAL_PHASE, initialPhase)
-    MTRK_GETITEM(entry, MTRK_PROPERTIES_DURATION, duration)            
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_INITIAL_PHASE, initialPhase)           
     MTRK_GETITEM(entry, MTRK_PROPERTIES_ARRAY, arrayName)
+    MTRK_GETITEMOPT(entry, MTRK_PROPERTIES_PURPOSE, purpose)    
 
     mtrk_array* array=mapiInstance->arrays.getArray(arrayName->valuestring);
 
@@ -271,21 +272,51 @@ bool mtrk_object::prepareRF(cJSON* entry)
 
     double effectiveAmplIntegral = sqrt(realAmpl*realAmpl + imagAmpl*imagAmpl);
 
-    MTRK_LOG("PREPPED THE RF")
-
     type=RF;
     eventRF=new sRF_PULSE_ARB();    
     eventRF->setIdent(entry->string);
-    eventRF->setDuration(duration->valueint);
+    eventRF->setDuration(duration);
     eventRF->setFlipAngle(flipAngle->valuedouble);
     eventRF->setInitialPhase(initialPhase->valuedouble);
     eventRF->setThickness(thickness->valuedouble);
     eventRF->setSamples(array->size);
+
+    if (purpose!=NULL)
+    {
+        if (strcmp(purpose->valuestring, MTRK_OPTIONS_EXCITATION)==0)
+        {
+            eventRF->setTypeExcitation();
+        }        
+        else
+        if (strcmp(purpose->valuestring, MTRK_OPTIONS_REFOCUS)==0)
+        {
+            eventRF->setTypeRefocussing();
+        }        
+    }
+
     if (!eventRF->prepArbitrary(mapiInstance->ptrMrProt->getProtData(), mapiInstance->ptrSeqExpo, (sSample*) array->data, effectiveAmplIntegral))  
     {   
-        //cout << "ERROR: "<<myRFPulse.getNLSStatus()<<endl;   
+        MTRK_LOG("ERROR: Preparing RF pulse " << entry->string << " Reason: " << eventRF->getNLSStatus())
         return false;  
     };
 
+    //eventRF->prep(mapiInstance->ptrMrProt->getProtData(), mapiInstance->ptrSeqExpo);
+
+    char* buffer=0;
+    buffer=new char[1024];
+
+    strcpy(buffer,entry->string);
+    strcat(buffer,"_NCOSet");
+    eventNCOSet=new sFREQ_PHASE();
+    eventNCOSet->setIdent(buffer);
+
+    strcpy(buffer,entry->string);
+    strcat(buffer,"_NCOReset");
+    eventNCOReset=new sFREQ_PHASE();
+    eventNCOReset->setIdent(buffer);
+
+    MTRK_DELETE(buffer)
+
     return true;
 }
+

@@ -475,8 +475,12 @@ bool mtrk_api::runActionRF(cJSON* item)
         return false;
     }
 
-    // TODO: Add NCO setup
-    fRTEI(time->valueint, 0, &(*object->eventRF), 0, 0, 0, 0, 0); 
+    // TODO: Add NCO setup and update of RF object
+    object->eventNCOSet->prepSet(parent->m_asSLC[0], &(*object->eventRF));
+    object->eventNCOReset->prepNeg(parent->m_asSLC[0], &(*object->eventRF));  
+
+    fRTEI(time->valueint, &(*object->eventNCOSet), &(*object->eventRF), 0, 0, 0, 0, 0); 
+    fRTEI(time->valueint+object->duration, &(*object->eventNCOReset), 0, 0, 0, 0, 0, 0);
     state.updateDuration(time->valueint, object->duration);
 
     return true;

@@ -67,6 +67,9 @@
 #define MTRK_OPTIONS_COMPLEX_FLOAT    "complex_float"
 #define MTRK_OPTIONS_DOUBLE           "double"
 #define MTRK_OPTIONS_COMPLEX_DOUBLE   "complex_double"
+#define MTRK_OPTIONS_EXCITATION       "excitation"
+#define MTRK_OPTIONS_REFOCUS          "refocus"
+#define MTRK_OPTIONS_INVERSION        "inversion"
 
 #define MTRK_ACTIONS_LOOP             "loop"
 #define MTRK_ACTIONS_CONDITION        "condition"
@@ -92,5 +95,6 @@
 #define MTRK_RETONFAIL(x)             if (!x) { return false; }
 #define MTRK_RETONFAILMSG(x,y)        if (!x) { return false; MTRK_LOG(y) }
 #define MTRK_GETITEM(a,b,c)           cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (c==NULL) { MTRK_LOG("Missing item: " << b) return false; }
+#define MTRK_GETITEMOPT(a,b,c)        cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b);
 
 #endif
