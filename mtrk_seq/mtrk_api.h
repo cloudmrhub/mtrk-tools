@@ -53,6 +53,7 @@ namespace SEQ_NAMESPACE
         long int tableDuration;
 
         bool     isDryRun;
+        int      slices;
 
         void reset(bool dryRun=true);
         void updateDuration(int startTime, int duration=0);
@@ -121,6 +122,7 @@ namespace SEQ_NAMESPACE
         double getMeasureTimeUsec();
         MrProtocolData::SeqExpoRFInfo getRFInfo();
         double getReadoutOS();
+        int    getSlices();
 
         MrProt*                  ptrMrProt; 
         MrProtocolData::SeqExpo* ptrSeqExpo;

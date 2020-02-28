@@ -109,6 +109,7 @@ cJSON* mtrk_sections::getBlock(char* id)
 mtrk_state::mtrk_state()
 {
     reset();
+    slices=1;
 }
 
 
@@ -219,6 +220,9 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
     MTRK_RETONFAIL(objects.prepare(sections.objects))    
     MTRK_RETONFAIL(equations.prepare(sections.equations))    
     MTRK_RETONFAIL(prepareBlocks())    
+
+    // Buffer value to avoid repeated json traversal and conversion
+    state.slices=getSlices();
 
     MTRK_LOG("Sequence instructions loaded.")
     return true;
@@ -433,10 +437,13 @@ bool mtrk_api::runActionCondition(cJSON* item)
 
 bool mtrk_api::runActionInit(cJSON* item)
 {
+    int sliceNo=state.counters[MTRK_COUNTER_SLICE];
+    MTRK_CHECKRANGE(sliceNo,0,state.slices,"slice array")  
+
     if (!state.isDryRun)
     {    
         // TODO: Update slice object
-        NLSStatus result=fRTEBInit(parent->m_asSLC[0].getROT_MATRIX());
+        NLSStatus result=fRTEBInit(parent->m_asSLC[sliceNo].getROT_MATRIX());
         if (result.isError())
         {
             MTRK_LOG("ERROR running fRTEBInit")
@@ -475,6 +482,8 @@ bool mtrk_api::runActionRF(cJSON* item)
 {
     MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
     MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_FLIPANGLE, flipangle)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_ADDED_PHASE, addedPhase)
 
     mtrk_object* object = objects.getObject(objectName->valuestring);
     if (object==0)
@@ -483,9 +492,35 @@ bool mtrk_api::runActionRF(cJSON* item)
         return false;
     }
 
-    // TODO: Add NCO setup and update of RF object
-    object->eventNCOSet->prepSet(parent->m_asSLC[0], &(*object->eventRF));
-    object->eventNCOReset->prepNeg(parent->m_asSLC[0], &(*object->eventRF));  
+    // TODO: Manual NCO setup
+    int sliceNo=state.counters[MTRK_COUNTER_SLICE];
+    MTRK_CHECKRANGE(sliceNo,0,state.slices,"slice array")    
+    object->eventNCOSet->prepSet(parent->m_asSLC[sliceNo], &(*object->eventRF));
+    object->eventNCOReset->prepNeg(parent->m_asSLC[sliceNo], &(*object->eventRF));  
+
+    if (addedPhase!=0)
+    {
+        double value=0;
+        if (!getDynamicValue(addedPhase,value))
+        {
+            MTRK_LOG("ERROR: Invalid added_phase value")
+            return false;
+        }        
+        object->eventNCOSet->increasePhase(value);
+        object->eventNCOReset->decreasePhase(value);
+    }
+
+    if (flipangle!=0)
+    {
+        double value=0;
+        if (!getDynamicValue(flipangle,value))
+        {
+            MTRK_LOG("ERROR: Invalid flipangle value")
+            return false;
+        }        
+        object->eventRF->setFlipAngle(value);
+        object->eventRF->reprep(ptrMrProt->getProtData(), ptrSeqExpo);
+    }
 
     if (!state.isDryRun)
     {   
@@ -504,6 +539,9 @@ bool mtrk_api::runActionADC(cJSON* item)
 {
     MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
     MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_FREQUENCY, frequency)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_PHASE, phase)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_ADDED_PHASE, addedPhase)
 
     mtrk_object* object = objects.getObject(objectName->valuestring);
     if (object==0)
@@ -512,9 +550,47 @@ bool mtrk_api::runActionADC(cJSON* item)
         return false;
     }
 
-    // TODO: Add NCO setup and update of RF object
-    //object->eventNCOSet->prepSet(parent->m_asSLC[0], &(*object->eventRF));
-    //object->eventNCOReset->prepNeg(parent->m_asSLC[0], &(*object->eventRF));  
+    bool freqPhaseChanged=false;
+    if (frequency!=0)
+    {
+        double value=0;
+        if (!getDynamicValue(frequency,value))
+        {
+            MTRK_LOG("ERROR: Invalid frequency value")
+            return false;
+        }        
+        object->eventNCOSet->setFrequency(value);
+        freqPhaseChanged=true;
+    }
+
+    if (phase!=0)
+    {
+        double value=0;
+        if (!getDynamicValue(phase,value))
+        {
+            MTRK_LOG("ERROR: Invalid phase value")
+            return false;
+        }        
+        object->eventNCOSet->setPhase(value);
+        freqPhaseChanged=true;
+    }
+
+    if (freqPhaseChanged)
+    {
+        object->calcNCOReset();
+    }
+
+    if (addedPhase!=0)
+    {
+        double value=0;
+        if (!getDynamicValue(addedPhase,value))
+        {
+            MTRK_LOG("ERROR: Invalid added_phase value")
+            return false;
+        }        
+        object->eventNCOSet->increasePhase(value);
+        object->eventNCOReset->decreasePhase(value);
+    }
 
     if (!state.isDryRun)
     {   
@@ -731,6 +807,10 @@ bool mtrk_api::runActionCalc(cJSON* item)
 
         // Increase the actual RF phase with the increment
         state.floats[index_int]+=state.floats[index_int+1];
+
+        // Make sure that the phase stays in a valid range
+        state.floats[index_int]=fmod(state.floats[index_int],360000);
+        state.floats[index_int+1]=fmod(state.floats[index_int+1],360000);       
     }
     else
     if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_GET)==0)
@@ -897,6 +977,20 @@ double mtrk_api::getReadoutOS()
     else
     {
         return item->valuedouble;
+    }
+}
+
+
+int mtrk_api::getSlices()
+{
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,MTRK_SETTINGS_SLICES);
+    if (item==NULL)
+    {
+        return 1;
+    }    
+    else
+    {
+        return item->valueint;
     }
 }
 

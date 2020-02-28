@@ -44,6 +44,8 @@ namespace SEQ_NAMESPACE
         bool prepareGrad(cJSON* entry);
         bool prepareSync(cJSON* entry);
 
+        void calcNCOReset();
+
         int type;
         int duration;
         int syncClass;

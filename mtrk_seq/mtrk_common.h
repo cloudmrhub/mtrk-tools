@@ -5,9 +5,10 @@
 #include <string>
 #include <fstream>
 
-
 #define MTRK_DEFS_COUNTERS 8
 #define MTRK_DEFS_FLOATS   8
+
+#define MTRK_COUNTER_SLICE 0
 
 #define MTRK_SECTIONS_FILE            "file"
 #define MTRK_SECTIONS_SETTINGS        "settings"
@@ -52,6 +53,9 @@
 #define MTRK_PROPERTIES_DWELLTIME     "dwelltime"
 #define MTRK_PROPERTIES_AMPLITUDE     "amplitude"
 #define MTRK_PROPERTIES_AXIS          "axis"
+#define MTRK_PROPERTIES_FREQUENCY     "frequency"
+#define MTRK_PROPERTIES_PHASE         "phase"
+#define MTRK_PROPERTIES_ADDED_PHASE   "added_phase"
 
 #define MTRK_OPTIONS_MAIN             "main"
 #define MTRK_OPTIONS_BLOCK            "block"
@@ -90,13 +94,13 @@
 #define MTRK_ACTIONS_CALC             "calc"
 #define MTRK_ACTIONS_DEBUG            "debug"
 
-#define MTRK_INFOS_SLICES             "slices"
 #define MTRK_INFOS_FOV                "fov"
 #define MTRK_INFOS_SEQSTRING          "seqstring"
 #define MTRK_INFOS_DESCRIPTION        "description"
 #define MTRK_INFOS_RECONSTRUCTION     "reconstruction"
 
 #define MTRK_SETTINGS_READOUT_OS      "readout_os"
+#define MTRK_SETTINGS_SLICES          "slices"
 
 #define MTRK_LOG(x)                   std::cout << x << std::endl;
 #define MTRK_DELETE(x)                if (x!=0) { delete x; x=0; }

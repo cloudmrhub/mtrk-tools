@@ -313,11 +313,26 @@ bool mtrk_object::prepareADC(cJSON* entry)
     eventNCOReset->setFrequency(0.);
     eventNCOReset->setPhase(0.);
 
+    calcNCOReset();
+    
     // TODO: Configure MDH
 
     MTRK_DELETE(buffer)    
            
     return true;
+}
+
+
+void mtrk_object::calcNCOReset()
+{
+    if ((eventNCOSet==0) || (eventNCOReset==0))
+    {
+        return;
+    }
+    double freq=eventNCOSet->getFrequency();
+    double startPhase=eventNCOSet->getPhase();
+    double resetPhase=0.00036*duration*freq+startPhase;
+    eventNCOReset->setPhase(-resetPhase);
 }
 
 
