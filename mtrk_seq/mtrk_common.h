@@ -66,6 +66,7 @@
 #define MTRK_OPTIONS_TEXT             "text"
 #define MTRK_OPTIONS_INT              "int"
 #define MTRK_OPTIONS_FLOAT            "float"
+#define MTRK_OPTIONS_ARRAY            "array"
 #define MTRK_OPTIONS_COMPLEX_FLOAT    "complex_float"
 #define MTRK_OPTIONS_DOUBLE           "double"
 #define MTRK_OPTIONS_COMPLEX_DOUBLE   "complex_double"
@@ -103,5 +104,6 @@
 #define MTRK_RETONFAILMSG(x,y)        if (!x) { return false; MTRK_LOG(y) }
 #define MTRK_GETITEM(a,b,c)           cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b); if (c==NULL) { MTRK_LOG("Missing item: " << b) return false; }
 #define MTRK_GETITEMOPT(a,b,c)        cJSON* c = cJSON_GetObjectItemCaseSensitive(a,b);
+#define MTRK_CHECKRANGE(a,b,c,d)      if ((a < b) || (a >=c)) { MTRK_LOG("ERROR: Index out of range " << d) return false; }
 
 #endif

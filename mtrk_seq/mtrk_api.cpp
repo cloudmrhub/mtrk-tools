@@ -533,13 +533,24 @@ bool mtrk_api::runActionGrad(cJSON* item)
     MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
     MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
     MTRK_GETITEM(item, MTRK_PROPERTIES_AXIS, axis)
-    MTRK_GETITEM(item, MTRK_PROPERTIES_AMPLITUDE, amplitude)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_AMPLITUDE, amplitude)
 
     mtrk_object* object = objects.getObject(objectName->valuestring);
     if (object==0)
     {
         MTRK_LOG("ERROR: Unable to find object " << objectName->valuestring)
         return false;
+    }
+
+    if (amplitude!=0)
+    {
+        double value=0;
+        if (!getDynamicValue(amplitude,value))
+        {
+            MTRK_LOG("ERROR: Invalid amplitude value")
+            return false;
+        }        
+        object->eventGrad->setAmplitude(value);
     }
 
     if (!state.isDryRun)
@@ -746,6 +757,58 @@ bool mtrk_api::runActionCalc(cJSON* item)
 bool mtrk_api::runActionDebug(cJSON* item)
 {
     return true;
+}
+
+
+bool mtrk_api::getDynamicValue(cJSON* item, double& value)
+{
+    if (cJSON_IsNumber(item))
+    {
+        value=item->valuedouble;
+        return true;
+    }
+    else
+    if (cJSON_IsObject(item))
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_TYPE, itemType)
+
+        if (strcmp(itemType->valuestring, MTRK_OPTIONS_EQUATION)==0)
+        {
+            MTRK_GETITEM(item, MTRK_PROPERTIES_EQUATION, valueEquation)
+            value=equations.evaluate(valueEquation->valuestring);
+            return true;
+        }
+        else
+        if (strcmp(itemType->valuestring, MTRK_OPTIONS_FLOAT)==0)
+        {
+            MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, index)
+            MTRK_CHECKRANGE(index->valueint, 0, MTRK_DEFS_FLOATS, "float index")
+            value=state.floats[index->valueint];
+            return true;
+        }
+        else
+        if (strcmp(itemType->valuestring, MTRK_OPTIONS_ARRAY)==0)
+        {
+            MTRK_GETITEM(item, MTRK_PROPERTIES_ARRAY, arrayName)
+            MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, arrayCounter)
+
+            mtrk_array* array=arrays.getArray(arrayName->valuestring);
+            if (array==0)
+            {
+                MTRK_LOG("ERROR: Array not found " << arrayName->valuestring)
+                return false;
+            }
+            MTRK_CHECKRANGE(arrayCounter->valueint, 0, MTRK_DEFS_COUNTERS, "array counter")
+            int index=state.counters[arrayCounter->valueint];
+            value=array->getDouble(index);
+            return true;
+        }
+        else
+        {
+            MTRK_LOG("ERROR: Invalid value type")
+            return false;
+        }
+    }
 }
 
 
