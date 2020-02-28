@@ -12,7 +12,6 @@
 #include "MrServers/MrProtSrv/MrProt/MeasParameter/MrSysSpec.h"
 #include "MrServers/MrProtSrv/MrProt/MeasParameter/MrRXSpec.h"
 #include "MrServers/MrProtSrv/MrProt/MrProt.h"
-#include "ProtBasic/Interfaces/SeqLim.h"
 #include "MrServers/MrProtSrv/MrProt/SeqIF/SeqExpo.h"
 #include "MrServers/MrMeasSrv/SeqIF/libRT/sREADOUT.h"
 #include "MrServers/MrMeasSrv/SeqIF/libRT/sGRAD_PULSE.h"
@@ -22,7 +21,12 @@
 #include "MrServers/MrMeasSrv/SeqIF/Sequence/sequmsg.h"
 
 #ifdef WIN32
-    #include "TCHAR.h"
+#include "ProtBasic/Interfaces/SeqLim.h"
+#include "MrServers/MrProtSrv/MrProtocol/UILink/MrStdNameTags.h"
+#include "MrServers/MrProtSrv/MrProtocol/UILink/StdProtRes/StdProtRes.h"
+#include "MrServers/MrMeasSrv/SeqIF/Sequence/Sequence.h"
+#include <vector>
+#include "TCHAR.h"
 #endif
 
 #ifdef BUILD_SEQU

@@ -118,6 +118,7 @@ namespace SEQ_NAMESPACE
         char*  getInfoString(char* name, char* defaultValue);
         double getMeasureTimeUsec();
         MrProtocolData::SeqExpoRFInfo getRFInfo();
+        double getReadoutOS();
 
         MrProt*                  ptrMrProt; 
         MrProtocolData::SeqExpo* ptrSeqExpo;

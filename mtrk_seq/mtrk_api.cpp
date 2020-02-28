@@ -169,7 +169,14 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
 
     if (tempSequence==NULL) 
     {
-        MTRK_LOG("Unable to parse sequence file")      
+        MTRK_LOG("Unable to parse sequence file")
+
+        //const char *error_ptr = cJSON_GetErrorPtr();
+        //if (error_ptr != NULL)
+        //{
+        //    MTRK_LOG("Error before: " << error_ptr);
+        //}
+
         return false;        
     }
 
@@ -523,6 +530,43 @@ bool mtrk_api::runActionADC(cJSON* item)
 
 bool mtrk_api::runActionGrad(cJSON* item)
 {
+    MTRK_GETITEM(item, MTRK_PROPERTIES_TIME, time)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_OBJECT, objectName)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_AXIS, axis)
+    MTRK_GETITEM(item, MTRK_PROPERTIES_AMPLITUDE, amplitude)
+
+    mtrk_object* object = objects.getObject(objectName->valuestring);
+    if (object==0)
+    {
+        MTRK_LOG("ERROR: Unable to find object " << objectName->valuestring)
+        return false;
+    }
+
+    if (!state.isDryRun)
+    {   
+        if (strcmp(axis->valuestring, MTRK_OPTIONS_READ)==0)
+        {
+            fRTEI(time->valueint, 0, 0, 0, 0, &(*object->eventGrad), 0, 0); 
+        }
+        else
+        if (strcmp(axis->valuestring, MTRK_OPTIONS_PHASE)==0)
+        {
+            fRTEI(time->valueint, 0, 0, 0, &(*object->eventGrad), 0, 0, 0); 
+        }
+        else
+        if (strcmp(axis->valuestring, MTRK_OPTIONS_SLICE)==0)
+        {
+            fRTEI(time->valueint, 0, 0, 0, 0, 0, &(*object->eventGrad), 0); 
+        }
+        else
+        {
+            MTRK_LOG("ERROR: Invalid gradient axis " << axis->valuestring)
+            return false;
+        }
+    }
+
+    state.updateDuration(time->valueint, object->duration);
+
     return true;
 }
 
@@ -777,6 +821,20 @@ char* mtrk_api::getInfoString(char* name, char* defaultValue)
 double mtrk_api::getMeasureTimeUsec()
 {
     return (double) state.totalDuration;
+}
+
+
+double mtrk_api::getReadoutOS()
+{
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(sections.settings,MTRK_SETTINGS_READOUT_OS);
+    if (item==NULL)
+    {
+        return 2.0;
+    }    
+    else
+    {
+        return item->valuedouble;
+    }
 }
 
 

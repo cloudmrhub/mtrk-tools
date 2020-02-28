@@ -324,8 +324,41 @@ bool mtrk_object::prepareADC(cJSON* entry)
 bool mtrk_object::prepareGrad(cJSON* entry)
 {
     type=GRAD;
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_ARRAY, arrayName)
+    MTRK_GETITEM(entry, MTRK_PROPERTIES_AMPLITUDE, amplitude)
+    MTRK_GETITEMOPT(entry, MTRK_PROPERTIES_TAIL, tail)
+    
+    mtrk_array* array=mapiInstance->arrays.getArray(arrayName->valuestring);
+
+    if (array==0)
+    {
+        MTRK_LOG("ERROR: Array not found " << arrayName->valuestring)
+        return false;
+    }
+    if (array->type!=mtrk_array::FLOAT)
+    {
+        MTRK_LOG("ERROR: Invalid type of array " << arrayName->valuestring)
+        return false;
+    }
+
+    int rampDown=0;
+    if (tail!=0) 
+    {
+        rampDown=tail->valueint;
+    }
+    int rampUp=array->size-rampDown;
+
     eventGrad=new sGRAD_PULSE_ARB();
     eventGrad->setIdent(entry->string);
+    eventGrad->setRampShape((float*) array->data, rampUp, rampDown);
+    eventGrad->setAmplitude(amplitude->valuedouble);
+    eventGrad->setDuration(rampUp);
+
+    if (!eventGrad->prep())
+    {
+        MTRK_LOG("ERROR: Preparing GRAD " << entry->string << " Reason: " << eventGrad->getNLSStatus())
+        return false;          
+    }
 
     return true;
 }

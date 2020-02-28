@@ -17,9 +17,11 @@ namespace SEQ_NAMESPACE
 {
     namespace MTRK_UI
     {
+#ifdef WIN32
         bool getLimitsReadoutFOV(LINK_DOUBLE_TYPE* const pThis, std::vector<MrLimitDouble>& rLimitVector, unsigned long& rulVerify, long /*lIndex*/);
         double setValueReadFOV(LINK_DOUBLE_TYPE* const pThis, double dDesiredPhaseFOV, long lIndex);
         double getValuePhaseFOV(LINK_DOUBLE_TYPE* const pThis, long lIndex);
+#endif
     }
     
     class mtrkUI 
@@ -30,11 +32,12 @@ namespace SEQ_NAMESPACE
         virtual ~mtrkUI();
         NLS_STATUS registerUI (SeqLim &rSeqLim);
 
+#ifdef WIN32
         UILimitedElement<LINK_DOUBLE_TYPE> m_ReadFoV;
         UILimitedElement<LINK_DOUBLE_TYPE> m_PhaseFoV;
 
         void test(SeqLim& rSeqLim);
-
+#endif
     };
 };
 

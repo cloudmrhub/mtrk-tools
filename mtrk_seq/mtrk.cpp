@@ -50,7 +50,7 @@ NLSStatus mtrk::initialize(SeqLim &rSeqLim)
     rSeqLim.setSlices               (          1,         K_NO_SLI_MAX,            1,        1);
     rSeqLim.setMultipleSeriesMode(SEQ::MULTIPLE_SERIES_OFF, SEQ::MULTIPLE_SERIES_EACH_MEASUREMENT, SEQ::MULTIPLE_SERIES_EACH_SLICE, SEQ::MULTIPLE_SERIES_EACH_SLICE_AND_MEASUREMENT);
     rSeqLim.setAdjShim(SEQ::ADJSHIM_STANDARD, SEQ::ADJSHIM_TUNEUP);
-    rSeqLim.setReadoutOSFactor(1.0);
+    rSeqLim.setReadoutOSFactor(2.0);
 
     if((MRRESULT_SEV & (lStatus = createUI(rSeqLim))) == MRRESULT_SEV) 
     {
@@ -85,6 +85,7 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
 
     mapi.prepare(&rMrProt,&rSeqExpo,rSeqLim.isContextPrepForBinarySearch());
 
+#ifdef WIN32
     //if (!rSeqLim.isContextPrepForBinarySearch())
     {
         Slice slice(rMrProt.sliceSeries()[0]);
@@ -92,7 +93,7 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
         slice.phaseFOV(mapi.getInfoDouble(MTRK_INFOS_FOV,300.));
        // rMrProt.sliceGroupList().;
     }
-    
+#endif   
 
     int lLinesToMeasure=0;
 
@@ -105,6 +106,7 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
     rSeqExpo.setMeasuredPELines     (lLinesToMeasure);
     rSeqExpo.setOnlineFFT           (SEQ::ONLINE_FFT_PHASE);
     rSeqExpo.setICEProgramFilename  (mapi.getInfoString(MTRK_INFOS_RECONSTRUCTION,"%SiemensIceProgs%\\IceProgram2D"));
+    rSeqLim.setReadoutOSFactor      (mapi.getReadoutOS());
 
     return (lStatus);
 }

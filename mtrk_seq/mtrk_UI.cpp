@@ -13,8 +13,6 @@
 using namespace SEQ_NAMESPACE;
 
 
-#ifdef WIN32
-
 
 enum eSeqSpecialParameters 
 {
@@ -22,6 +20,18 @@ enum eSeqSpecialParameters
     WIP_Checkbox_2
 };
 
+
+mtrkUI::mtrkUI()
+{
+}
+
+
+mtrkUI::~mtrkUI()
+{
+}
+
+
+#ifdef WIN32
 
 mtrk* getSeq (MrUILinkBase* const pThis)
 {
@@ -32,16 +42,6 @@ mtrk* getSeq (MrUILinkBase* const pThis)
 const mtrkUI* getUI (MrUILinkBase* const pThis)
 {
     return ( static_cast<mtrk*>(pThis->sequence().getSeq())->getUI() );
-}
-
-
-mtrkUI::mtrkUI()
-{
-}
-
-
-mtrkUI::~mtrkUI()
-{
 }
 
 
@@ -185,6 +185,8 @@ bool wipCheckboxSetValue(LINK_BOOL_TYPE* const pThis, bool value, long lIndex)
     return true;
 }
 
+#endif
+
 
 NLS_STATUS mtrkUI::registerUI(SeqLim& rSeqLim)
 {
@@ -196,6 +198,8 @@ NLS_STATUS mtrkUI::registerUI(SeqLim& rSeqLim)
 
     //MR_TAG_SG_SIZE
 
+#ifdef WIN32
+
     if (LINK_BOOL_TYPE* pBool = _create< LINK_BOOL_TYPE >(rSeqLim, MR_TAG_SEQ_WIP1, WIP_Checkbox_1))
     {       
         pBool->registerGetLabelIdHandler  (wipCheckboxGetLabelId);
@@ -205,9 +209,13 @@ NLS_STATUS mtrkUI::registerUI(SeqLim& rSeqLim)
         pBool->registerSetValueHandler    (wipCheckboxSetValue);        
     }
 
+#endif
+
     return ( SEQU__NORMAL );
 };
 
+
+#ifdef WIN32
 
 void mtrkUI::test(SeqLim& rSeqLim)
 {

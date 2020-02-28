@@ -37,8 +37,7 @@
 #define MTRK_PROPERTIES_TIME          "time"
 #define MTRK_PROPERTIES_DURATION      "duration"
 #define MTRK_PROPERTIES_SAMPLES       "samples"
-#define MTRK_PROPERTIES_RAMP_UP       "ramp_up"
-#define MTRK_PROPERTIES_RAMP_DOWN     "ramp_down"
+#define MTRK_PROPERTIES_TAIL          "tail"
 #define MTRK_PROPERTIES_OBJECT        "object"
 #define MTRK_PROPERTIES_EQUATION      "equation"
 #define MTRK_PROPERTIES_INCREMENT     "increment"
@@ -51,6 +50,8 @@
 #define MTRK_PROPERTIES_FLIPANGLE     "flipangle"
 #define MTRK_PROPERTIES_PURPOSE       "purpose"
 #define MTRK_PROPERTIES_DWELLTIME     "dwelltime"
+#define MTRK_PROPERTIES_AMPLITUDE     "amplitude"
+#define MTRK_PROPERTIES_AXIS          "axis"
 
 #define MTRK_OPTIONS_MAIN             "main"
 #define MTRK_OPTIONS_BLOCK            "block"
@@ -71,6 +72,9 @@
 #define MTRK_OPTIONS_EXCITATION       "excitation"
 #define MTRK_OPTIONS_REFOCUS          "refocus"
 #define MTRK_OPTIONS_INVERSION        "inversion"
+#define MTRK_OPTIONS_READ             "read"
+#define MTRK_OPTIONS_PHASE            "phase"
+#define MTRK_OPTIONS_SLICE            "slice"
 
 #define MTRK_ACTIONS_LOOP             "loop"
 #define MTRK_ACTIONS_CONDITION        "condition"
@@ -90,6 +94,8 @@
 #define MTRK_INFOS_SEQSTRING          "seqstring"
 #define MTRK_INFOS_DESCRIPTION        "description"
 #define MTRK_INFOS_RECONSTRUCTION     "reconstruction"
+
+#define MTRK_SETTINGS_READOUT_OS      "readout_os"
 
 #define MTRK_LOG(x)                   std::cout << x << std::endl;
 #define MTRK_DELETE(x)                if (x!=0) { delete x; x=0; }
