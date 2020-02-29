@@ -542,6 +542,7 @@ bool mtrk_api::runActionADC(cJSON* item)
     MTRK_GETITEMOPT(item, MTRK_PROPERTIES_FREQUENCY, frequency)
     MTRK_GETITEMOPT(item, MTRK_PROPERTIES_PHASE, phase)
     MTRK_GETITEMOPT(item, MTRK_PROPERTIES_ADDED_PHASE, addedPhase)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_MDH, mdh)
 
     mtrk_object* object = objects.getObject(objectName->valuestring);
     if (object==0)
@@ -590,6 +591,11 @@ bool mtrk_api::runActionADC(cJSON* item)
         }        
         object->eventNCOSet->increasePhase(value);
         object->eventNCOReset->decreasePhase(value);
+    }
+
+    if (mdh!=0)
+    {
+        MTRK_RETONFAIL(object->updateMDH(mdh))        
     }
 
     if (!state.isDryRun)

@@ -46,6 +46,9 @@ namespace SEQ_NAMESPACE
 
         void calcNCOReset();
 
+        bool updateMDH(cJSON* entry);
+        bool getMDHValue(cJSON* field, int& value);
+
         int type;
         int duration;
         int syncClass;

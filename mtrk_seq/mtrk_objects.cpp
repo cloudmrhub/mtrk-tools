@@ -6,7 +6,8 @@
 #include "MrServers/MrMeasSrv/SeqIF/libRT/libRT.h"
 #include "MrServers/MrMeasSrv/MeasUtils/NLSStatus.h"
 #include "MrServers/MrProtSrv/MrProt/MrProt.h"
-
+#include "MrServers/MrImaging/libSeqUtil/libSeqUtil.h"
+#include "MrServers/MrMeasSrv/MeasNuclei/IF/MeasKnownNuclei.h"
 
 using namespace SEQ_NAMESPACE;
 
@@ -290,6 +291,22 @@ bool mtrk_object::prepareADC(cJSON* entry)
     eventADC->setColumns(samples->valueint);
     eventADC->setDwellTime(dwelltime->valueint);
 
+    eventADC->getMDH().setCslc(0);
+    eventADC->getMDH().setCacq(0);
+    eventADC->getMDH().setCpar(0);
+    eventADC->getMDH().setCseg(0);
+    eventADC->getMDH().setCeco(0);
+    eventADC->getMDH().setClin(0);
+    eventADC->getMDH().setCphs(0);
+    eventADC->getMDH().setCrep(0);
+    eventADC->getMDH().setFirstScanInSlice(false);
+    eventADC->getMDH().setLastScanInSlice(false);
+    eventADC->getMDH().setLastScanInMeas(false);
+    eventADC->getMDH().setLastScanInConcat(false);
+    eventADC->getMDH().setPhaseFT(false);
+    eventADC->getMDH().setKSpaceCentreLineNo(0);
+    eventADC->getMDH().setKSpaceCentrePartitionNo(0);
+
     if (!eventADC->prep())
     {
         MTRK_LOG("ERROR: Preparing ADC " << entry->string << " Reason: " << eventADC->getNLSStatus())
@@ -314,7 +331,7 @@ bool mtrk_object::prepareADC(cJSON* entry)
     eventNCOReset->setPhase(0.);
 
     calcNCOReset();
-    
+
     // TODO: Configure MDH
 
     MTRK_DELETE(buffer)    
@@ -426,4 +443,53 @@ bool mtrk_object::prepareSync(cJSON* entry)
     eventSync->setDuration(duration);  
     
     return true;
+}
+
+
+bool mtrk_object::updateMDH(cJSON* entry)
+{
+    int valueInt=0;
+    cJSON* field=0;
+    cJSON_ArrayForEach(field, entry)
+    {
+        if (strcmp(field->string, MTRK_MDH_LINE)==0)
+        {
+            MTRK_RETONFAIL(getMDHValue(field, valueInt))
+            eventADC->getMDH().setClin((uint16_t) valueInt);
+        }
+    }    
+    return true;
+}
+
+
+bool mtrk_object::getMDHValue(cJSON* field, int& value)
+{
+    if (cJSON_IsNumber(field))
+    {
+        value=field->valueint;
+        return true;
+    }
+    else
+    if (cJSON_IsObject(field))
+    {
+        MTRK_GETITEM(field, MTRK_PROPERTIES_TYPE, fieldType)        
+
+        if (strcmp(fieldType->valuestring, MTRK_OPTIONS_COUNTER)==0)
+        {
+            MTRK_GETITEM(field, MTRK_PROPERTIES_COUNTER, counter)
+            MTRK_CHECKRANGE(counter->valueint,0,MTRK_DEFS_COUNTERS,"MDH value counter")
+            value=mapiInstance->state.counters[counter->valueint];
+            return true;
+        }
+        else
+        {
+            MTRK_LOG("ERROR: Invalid MDH value type")
+            return false;
+        }
+    }
+    else
+    {
+        MTRK_LOG("ERROR: Invalid MDH value")
+        return false;
+    }
 }

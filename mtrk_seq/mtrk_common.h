@@ -5,8 +5,8 @@
 #include <string>
 #include <fstream>
 
-#define MTRK_DEFS_COUNTERS 8
-#define MTRK_DEFS_FLOATS   8
+#define MTRK_DEFS_COUNTERS 64
+#define MTRK_DEFS_FLOATS   64
 
 #define MTRK_COUNTER_SLICE 0
 
@@ -56,6 +56,7 @@
 #define MTRK_PROPERTIES_FREQUENCY     "frequency"
 #define MTRK_PROPERTIES_PHASE         "phase"
 #define MTRK_PROPERTIES_ADDED_PHASE   "added_phase"
+#define MTRK_PROPERTIES_MDH           "mdh"
 
 #define MTRK_OPTIONS_MAIN             "main"
 #define MTRK_OPTIONS_BLOCK            "block"
@@ -71,6 +72,7 @@
 #define MTRK_OPTIONS_INT              "int"
 #define MTRK_OPTIONS_FLOAT            "float"
 #define MTRK_OPTIONS_ARRAY            "array"
+#define MTRK_OPTIONS_COUNTER          "counter"
 #define MTRK_OPTIONS_COMPLEX_FLOAT    "complex_float"
 #define MTRK_OPTIONS_DOUBLE           "double"
 #define MTRK_OPTIONS_COMPLEX_DOUBLE   "complex_double"
@@ -93,6 +95,8 @@
 #define MTRK_ACTIONS_MARK             "mark"
 #define MTRK_ACTIONS_CALC             "calc"
 #define MTRK_ACTIONS_DEBUG            "debug"
+
+#define MTRK_MDH_LINE                 "line"
 
 #define MTRK_INFOS_FOV                "fov"
 #define MTRK_INFOS_SEQSTRING          "seqstring"

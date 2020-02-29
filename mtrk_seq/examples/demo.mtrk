@@ -50,15 +50,17 @@
                 {
                     "action": "calc",
                     "type": "counter_inc",
-                    "counter": 0
+                    "counter": 3
+                },
+                {
+                    "action": "calc",
+                    "type": "float_rfspoil",
+                    "float": 0,
+                    "increment": 50
                 },
                 {
                     "action": "init",
-                    "gradients": "logical",
-                    "slice": {
-                        "type": "fix",
-                        "value": 0                        
-                    }
+                    "gradients": "logical"
                 },
                 {
                     "action": "sync",
@@ -69,13 +71,14 @@
                     "action": "rf",
                     "object": "rf_excitation",
                     "time": 10,
-                    "freq_phase": {
-                        "type": "array",
-                        "values": "lineindex2",
-                        "counter": 1,
-                        "add_float_phase": -1
+                    "added_phase": {
+                        "type": "float",
+                        "float": 0
                     },
-                    "flipangle": 15
+                    "flipangle":  {
+                        "type": "equation",
+                        "equation": "fa"
+                    }
                 },
                 {
                     "action": "grad",
@@ -91,24 +94,18 @@
                     "action": "adc",
                     "time": 3000,
                     "object": "adc_readout",
-                    "freq_phase": {
-                        "type": "array",
-                        "values": "lineindex2",
-                        "counter": 1,
-                        "add_float_phase": -1,
-                        "add_float_freq": -1
-                    },
-                    "mdh": [
-                        {
-                            "field": "first_scan_slice",
-                            "counter": 5,
-                            "target": ""
-                        },
-                        {
-                            "field": "line",
+                    "frequency": 0,
+                    "phase": 0,
+                    "added_phase": {
+                        "type": "float",
+                        "float": 0
+                    },                    
+                    "mdh": {
+                        "line": {
+                            "type": "counter",
                             "counter": 2
                         }
-                    ]
+                    }
                 },                    
                 {
                     "action": "mark",
@@ -172,9 +169,7 @@
             "type": "adc",
             "duration": 3840,
             "samples": 256,
-            "dwelltime": 15000,
-            "mdh": [                
-            ]            
+            "dwelltime": 15000
         },
         "ttl": {
             "type": "sync",
@@ -211,6 +206,9 @@
         },
         "grad1": {
             "equation": "(ctr(2)-32)/32*10"
+        },
+        "fa": {
+            "equation": "ctr(2)"
         }
     }
 }
