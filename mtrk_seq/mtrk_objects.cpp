@@ -123,6 +123,7 @@ mtrk_object::mtrk_object()
     type=INVALID;
     syncClass=SYNC_INVALID;
     duration=0;
+    tailDuration=0;
 
     eventGrad=0;
     eventSync=0;
@@ -378,6 +379,7 @@ bool mtrk_object::prepareGrad(cJSON* entry)
     {
         rampDown=tail->valueint;
     }
+    tailDuration=rampDown;
     int rampUp=array->size-rampDown;
 
     eventGrad=new sGRAD_PULSE_ARB();
@@ -446,24 +448,61 @@ bool mtrk_object::prepareSync(cJSON* entry)
 }
 
 
+#define MTRK_ADDCASE_MDH_INT(A,B) if (strcmp(field->string, A)==0) { MTRK_RETONFAIL(getMDHValue(field, valueInt, index)) eventADC->getMDH().B((uint16_t) valueInt); continue; }
+#define MTRK_ADDCASE_MDH_BOOL(A,B) if (strcmp(field->string, A)==0) { MTRK_RETONFAIL(getMDHValue(field, valueBool)) eventADC->getMDH().B(valueBool); continue; }
+
 bool mtrk_object::updateMDH(cJSON* entry)
 {
-    int valueInt=0;
+    int  index=0;
+    int  valueInt=0;
+    bool valueBool=false;
     cJSON* field=0;
     cJSON_ArrayForEach(field, entry)
     {
-        if (strcmp(field->string, MTRK_MDH_LINE)==0)
-        {
-            MTRK_RETONFAIL(getMDHValue(field, valueInt))
-            eventADC->getMDH().setClin((uint16_t) valueInt);
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_LINE,             setClin)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_SLICE,            setCslc)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_PARTITION,        setCpar)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_ACQUISITION,      setCacq)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_ECHO,             setCeco)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_REPETITION,       setCrep)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_IDA,              setCida)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_IDB,              setCidb)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_IDC,              setCidc)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_IDD,              setCidd)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_IDE,              setCide)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_CENTER_LINE,      setKSpaceCentreLineNo)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_CENTER_PARTITION, setKSpaceCentrePartitionNo)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_CENTER_COLUMN,    setKSpaceCentreColumn)
+
+        if (strcmp(field->string, MTRK_MDH_ICE_PARAMETER)==0) 
+        { 
+            MTRK_RETONFAIL(getMDHValue(field, valueInt, index)) 
+            MTRK_CHECKRANGE(index, 0, MDH_NUMBEROFICEPROGRAMPARA, "MDH ICE parameter index")
+            eventADC->getMDH().setIceProgramPara((uint16_t) index, (uint16_t) valueInt);
         }
+
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_FIRST_SCAN_SLICE, setFirstScanInSlice)
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_LAST_SCAN_SLICE,  setLastScanInSlice)
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_LAST_SCAN_MEAS,   setLastScanInMeas)
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_LAST_SCAN_CONCAT, setLastScanInConcat)     
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_LAST_LINE,        setLastMeasuredLine)
+
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_SEGMENT,          setCseg)
+        MTRK_ADDCASE_MDH_INT (MTRK_MDH_SET,              setCset)
+
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_PAT_REFIMA,       setPATRefAndImaScan)
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_PAT_REF,          setPATRefScan)
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_RAWDATACORRECTION,setRawDataCorrection)
+        MTRK_ADDCASE_MDH_BOOL(MTRK_MDH_SWAPPED,          setPRSwapped)        
     }    
     return true;
 }
 
 
-bool mtrk_object::getMDHValue(cJSON* field, int& value)
+bool mtrk_object::getMDHValue(cJSON* field, int& value, int& index)
 {
+    index=0;
+
     if (cJSON_IsNumber(field))
     {
         value=field->valueint;
@@ -472,7 +511,13 @@ bool mtrk_object::getMDHValue(cJSON* field, int& value)
     else
     if (cJSON_IsObject(field))
     {
-        MTRK_GETITEM(field, MTRK_PROPERTIES_TYPE, fieldType)        
+        MTRK_GETITEM(field, MTRK_PROPERTIES_TYPE, fieldType)    
+        MTRK_GETITEMOPT(field, MTRK_PROPERTIES_INDEX, indexItem)
+
+        if (indexItem!=0)
+        {
+            index=indexItem->valueint;
+        }
 
         if (strcmp(fieldType->valuestring, MTRK_OPTIONS_COUNTER)==0)
         {
@@ -486,6 +531,40 @@ bool mtrk_object::getMDHValue(cJSON* field, int& value)
             MTRK_LOG("ERROR: Invalid MDH value type")
             return false;
         }
+    }
+    else
+    {
+        MTRK_LOG("ERROR: Invalid MDH value")
+        return false;
+    }
+}
+
+
+bool mtrk_object::getMDHValue(cJSON* field, bool& value)
+{
+    if (cJSON_IsBool(field))
+    {
+        value=cJSON_IsTrue(field);
+        return true;
+    }
+    else
+    if (cJSON_IsObject(field))
+    {
+        MTRK_GETITEM(field, MTRK_PROPERTIES_TYPE, fieldType)        
+
+        if (strcmp(fieldType->valuestring, MTRK_OPTIONS_COUNTER)==0)
+        {
+            MTRK_GETITEM(field, MTRK_PROPERTIES_COUNTER, counter)
+            MTRK_CHECKRANGE(counter->valueint,0,MTRK_DEFS_COUNTERS,"MDH value counter")
+            MTRK_GETITEM(field, MTRK_PROPERTIES_TARGET, target)            
+            value=(mapiInstance->state.counters[counter->valueint]==target->valueint);
+            return true;
+        }
+        else
+        {
+            MTRK_LOG("ERROR: Invalid MDH value type")
+            return false;
+        }        
     }
     else
     {

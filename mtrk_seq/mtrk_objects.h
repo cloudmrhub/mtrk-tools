@@ -47,10 +47,12 @@ namespace SEQ_NAMESPACE
         void calcNCOReset();
 
         bool updateMDH(cJSON* entry);
-        bool getMDHValue(cJSON* field, int& value);
+        bool getMDHValue(cJSON* field, int& value, int& index);
+        bool getMDHValue(cJSON* field, bool& value);
 
         int type;
         int duration;
+        int tailDuration;
         int syncClass;
 
         sGRAD_PULSE_ARB* eventGrad;
@@ -62,7 +64,6 @@ namespace SEQ_NAMESPACE
         
         cJSON*    object;
 
-        //bool insert(cJSON* item);
         //int  getDuration(bool includeOverhang);    
     };
 
