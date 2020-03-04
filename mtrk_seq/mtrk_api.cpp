@@ -166,6 +166,7 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
     std::ifstream file(filename.c_str());
     std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
+    // TODO: Load only sequence header to determine if loading of json is needed
     cJSON* tempSequence = cJSON_Parse(contents.c_str());
 
     if (tempSequence==NULL) 
@@ -202,6 +203,8 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
         MTRK_LOG("Invalid MTRK file (measurement item missing)")
         return false;
     }
+
+    MTRK_LOG("Loading sequence " << filename)
 
     state.reset();
     unloadSequence();
@@ -253,7 +256,7 @@ bool mtrk_api::prepare(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool 
     
     ptrMrProt=pMrProt;
     ptrSeqExpo=pSeqExpo;    
-    MTRK_RETONFAIL(loadSequence("C:\\temp\\demo.mtrk"))
+    MTRK_RETONFAIL(loadSequence("C:\\temp\\miniflash.mtrk"))
 
     // Perform a dry run to calculate the time and SAR
     if (!run(pMrProt,pSeqExpo,true)) 
@@ -627,7 +630,7 @@ bool mtrk_api::runActionGrad(cJSON* item)
     if (amplitude!=0)
     {
         double value=0;
-        if (!getDynamicValue(amplitude,value))
+        if (!getDynamicValue(amplitude, value, object->eventGrad->getAmplitude()))
         {
             MTRK_LOG("ERROR: Invalid amplitude value")
             return false;
@@ -846,7 +849,7 @@ bool mtrk_api::runActionDebug(cJSON* item)
 }
 
 
-bool mtrk_api::getDynamicValue(cJSON* item, double& value)
+bool mtrk_api::getDynamicValue(cJSON* item, double& value, double oldValue)
 {
     if (cJSON_IsNumber(item))
     {
@@ -895,6 +898,12 @@ bool mtrk_api::getDynamicValue(cJSON* item, double& value)
             return false;
         }
     }
+    else
+    if (cJSON_IsString(item) && (strcmp(item->valuestring, MTRK_OPTIONS_FLIP)==0))
+    {
+        value=-1.*oldValue;
+        return true;
+    }    
 }
 
 

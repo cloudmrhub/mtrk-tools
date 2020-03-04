@@ -381,16 +381,16 @@ bool mtrk_object::prepareGrad(cJSON* entry)
     int rampDown=0;
     if (tail!=0) 
     {
-        rampDown=tail->valueint;
+        tailDuration=tail->valueint;
+        rampDown=tail->valueint/10;
     }
-    tailDuration=rampDown;
     int rampUp=array->size-rampDown;
 
     eventGrad=new sGRAD_PULSE_ARB();
     eventGrad->setIdent(entry->string);
     eventGrad->setRampShape((float*) array->data, rampUp, rampDown);
     eventGrad->setAmplitude(amplitude->valuedouble);
-    eventGrad->setDuration(rampUp);
+    eventGrad->setDuration(rampUp*10);
 
     if (!eventGrad->prep())
     {

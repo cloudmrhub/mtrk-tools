@@ -57,6 +57,7 @@
 #define MTRK_PROPERTIES_PHASE         "phase"
 #define MTRK_PROPERTIES_ADDED_PHASE   "added_phase"
 #define MTRK_PROPERTIES_MDH           "mdh"
+#define MTRK_PROPERTIES_COMMENT       "comment"
 
 #define MTRK_OPTIONS_MAIN             "main"
 #define MTRK_OPTIONS_BLOCK            "block"
@@ -73,6 +74,7 @@
 #define MTRK_OPTIONS_FLOAT            "float"
 #define MTRK_OPTIONS_ARRAY            "array"
 #define MTRK_OPTIONS_COUNTER          "counter"
+#define MTRK_OPTIONS_FLIP             "flip"
 #define MTRK_OPTIONS_COMPLEX_FLOAT    "complex_float"
 #define MTRK_OPTIONS_DOUBLE           "double"
 #define MTRK_OPTIONS_COMPLEX_DOUBLE   "complex_double"
