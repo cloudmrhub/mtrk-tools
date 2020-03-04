@@ -331,11 +331,15 @@ bool mtrk_object::prepareADC(cJSON* entry)
     eventNCOReset->setFrequency(0.);
     eventNCOReset->setPhase(0.);
 
+    MTRK_DELETE(buffer)    
+
     calcNCOReset();
 
-    // TODO: Configure MDH
-
-    MTRK_DELETE(buffer)    
+    MTRK_GETITEMOPT(entry, MTRK_PROPERTIES_MDH, mdhEntries)
+    if (mdhEntries!=0)
+    {
+        updateMDH(mdhEntries);
+    }
            
     return true;
 }
@@ -526,6 +530,12 @@ bool mtrk_object::getMDHValue(cJSON* field, int& value, int& index)
             value=mapiInstance->state.counters[counter->valueint];
             return true;
         }
+        if (strcmp(fieldType->valuestring, MTRK_OPTIONS_VALUE)==0)
+        {
+            MTRK_GETITEM(field, MTRK_PROPERTIES_VALUE, valueField)
+            value=valueField->valueint;
+            return true;
+        }        
         else
         {
             MTRK_LOG("ERROR: Invalid MDH value type")

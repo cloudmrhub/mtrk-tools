@@ -82,6 +82,7 @@
 #define MTRK_OPTIONS_READ             "read"
 #define MTRK_OPTIONS_PHASE            "phase"
 #define MTRK_OPTIONS_SLICE            "slice"
+#define MTRK_OPTIONS_VALUE            "value"
 
 #define MTRK_ACTIONS_LOOP             "loop"
 #define MTRK_ACTIONS_CONDITION        "condition"
