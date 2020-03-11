@@ -41,14 +41,26 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Arrays</h4>
+                        <div class="card-header-action">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="tester" style=""></div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 <input id="mtrkLoader" type="file" style="visibility:hidden" accept=".mtrk">
 {% endblock %}
 
 {% block page_js %}
-<script src="/js/sweetalert.min.js"></script>
-
 <script>
     $("#mtrkLoader").change(function (e) {
         console.log("Load Event");
@@ -61,6 +73,12 @@
         reader.readAsText(file, 'UTF-8');
         $("#mtrkLoader").val("");
     });
+
+	TESTER = document.getElementById('tester');
+	Plotly.newPlot( TESTER, [{
+	x: [1, 2, 3, 4, 5],
+	y: [1, 2, 4, 8, 16] }], {
+	margin: { t: 0 } } );        
 </script>
 {% endblock %}
 
@@ -73,4 +91,6 @@
 <script src="/js/codemirror_foldcode.js"></script>
 <script src="/js/codemirror_foldgutter.js"></script>
 <script src="/js/codemirror_brace-fold.js"></script>
+<script src="/js/plotly-latest.min.js"></script>        
+<script src="/js/sweetalert.min.js"></script>
 {% endblock %}
