@@ -17,6 +17,7 @@
 #define MTRK_SECTIONS_OBJECTS         "objects"
 #define MTRK_SECTIONS_ARRAYS          "arrays"
 #define MTRK_SECTIONS_EQUATIONS       "equations"
+#define MTRK_SECTIONS_GENERATOR       "generator"
 
 #define MTRK_PROPERTIES_ACTION        "action"
 #define MTRK_PROPERTIES_MEASUREMENT   "measurement"
@@ -31,7 +32,7 @@
 #define MTRK_PROPERTIES_BLOCK         "block"
 #define MTRK_PROPERTIES_ARRAY         "array"
 #define MTRK_PROPERTIES_VALUE         "value"
-#define MTRK_PROPERTIES_PRINT_MSG     "print_message"
+#define MTRK_PROPERTIES_PRINT         "print"
 #define MTRK_PROPERTIES_TRUE          "true"
 #define MTRK_PROPERTIES_FALSE         "false"
 #define MTRK_PROPERTIES_TARGET        "target"
@@ -58,6 +59,7 @@
 #define MTRK_PROPERTIES_ADDED_PHASE   "added_phase"
 #define MTRK_PROPERTIES_MDH           "mdh"
 #define MTRK_PROPERTIES_COMMENT       "comment"
+#define MTRK_PROPERTIES_MESSAGE       "message"
 
 #define MTRK_OPTIONS_MAIN             "main"
 #define MTRK_OPTIONS_BLOCK            "block"
@@ -130,6 +132,7 @@
 #define MTRK_INFOS_SEQSTRING          "seqstring"
 #define MTRK_INFOS_DESCRIPTION        "description"
 #define MTRK_INFOS_RECONSTRUCTION     "reconstruction"
+#define MTRK_INFOS_PELINES            "pelines"
 
 #define MTRK_SETTINGS_READOUT_OS      "readout_os"
 #define MTRK_SETTINGS_SLICES          "slices"

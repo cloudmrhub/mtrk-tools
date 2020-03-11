@@ -37,17 +37,14 @@ NLSStatus mtrk::initialize(SeqLim &rSeqLim)
     static const char *ptModule = {"mtrk::initialize"};
     NLS_STATUS lStatus = SEQU__NORMAL;
 
-    rSeqLim.setAllowedFrequency(8000000,500000000);
+    rSeqLim.setAllowedFrequency(8000000, 500000000);
     rSeqLim.enableSliceShift();
     rSeqLim.enableMSMA();
     rSeqLim.enableOffcenter();
     rSeqLim.setAllowedSliceOrientation(SEQ::DOUBLE_OBLIQUE);   
-    //rSeqLim.setBandWidthPerPixel  (    0,   80,        900,           10,      260);
-    //rSeqLim.setFlipAngle          (       10.0,       90.0,          1.0,   15.000);
-    //rSeqLim.setBaseResolution     (         64,        512,  SEQ::INC_64,      128);
-    rSeqLim.setReadoutFOV           (        100,        500,            1,      300);
-    rSeqLim.setPhaseFOV             (        100,        500,            1,      300);
-    rSeqLim.setSlices               (          1,         K_NO_SLI_MAX,            1,        1);
+    rSeqLim.setReadoutFOV(100, 500, 1, 300);
+    rSeqLim.setPhaseFOV(100, 500, 1, 300);
+    rSeqLim.setSlices(1, K_NO_SLI_MAX, 1, 1);
     rSeqLim.setMultipleSeriesMode(SEQ::MULTIPLE_SERIES_OFF, SEQ::MULTIPLE_SERIES_EACH_MEASUREMENT, SEQ::MULTIPLE_SERIES_EACH_SLICE, SEQ::MULTIPLE_SERIES_EACH_SLICE_AND_MEASUREMENT);
     rSeqLim.setAdjShim(SEQ::ADJSHIM_STANDARD, SEQ::ADJSHIM_TUNEUP);
     rSeqLim.setReadoutOSFactor(2.0);
@@ -103,7 +100,7 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
     rSeqExpo.setRFInfo              (mapi.getRFInfo());
     rSeqExpo.setMeasureTimeUsec     (mapi.getMeasureTimeUsec());
     rSeqExpo.setTotalMeasureTimeUsec(mapi.getMeasureTimeUsec());
-    rSeqExpo.setMeasuredPELines     (lLinesToMeasure);
+    rSeqExpo.setMeasuredPELines     (mapi.getInfoInt(MTRK_INFOS_PELINES,128));
     rSeqExpo.setOnlineFFT           (SEQ::ONLINE_FFT_PHASE);
     rSeqExpo.setICEProgramFilename  (mapi.getInfoString(MTRK_INFOS_RECONSTRUCTION,"%SiemensIceProgs%\\IceProgram2D"));
     rSeqLim.setReadoutOSFactor      (mapi.getReadoutOS());

@@ -302,7 +302,7 @@ bool mtrk_api::runBlock(cJSON* block)
     cJSON_ArrayForEach(step, steps)
     {
         cJSON* action = cJSON_GetObjectItemCaseSensitive(step, MTRK_PROPERTIES_ACTION);
-        //MTRK_LOG("RunBlock " << state.counters[0]  << " " << state.counters[1]  << " "  << state.counters[2])
+        printDebugInfo(step);
 
         if (strcmp(action->valuestring, MTRK_ACTIONS_LOOP)==0)
         {
@@ -904,6 +904,94 @@ bool mtrk_api::getDynamicValue(cJSON* item, double& value, double oldValue)
         value=-1.*oldValue;
         return true;
     }    
+}
+
+
+void mtrk_api::printDebugInfo(cJSON* item)
+{    
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_PRINT, printInfo)
+    if (printInfo==0)
+    {
+        return;
+    }
+
+    MTRK_GETITEMOPT(printInfo, MTRK_PROPERTIES_MESSAGE, message)
+    if (message)
+    {
+        MTRK_LOG(message->valuestring)
+    }
+
+    MTRK_GETITEMOPT(printInfo, MTRK_PROPERTIES_COUNTER, counter)
+    if (counter)
+    {
+        if (cJSON_IsNumber(counter))
+        {                        
+            MTRK_LOG("CTR " << counter->valueint << ": " << state.counters[counter->valueint])
+        }
+        else
+        if (cJSON_IsArray(counter))
+        {
+            std::string logLine="CTR: [";
+            cJSON* entry=0;
+            cJSON_ArrayForEach(entry, counter)  
+            {
+                std::ostringstream s;
+                s << state.counters[entry->valueint];                
+                logLine += s.str() + ", ";
+            }          
+            logLine += "]";
+            MTRK_LOG(logLine)
+        }
+        else
+        if (cJSON_IsString(counter))
+        {   
+            std::string logLine="CTR: [";
+            for (int i=0; i<MTRK_DEFS_COUNTERS; i++)    
+            {
+                std::ostringstream s;
+                s << state.counters[i];                
+                logLine += s.str() + ", ";
+            }
+            logLine += "]";
+            MTRK_LOG(logLine)
+        }
+    }
+
+    MTRK_GETITEMOPT(printInfo, MTRK_PROPERTIES_FLOAT, floatItem)
+    if (floatItem)
+    {
+        if (cJSON_IsNumber(floatItem))
+        {                        
+            MTRK_LOG("FLT " << floatItem->valueint << ": " << state.floats[floatItem->valueint])
+        }
+        else
+        if (cJSON_IsArray(floatItem))
+        {
+            std::string logLine="FLT: [";
+            cJSON* entry=0;
+            cJSON_ArrayForEach(entry, floatItem)  
+            {
+                std::ostringstream s;
+                s << state.floats[entry->valueint];                
+                logLine += s.str() + ", ";
+            }          
+            logLine += "]";
+            MTRK_LOG(logLine)
+        }
+        else
+        if (cJSON_IsString(floatItem))
+        {   
+            std::string logLine="FLT: [";
+            for (int i=0; i<MTRK_DEFS_FLOATS; i++)    
+            {
+                std::ostringstream s;
+                s << state.floats[i];                
+                logLine += s.str() + ", ";
+            }
+            logLine += "]";
+            MTRK_LOG(logLine)
+        }
+    }
 }
 
 

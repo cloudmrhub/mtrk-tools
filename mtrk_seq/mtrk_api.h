@@ -115,6 +115,7 @@ namespace SEQ_NAMESPACE
         bool runActionDebug    (cJSON* item);
 
         bool getDynamicValue(cJSON* item, double& value, double oldValue=0.);
+        void printDebugInfo(cJSON* item);
 
         int    getInfoInt   (char* name, int defaultValue);
         double getInfoDouble(char* name, double defaultValue);
