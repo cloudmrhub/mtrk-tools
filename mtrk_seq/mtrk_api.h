@@ -96,7 +96,6 @@ namespace SEQ_NAMESPACE
         int            recursions;
 
         bool prepare(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool isBinarySearch=false);
-        bool prepareBlocks();
 
         bool run(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool isDryRun=false);
         bool runBlock(cJSON* block);
@@ -111,11 +110,10 @@ namespace SEQ_NAMESPACE
         bool runActionGrad     (cJSON* item);
         bool runActionSync     (cJSON* item);
         bool runActionMark     (cJSON* item);
-        bool runActionCalc     (cJSON* item);        
+        bool runActionCalc     (cJSON* item);
         bool runActionDebug    (cJSON* item);
 
         bool getDynamicValue(cJSON* item, double& value, double oldValue=0.);
-        void printDebugInfo(cJSON* item);
 
         int    getInfoInt   (char* name, int defaultValue);
         double getInfoDouble(char* name, double defaultValue);

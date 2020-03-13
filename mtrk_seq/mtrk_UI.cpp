@@ -120,6 +120,13 @@ double MTRK_UI::getValuePhaseFOV(LINK_DOUBLE_TYPE* const pThis, long lIndex)
 }
 
 
+long MTRK_UI::setValueSGList(LINK_LONG_TYPE* const pThis, long dDesiredValue, long lIndex)
+{
+    std::cout << "SGList Limit" << std::endl;
+
+    return true;    
+}
+
 
 unsigned wipCheckboxGetToolTipId(LINK_BOOL_TYPE* const pThis, char* arg_list[], long lIndex)
 {
@@ -196,7 +203,6 @@ NLS_STATUS mtrkUI::registerUI(SeqLim& rSeqLim)
     //m_ReadFoV.registerSetValueHandler (rSeqLim, MR_TAG_READOUT_FOV,MTRK_UI::setValueReadFOV);
     //m_PhaseFoV.registerGetValueHandler(rSeqLim, MR_TAG_PHASE_FOV,MTRK_UI::getValuePhaseFOV);
 
-    //MR_TAG_SG_SIZE
 
 #ifdef WIN32
 
@@ -208,6 +214,20 @@ NLS_STATUS mtrkUI::registerUI(SeqLim& rSeqLim)
         pBool->registerGetValueHandler    (wipCheckboxGetValue);
         pBool->registerSetValueHandler    (wipCheckboxSetValue);        
     }
+
+    //m_SGList.registerSetValueHandler(rSeqLim, MR_TAG_SG_SIZE,MTRK_UI::setValueSGList);
+    if ( LINK_LONG_TYPE* pUI=_searchElm<LINK_LONG_TYPE>(rSeqLim, MR_TAG_SLICE_GROUP_LIST, MR_TAG_SG_SIZE))
+    {
+        pUI->registerSetValueHandler(MTRK_UI::setValueSGList);
+    }    
+
+    //if ( LINK_LONG_TYPE* pUI=_searchElm<LINK_LONG_TYPE>(rSeqLim, MR_TAG_SLICE_GROUP_LIST, MR_TAG_SG_SIZE))
+    //{
+    //    m_fOriSGSizeGetLimits = pUI->registerGetLimitsHandler(m_fSGSizeGetLimits);
+    //}
+
+    //MR_TAG_SLICE_GROUP_LIST
+    //MR_TAG_SG_SIZE
 
 #endif
 

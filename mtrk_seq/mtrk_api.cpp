@@ -222,7 +222,6 @@ bool mtrk_api::loadSequence(std::string filename, bool forceLoad)
     MTRK_RETONFAIL(arrays.prepare(sections.arrays))
     MTRK_RETONFAIL(objects.prepare(sections.objects))    
     MTRK_RETONFAIL(equations.prepare(sections.equations))    
-    MTRK_RETONFAIL(prepareBlocks())    
 
     // Buffer value to avoid repeated json traversal and conversion
     state.slices=getSlices();
@@ -270,12 +269,6 @@ bool mtrk_api::prepare(MrProt* pMrProt, MrProtocolData::SeqExpo* pSeqExpo, bool 
 }
 
 
-bool mtrk_api::prepareBlocks()
-{
-    return true;
-}
-
-
 bool mtrk_api::runBlock(cJSON* block)
 {
     if (block==0) 
@@ -302,7 +295,6 @@ bool mtrk_api::runBlock(cJSON* block)
     cJSON_ArrayForEach(step, steps)
     {
         cJSON* action = cJSON_GetObjectItemCaseSensitive(step, MTRK_PROPERTIES_ACTION);
-        printDebugInfo(step);
 
         if (strcmp(action->valuestring, MTRK_ACTIONS_LOOP)==0)
         {
@@ -824,27 +816,24 @@ bool mtrk_api::runActionCalc(cJSON* item)
     else
     if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_GET)==0)
     {
-        MTRK_GETITEM(item, MTRK_PROPERTIES_ARRAY, array)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_ARRAY, arrayName)
         MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, target)
         MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
-        int target_int=target->valueint;      
-        int counter_int=counter->valueint;      
 
-        if ((target_int<0) || (target_int>=MTRK_DEFS_FLOATS))
+        MTRK_CHECKRANGE(target->valueint, 0, MTRK_DEFS_FLOATS, "Float target index")
+        MTRK_CHECKRANGE(counter->valueint, 0, MTRK_DEFS_COUNTERS, "Counter index")
+
+        mtrk_array* array=arrays.getArray(arrayName->valuestring);
+
+        if (array==0)
         {
+            MTRK_LOG("ERROR: Array not found " << arrayName->valuestring)
             return false;
         }
 
-        // TODO
-        state.floats[target_int]=0.;
+        state.floats[target->valueint]=array->getDouble(counter->valueint);
     }
 
-    return true;
-}
-
-
-bool mtrk_api::runActionDebug(cJSON* item)
-{
     return true;
 }
 
@@ -903,25 +892,21 @@ bool mtrk_api::getDynamicValue(cJSON* item, double& value, double oldValue)
     {
         value=-1.*oldValue;
         return true;
-    }    
+    }
+
+    return false;
 }
 
 
-void mtrk_api::printDebugInfo(cJSON* item)
+bool mtrk_api::runActionDebug(cJSON* item)
 {    
-    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_PRINT, printInfo)
-    if (printInfo==0)
-    {
-        return;
-    }
-
-    MTRK_GETITEMOPT(printInfo, MTRK_PROPERTIES_MESSAGE, message)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_MESSAGE, message)
     if (message)
     {
         MTRK_LOG(message->valuestring)
     }
 
-    MTRK_GETITEMOPT(printInfo, MTRK_PROPERTIES_COUNTER, counter)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_COUNTER, counter)
     if (counter)
     {
         if (cJSON_IsNumber(counter))
@@ -957,7 +942,7 @@ void mtrk_api::printDebugInfo(cJSON* item)
         }
     }
 
-    MTRK_GETITEMOPT(printInfo, MTRK_PROPERTIES_FLOAT, floatItem)
+    MTRK_GETITEMOPT(item, MTRK_PROPERTIES_FLOAT, floatItem)
     if (floatItem)
     {
         if (cJSON_IsNumber(floatItem))
@@ -992,6 +977,8 @@ void mtrk_api::printDebugInfo(cJSON* item)
             MTRK_LOG(logLine)
         }
     }
+
+    return true;
 }
 
 

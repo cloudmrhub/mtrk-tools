@@ -4,6 +4,7 @@
 #include "MrServers/MrMeasSrv/SeqIF/csequence.h"
 #include "MrServers/MrImaging/libSeqSysProp/SysProperties.h"
 #include "MrServers/MrImaging/ut/libsequt.h"
+#include "MrServers/MrProtSrv/MrProt/MrSliceGroup.h"
 
 #define OnErrorReturn(S) if(!MrSucceeded(S)) return(S)
 
@@ -45,7 +46,9 @@ NLSStatus mtrk::initialize(SeqLim &rSeqLim)
     rSeqLim.setReadoutFOV(100, 500, 1, 300);
     rSeqLim.setPhaseFOV(100, 500, 1, 300);
     rSeqLim.setSlices(1, K_NO_SLI_MAX, 1, 1);
-    rSeqLim.setMultipleSeriesMode(SEQ::MULTIPLE_SERIES_OFF, SEQ::MULTIPLE_SERIES_EACH_MEASUREMENT, SEQ::MULTIPLE_SERIES_EACH_SLICE, SEQ::MULTIPLE_SERIES_EACH_SLICE_AND_MEASUREMENT);
+    rSeqLim.setMultipleSeriesMode(SEQ::MULTIPLE_SERIES_OFF);
+    rSeqLim.setMultiSliceMode(SEQ::MSM_SEQUENTIAL);
+    rSeqLim.setSliceSeriesMode(SEQ::ASCENDING);
     rSeqLim.setAdjShim(SEQ::ADJSHIM_STANDARD, SEQ::ADJSHIM_TUNEUP);
     rSeqLim.setReadoutOSFactor(2.0);
 
@@ -88,7 +91,10 @@ NLSStatus mtrk::prepare(MrProt &rMrProt, SeqLim &rSeqLim, MrProtocolData::SeqExp
         Slice slice(rMrProt.sliceSeries()[0]);
         slice.readoutFOV(mapi.getInfoDouble(MTRK_INFOS_FOV,300.));
         slice.phaseFOV(mapi.getInfoDouble(MTRK_INFOS_FOV,300.));
-       // rMrProt.sliceGroupList().;
+        //rMrProt.getsSliceArray().setlSize(mapi.getSlices());
+        //rMrProt.sliceSeries().setlSize(mapi.getSlices());
+        //rMrProt.getsSliceArray().setlSize(mapi.getSlices());
+        //rMrProt.getsSliceArray().setlGuaranteedSlices(mapi.getSlices());
     }
 #endif   
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "MrServers/MrImaging/libSeqUtil/libSeqUtil.h" 
 
 #define MTRK_DEFS_COUNTERS 64
 #define MTRK_DEFS_FLOATS   64
@@ -32,7 +33,6 @@
 #define MTRK_PROPERTIES_BLOCK         "block"
 #define MTRK_PROPERTIES_ARRAY         "array"
 #define MTRK_PROPERTIES_VALUE         "value"
-#define MTRK_PROPERTIES_PRINT         "print"
 #define MTRK_PROPERTIES_TRUE          "true"
 #define MTRK_PROPERTIES_FALSE         "false"
 #define MTRK_PROPERTIES_TARGET        "target"
@@ -137,7 +137,9 @@
 #define MTRK_SETTINGS_READOUT_OS      "readout_os"
 #define MTRK_SETTINGS_SLICES          "slices"
 
-#define MTRK_LOG(x)                   std::cout << x << std::endl;
+//#define MTRK_LOG(x)                   std::cout << x << std::endl;
+#define MTRK_LOG(x)                     { std::ostringstream s; s << x; TRACE_PUT0(TC_ALWAYS, TF_SEQ, s.str().c_str()); }         
+
 #define MTRK_DELETE(x)                if (x!=0) { delete x; x=0; }
 #define MTRK_RETONFAIL(x)             if (!x) { return false; }
 #define MTRK_RETONFAILMSG(x,y)        if (!x) { return false; MTRK_LOG(y) }
