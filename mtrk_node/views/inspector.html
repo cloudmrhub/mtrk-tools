@@ -82,15 +82,18 @@
 
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
 
-        console.log(mtrkobj.arrays.grad_100_2560_100.size);
+        console.log(mtrkobj[mtrk_common.MTRK_SECTIONS_OBJECTS]);
 
+        /*
+        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        console.log(mtrkobj.arrays.grad_100_2560_100.size);
         for (var key in mtrkobj) {
            // console.log(key);
         }
-
         Plotly.newPlot( TESTER, [{
         y: mtrkobj.arrays.grad_100_2560_100.data }], {
         margin: { t: 0 } } );   
+        */
     });    
 
 </script>
@@ -107,4 +110,7 @@
 <script src="/js/codemirror_brace-fold.js"></script>
 <script src="/js/plotly-latest.min.js"></script>        
 <script src="/js/sweetalert.min.js"></script>
+
+<script src="/mtrk/mtrk_common.js"></script>
+
 {% endblock %}
