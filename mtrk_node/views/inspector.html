@@ -33,8 +33,8 @@
                             <a href="#" class="btn btn-primary" onclick="$('#mtrkLoader').click();">
                                 Open File...
                             </a>
-                            <a href="#" class="btn btn-primary" id="plotArray">
-                                Plot
+                            <a href="#" class="btn btn-primary" id="updateDisplay">
+                                <i class="fas fa-sync-alt"></i>
                             </a>
                         </div>
                     </div>
@@ -50,6 +50,14 @@
                     <div class="card-header">
                         <h4>Arrays</h4>
                         <div class="card-header-action">
+                            <div class="" style="display: flex;">
+                                <select class="form-control" id="arraysModeSelect" style="margin-right: 4px !important;">
+                                    <option>Amplitude</option>
+                                    <option>Phase</option>
+                                </select>
+                                <select class="form-control" id="arraysSelect">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -71,6 +79,7 @@
         var reader = new FileReader();
         reader.onload = readerEvent => {
             document.querySelector(".CodeMirror").CodeMirror.setValue(readerEvent.target.result);
+            $("#updateDisplay").trigger("click");
         }
         reader.readAsText(file, 'UTF-8');
         $("#mtrkLoader").val("");
@@ -78,11 +87,17 @@
 
 	TESTER = document.getElementById('tester');
 
-    $("#plotArray").click(function (e) {
+    $("#updateDisplay").click(function (e) {
 
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
 
-        console.log(mtrkobj[mtrk_common.MTRK_SECTIONS_OBJECTS]);
+        var $el = $("#arraysSelect");
+        $el.empty();
+        for (var key in mtrkobj.arrays) {
+            $el.append($("<option></option>").attr("value", key).text(key));            
+        }
+
+        $("#arraysSelect").trigger("change");
 
         /*
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
@@ -95,6 +110,49 @@
         margin: { t: 0 } } );   
         */
     });    
+
+    $('#arraysSelect').on('change', function() {
+
+        if (mtrkobj.arrays[this.value].type=="complex_float") {
+            $('#arraysModeSelect').show();
+        } else {
+            $('#arraysModeSelect').hide();
+
+        }
+
+        updatePlot();
+    });    
+
+
+    $('#arraysModeSelect').on('change', function() {
+        updatePlot();
+    });    
+
+
+    function updatePlot() {
+
+        console.log($('#arraysModeSelect').val());
+
+        var arrayName=$('#arraysSelect').val();
+        plotData=mtrkobj.arrays[arrayName].data;
+
+        if (mtrkobj.arrays[arrayName].type=="complex_float") {
+            var offset=0;
+            if ($('#arraysModeSelect').val()=="Phase") {
+                offset=1;
+            }
+
+            newArray=[];
+            for (i = offset; i < plotData.length; i=i+2) {
+                newArray.push(plotData[i]);
+            }        
+            plotData=newArray;
+        }
+
+        Plotly.newPlot( TESTER, [{
+        y: plotData }], {
+        margin: { t: 0 } } );         
+    }
 
 </script>
 {% endblock %}
