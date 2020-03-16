@@ -31,7 +31,7 @@
                         <h4>Sequence File</h4>
                         <div class="card-header-action">
                             <a href="#" class="btn btn-primary" onclick="$('#mtrkLoader').click();">
-                                Open File...
+                                <i class="fas fa-folder-open"></i>
                             </a>
                             <a href="#" class="btn btn-primary" id="updateDisplay">
                                 <i class="fas fa-sync-alt"></i>
@@ -90,6 +90,7 @@
     $("#updateDisplay").click(function (e) {
 
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        testFile();
 
         var $el = $("#arraysSelect");
         $el.empty();
@@ -110,6 +111,7 @@
         margin: { t: 0 } } );   
         */
     });    
+  
 
     $('#arraysSelect').on('change', function() {
 
@@ -126,7 +128,18 @@
 
     $('#arraysModeSelect').on('change', function() {
         updatePlot();
-    });    
+    });
+
+
+    function testFile() {
+        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        var testResult=mtrk_parser.testSequence(mtrkobj);
+
+        if (testResult=="")
+        {
+            swal('Valid', 'Sequence file does not have errors', 'success');
+        }
+    }
 
 
     function updatePlot() {
@@ -150,8 +163,7 @@
         }
 
         Plotly.newPlot( TESTER, [{
-        y: plotData }], {
-        margin: { t: 0 } } );         
+        y: plotData }], { margin: { t: 0 } }, { displaylogo: false } );         
     }
 
 </script>
@@ -170,5 +182,6 @@
 <script src="/js/sweetalert.min.js"></script>
 
 <script src="/mtrk/mtrk_common.js"></script>
+<script src="/mtrk/mtrk_parser.js"></script>
 
 {% endblock %}
