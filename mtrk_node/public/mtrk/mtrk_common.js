@@ -1,5 +1,9 @@
 (function(exports){
 
+    exports.MTRK_LOG = function(text){
+        console.log(text);
+    };
+
     exports.MTRK_DEFS_COUNTERS             = 64;
     exports.MTRK_DEFS_FLOATS               = 64;
 

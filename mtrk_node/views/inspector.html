@@ -61,7 +61,23 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div id="tester" style=""></div>                        
+                        <div id="arrayplotly"></div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4>Sequence Diagram</h4>
+                        <div class="card-header-action">
+                            <button class="btn btn-primary" id="test">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
                     </div>
                 </div>
             </div>
@@ -72,7 +88,11 @@
 {% endblock %}
 
 {% block page_js %}
-<script>
+<script type="module">
+    import { MTRK_LOG } from '/mtrk/mtrk_common.mjs';
+    import { MTRK_TestSequence, MTRK_RenderSequence } from '/mtrk/mtrk_parser.mjs';
+    
+    
     $("#mtrkLoader").change(function (e) {
         document.querySelector(".CodeMirror").CodeMirror.setValue("");
         var file = e.target.files[0];
@@ -85,10 +105,11 @@
         $("#mtrkLoader").val("");
     });
 
-	TESTER = document.getElementById('tester');
+
+    window.arrayPlotly = document.getElementById('arrayplotly');
+    window.mtrkobj = {}
 
     $("#updateDisplay").click(function (e) {
-
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
         testFile();
 
@@ -99,17 +120,6 @@
         }
 
         $("#arraysSelect").trigger("change");
-
-        /*
-        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
-        console.log(mtrkobj.arrays.grad_100_2560_100.size);
-        for (var key in mtrkobj) {
-           // console.log(key);
-        }
-        Plotly.newPlot( TESTER, [{
-        y: mtrkobj.arrays.grad_100_2560_100.data }], {
-        margin: { t: 0 } } );   
-        */
     });    
   
 
@@ -128,12 +138,12 @@
 
     $('#arraysModeSelect').on('change', function() {
         updatePlot();
-    });
+    });    
 
 
     function testFile() {
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
-        var testResult=mtrk_parser.testSequence(mtrkobj);
+        var testResult=MTRK_TestSequence(mtrkobj);
 
         if (testResult=="")
         {
@@ -147,7 +157,7 @@
         console.log($('#arraysModeSelect').val());
 
         var arrayName=$('#arraysSelect').val();
-        plotData=mtrkobj.arrays[arrayName].data;
+        window.plotData=mtrkobj.arrays[arrayName].data;
 
         if (mtrkobj.arrays[arrayName].type=="complex_float") {
             var offset=0;
@@ -155,16 +165,23 @@
                 offset=1;
             }
 
-            newArray=[];
-            for (i = offset; i < plotData.length; i=i+2) {
+            var newArray=[];
+            for (var i = offset; i < plotData.length; i=i+2) {
                 newArray.push(plotData[i]);
             }        
             plotData=newArray;
         }
 
-        Plotly.newPlot( TESTER, [{
+        Plotly.newPlot( arrayPlotly, [{
         y: plotData }], { margin: { t: 0 } }, { displaylogo: false } );         
     }
+
+
+    $("#test").click(function (e) {
+        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        //mtrk_parser.renderSequence(mtrkobj);
+        MTRK_LOG("IT WORKS!!");
+    });    
 
 </script>
 {% endblock %}
@@ -180,8 +197,4 @@
 <script src="/js/codemirror_brace-fold.js"></script>
 <script src="/js/plotly-latest.min.js"></script>        
 <script src="/js/sweetalert.min.js"></script>
-
-<script src="/mtrk/mtrk_common.js"></script>
-<script src="/mtrk/mtrk_parser.js"></script>
-
 {% endblock %}
