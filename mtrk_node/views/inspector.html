@@ -18,9 +18,9 @@
     <div class="section-header">
         <h1>Inspector</h1>
         <div class="section-header-breadcrumb">
-            <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-            <div class="breadcrumb-item"><a href="#">Modules</a></div>
-            <div class="breadcrumb-item">Chart.js</div>
+            <div class="breadcrumb-item"><a href="#a_file">File</a></div>
+            <div class="breadcrumb-item"><a href="#a_arrays">Arrays</a></div>
+            <div class="breadcrumb-item"><a href="#a_diagram">Diagram</a></div>
         </div>
     </div>
     <div class="section-body">
@@ -28,14 +28,14 @@
             <div class="col-12">
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h4>Sequence File</h4>
+                        <h4><a name="a_file"></a>Sequence File</h4>
                         <div class="card-header-action">
-                            <a href="#" class="btn btn-primary" onclick="$('#mtrkLoader').click();">
+                            <button class="btn btn-primary" onclick="$('#mtrkLoader').click();">
                                 <i class="fas fa-folder-open"></i>
-                            </a>
-                            <a href="#" class="btn btn-primary" id="updateDisplay">
+                            </button>
+                            <button class="btn btn-primary" id="updateDisplay">
                                 <i class="fas fa-sync-alt"></i>
-                            </a>
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -48,7 +48,7 @@
             <div class="col-12">
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h4>Arrays</h4>
+                        <h4><a name="a_arrays"></a>Arrays</h4>
                         <div class="card-header-action">
                             <div class="" style="display: flex;">
                                 <select class="form-control" id="arraysModeSelect" style="margin-right: 4px !important;">
@@ -70,7 +70,7 @@
             <div class="col-12">
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h4>Sequence Diagram</h4>
+                        <h4><a name="a_diagram"></a>Sequence Diagram</h4>
                         <div class="card-header-action">
                             <button class="btn btn-primary" id="test">
                                 <i class="fas fa-play"></i>
@@ -109,9 +109,12 @@
     window.arrayPlotly = document.getElementById('arrayplotly');
     window.mtrkobj = {}
 
+
     $("#updateDisplay").click(function (e) {
-        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
-        testFile();
+        if (!updateFile())
+        {
+            return;
+        }
 
         var $el = $("#arraysSelect");
         $el.empty();
@@ -124,14 +127,12 @@
   
 
     $('#arraysSelect').on('change', function() {
-
         if (mtrkobj.arrays[this.value].type=="complex_float") {
             $('#arraysModeSelect').show();
         } else {
             $('#arraysModeSelect').hide();
 
         }
-
         updatePlot();
     });    
 
@@ -141,19 +142,32 @@
     });    
 
 
-    function testFile() {
-        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+    function updateFile() {
+        try {
+            mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        } catch(e) {
+            swal('Invalid', 'Format of sequence file invalid', 'error');
+            clearDispays();
+            return false;
+        }
+
         var testResult=MTRK_TestSequence(mtrkobj);
 
-        if (testResult=="")
-        {
+        MTRK_LOG(testResult);
+
+        if (testResult=="") {
             swal('Valid', 'Sequence file does not have errors', 'success');
+        } else {
+            swal('Invalid', 'Invalid sequence: ' + testResult, 'error');
+            clearDispays();
+            return false;
         }
+
+        return true;
     }
 
 
     function updatePlot() {
-
         console.log($('#arraysModeSelect').val());
 
         var arrayName=$('#arraysSelect').val();
@@ -177,9 +191,16 @@
     }
 
 
+    function clearDispays() {
+        Plotly.purge(arrayPlotly);
+        $('#arraysModeSelect').hide();
+        $("#arraysSelect").empty();
+    }
+
+
     $("#test").click(function (e) {
         mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
-        //mtrk_parser.renderSequence(mtrkobj);
+        var render=MTRK_RenderSequence(mtrkobj);
         MTRK_LOG("IT WORKS!!");
     });    
 
