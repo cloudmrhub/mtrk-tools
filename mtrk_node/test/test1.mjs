@@ -18,10 +18,11 @@ try {
 }
 
 var testResult=MTRK_TestSequence(sequence);
-MTRK_RenderSequence(sequence);
-
 if (testResult=="") {
     testResult="OK";
 }
 MTRK_LOG("Result: " + testResult); 
 MTRK_LOG("");
+
+var render=MTRK_RenderSequence(sequence);
+
