@@ -3,7 +3,6 @@ import { MTRK_LOG, def } from './mtrk_common.mjs';
 
 
 export function MTRK_TestSequence(mtrkJson) {      
-
     if (!mtrkJson.hasOwnProperty(def.MTRK_SECTIONS_FILE)) {
         return "File section missing";
     }
@@ -25,7 +24,6 @@ export function MTRK_TestSequence(mtrkJson) {
     if (!mtrkJson.hasOwnProperty(def.MTRK_SECTIONS_EQUATIONS)) {
         return "Equations section missing";
     }
-
     return "";
 };
 
@@ -74,9 +72,6 @@ function getBlock(name) {
 
 
 function runActionBlock(item) {
-
-    MTRK_LOG("PING");
-
     var blockToRun=getBlock(item.block);
     if (blockToRun==false) {
         MTRK_LOG("ERROR: Missing block " + blockToRun);
@@ -97,7 +92,7 @@ function runActionLoop(item) {
     }
 
     var range=item[def.MTRK_PROPERTIES_RANGE];
-    var counter=item[def.MTRK_PROPERTIES_RANGE];
+    var counter=item[def.MTRK_PROPERTIES_COUNTER];
 
     for (state.counters[counter]=0; state.counters[counter] < range; state.counters[counter]++)
     {
@@ -106,7 +101,87 @@ function runActionLoop(item) {
             return false;
         }
     }
+    return true;
+}
 
+
+function runActionCondition(item) {
+    if (!item.hasOwnProperty(def.MTRK_PROPERTIES_COUNTER)) {
+        MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_COUNTER);
+        return false;
+    }
+    if (!item.hasOwnProperty(def.MTRK_PROPERTIES_TARGET)) {
+        MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_TARGET);
+        return false;
+    }
+
+    var counter_int=item[def.MTRK_PROPERTIES_COUNTER];
+    if ((counter_int<0) || (counter_int>=def.MTRK_DEFS_COUNTERS)) {
+        return false;
+    }
+
+    if (state.counters[counter_int]==item[def.MTRK_PROPERTIES_TARGET]) {
+        if (!item.hasOwnProperty(def.MTRK_PROPERTIES_TRUE)) {
+            MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_TRUE);
+            return false;
+        }
+        return runBlock(item[def.MTRK_PROPERTIES_TRUE]);
+    } else {
+        if (!item.hasOwnProperty(def.MTRK_PROPERTIES_FALSE)) {
+            MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_FALSE);
+            return false;
+        }
+        return runBlock(item[def.MTRK_PROPERTIES_FALSE]);
+    }
+}
+
+
+function runActionInit(item) {
+    state.tableDuration = 0;
+    state.tableStart = 0;
+    return true;
+}
+
+
+function runActionSubmit(item) {
+    state.clock += state.tableDuration;
+    state.tableDuration = -1;
+    state.tableStart = -1;
+    return true;
+}
+
+
+function runActionRF(item) {
+    return true;
+}
+
+
+function runActionADC(item) {
+    return true;
+}
+
+
+function runActionGrad(item) {
+    return true;
+}
+
+
+function runActionSync(item) {
+    return true;
+}
+
+
+function runActionMark(item) {
+    return true;
+}
+
+
+function runActionCalc(item) {
+    return true;
+}
+
+
+function runActionDebug(item) {
     return true;
 }
 
@@ -124,44 +199,49 @@ function runBlock(block) {
     }
    
     var success=true;
-
     for (var step in block.steps) {
-        MTRK_LOG(block.steps[step].action);
-
         switch (block.steps[step].action) {
             case def.MTRK_ACTIONS_LOOP: 
                 success=runActionLoop(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_CONDITION: 
+                success=runActionCondition(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_RUN_BLOCK: 
                 success=runActionBlock(block.steps[step]);
                 break;
-            case def.MTRK_ACTIONS_INIT: 
+            case def.MTRK_ACTIONS_INIT:
+                success=runActionInit(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_SUBMIT: 
+                success=runActionSubmit(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_RF: 
+                success=runActionRF(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_ADC: 
-                break;
+                success=runActionADC(block.steps[step]);
+            break;
             case def.MTRK_ACTIONS_GRAD: 
+                success=runActionGrad(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_SYNC: 
+                success=runActionSync(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_MARK: 
+                success=runActionMark(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_CALC: 
+                success=runActionCalc(block.steps[step]);
                 break;
             case def.MTRK_ACTIONS_DEBUG: 
+                success=runActionDebug(block.steps[step]);
                 break;
         }
-
         if (!success) {
             break;
         }
     }
-
     recursions--;
     return success;
 }
@@ -197,6 +277,5 @@ export function MTRK_RenderSequence(mtrkJson) {
         return false;
     }
     runBlock(mainBlock);
-
     return render;
 };
