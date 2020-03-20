@@ -3,6 +3,7 @@ import fs from 'fs';
 import { MTRK_TestSequence, MTRK_RenderSequence } from '../public/mtrk/mtrk_parser.mjs';
 import { MTRK_LOG } from '../public/mtrk/mtrk_common.mjs';
 
+
 var sequence = {};
 var file = './seq/miniflash.mtrk';
 

@@ -1,6 +1,10 @@
 
 import { MTRK_LOG, def } from './mtrk_common.mjs';
 
+import expr_eval from './expr-eval.mjs';
+
+
+
 
 export function MTRK_TestSequence(mtrkJson) {      
     if (!mtrkJson.hasOwnProperty(def.MTRK_SECTIONS_FILE)) {
@@ -35,13 +39,22 @@ var state = {
     tableStart: 0,
     tableDuration: 0,
     slices: 0,
-    totalDuration: 0
+    totalDuration: 0  
 };
 
 
 var sequence={};
 var render={};
 var recursions=0;
+
+
+function stateUpdateDuration(startTime, duration) {
+    var endTime = startTime + duration;        
+    if (endTime > state.tableDuration)
+    {
+        state.tableDuration = endTime;
+    }    
+}
 
 
 function resetState() {       
@@ -172,16 +185,26 @@ function runActionSync(item) {
 
 
 function runActionMark(item) {
+    if (!item.hasOwnProperty(def.MTRK_PROPERTIES_TIME)) {
+        MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_TIME);
+        return false;
+    }
+    stateUpdateDuration(item.time, 0);
     return true;
 }
 
 
 function runActionCalc(item) {
+    var parser = new expr_eval.Parser();
+    var expr = parser.parse('2 * x + 1');
+    console.log(expr.evaluate({ x: 3 })); 
     return true;
 }
 
 
 function runActionDebug(item) {
+
+
     return true;
 }
 
