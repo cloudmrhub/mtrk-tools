@@ -1,9 +1,6 @@
 
 import { MTRK_LOG, def } from './mtrk_common.mjs';
-
 import expr_eval from './expr-eval.mjs';
-
-
 
 
 export function MTRK_TestSequence(mtrkJson) {      
@@ -165,21 +162,25 @@ function runActionSubmit(item) {
 
 
 function runActionRF(item) {
+    // TODO
     return true;
 }
 
 
 function runActionADC(item) {
+    // TODO    
     return true;
 }
 
 
 function runActionGrad(item) {
+    // TODO    
     return true;
 }
 
 
 function runActionSync(item) {
+    // TODO
     return true;
 }
 
@@ -195,15 +196,204 @@ function runActionMark(item) {
 
 
 function runActionCalc(item) {
-    var parser = new expr_eval.Parser();
-    var expr = parser.parse('2 * x + 1');
-    console.log(expr.evaluate({ x: 3 })); 
+    if (!item.hasOwnProperty(def.MTRK_PROPERTIES_TYPE)) {
+        MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_TYPE);
+        return false;
+    }
+
+    switch (item[def.MTRK_PROPERTIES_TYPE]) {
+        case def.MTRK_OPTIONS_COUNTER_INC:         
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_COUNTER)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_COUNTER);
+                return false;
+            }
+
+            var counter_int=item[def.MTRK_PROPERTIES_COUNTER]
+            if ((counter_int<0) || (counter_int>=def.MTRK_DEFS_COUNTERS))
+            {
+                return false;
+            }
+            state.counters[counter_int]++;                
+            break;        
+
+        case def.MTRK_OPTIONS_COUNTER_SET:
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_COUNTER)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_COUNTER);
+                return false;
+            }    
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_VALUE)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_VALUE);
+                return false;
+            }
+
+            var counter_int=item[def.MTRK_PROPERTIES_COUNTER]
+            if ((counter_int<0) || (counter_int>=def.MTRK_DEFS_COUNTERS))
+            {
+                return false;
+            }
+            state.counters[counter_int]=item[def.MTRK_PROPERTIES_VALUE];
+            break;        
+
+        case def.MTRK_OPTIONS_FLOAT_INC:
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_FLOAT)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_FLOAT);
+                return false;
+            }    
+
+            var index_int=item[def.MTRK_PROPERTIES_FLOAT]
+            if ((index_int<0) || (index_int>=def.MTRK_DEFS_FLOATS))
+            {
+                return false;
+            }
+            state.floats[index_int]+=1.;
+            break;     
+
+        case def.MTRK_OPTIONS_FLOAT_SET:
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_FLOAT)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_FLOAT);
+                return false;
+            }    
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_VALUE)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_VALUE);
+                return false;
+            }
+
+            var index_int=item[def.MTRK_PROPERTIES_FLOAT]
+            if ((index_int<0) || (index_int>=def.MTRK_DEFS_FLOATS))
+            {
+                return false;
+            }
+            state.floats[index_int]=item[def.MTRK_PROPERTIES_VALUE];            
+            break;        
+
+        case def.MTRK_OPTIONS_EQUATION:         
+            // TODO
+            /*    
+                var parser = new expr_eval.Parser();
+                var expr = parser.parse('2 * x + 1');
+                console.log(expr.evaluate({ x: 3 })); 
+            */
+            break;    
+
+        case def.MTRK_OPTIONS_RFSPOIL:      
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_FLOAT)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_FLOAT);
+                return false;
+            }    
+            if (!item.hasOwnProperty(def.MTRK_PROPERTIES_INCREMENT)) {
+                MTRK_LOG("ERROR: Missing property "+def.MTRK_PROPERTIES_INCREMENT);
+                return false;
+            }                            
+
+            var index_int=item[def.MTRK_PROPERTIES_FLOAT]
+            if ((index_int<0) || (index_int>=def.MTRK_DEFS_FLOATS-1))
+            {
+                return false;
+            }
+            // Increase the increment
+            state.floats[index_int+1]+=item[def.MTRK_PROPERTIES_INCREMENT];
+
+            // Increase the actual RF phase with the increment
+            state.floats[index_int]+=state.floats[index_int+1];
+
+            // Make sure that the phase stays in a valid range
+            state.floats[index_int]=state.floats[index_int] % 360000.;
+            state.floats[index_int+1]=state.floats[index_int+1] % 360000.;       
+            break;    
+
+        case def.MTRK_OPTIONS_FLOAT_GET:         
+            // TODO
+            break;        
+    }
+
     return true;
+
+/*
+    if (strcmp(type->valuestring, MTRK_OPTIONS_EQUATION)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_EQUATION, equation)
+
+        int index=0;
+        bool targetIsFloat=true;
+        cJSON* float_target = cJSON_GetObjectItemCaseSensitive(item,MTRK_PROPERTIES_FLOAT); 
+        if (float_target!=NULL) 
+        { 
+            index=float_target->valueint;
+        }
+        else
+        {
+            targetIsFloat=false;
+            cJSON* counter_target = cJSON_GetObjectItemCaseSensitive(item,MTRK_PROPERTIES_COUNTER); 
+            if (counter_target==NULL)
+            {
+                MTRK_LOG("Missing item " << MTRK_PROPERTIES_COUNTER);
+                return false; 
+            }
+            index=float_target->valueint;
+        }
+
+        double equationValue=equations.evaluate(equation->valuestring);
+
+        if (targetIsFloat) 
+        {
+            state.floats[index]=equationValue;
+        }
+        else
+        {
+            state.counters[index]=int(equationValue);
+        }
+    }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_RFSPOIL)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_INCREMENT, increment)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, index)
+        int index_int=index->valueint;
+
+        // Note: Two floats are needed for the RF spoiling scheme
+        if ((index_int<0) || (index_int>=MTRK_DEFS_FLOATS-1))
+        {
+            return false;
+        }
+
+        // Increase the increment
+        state.floats[index_int+1]+=increment->valuedouble;
+
+        // Increase the actual RF phase with the increment
+        state.floats[index_int]+=state.floats[index_int+1];
+
+        // Make sure that the phase stays in a valid range
+        state.floats[index_int]=fmod(state.floats[index_int],360000);
+        state.floats[index_int+1]=fmod(state.floats[index_int+1],360000);       
+    }
+    else
+    if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_GET)==0)
+    {
+        MTRK_GETITEM(item, MTRK_PROPERTIES_ARRAY, arrayName)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, target)
+        MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
+
+        MTRK_CHECKRANGE(target->valueint, 0, MTRK_DEFS_FLOATS, "Float target index")
+        MTRK_CHECKRANGE(counter->valueint, 0, MTRK_DEFS_COUNTERS, "Counter index")
+
+        mtrk_array* array=arrays.getArray(arrayName->valuestring);
+
+        if (array==0)
+        {
+            MTRK_LOG("ERROR: Array not found " << arrayName->valuestring)
+            return false;
+        }
+
+        state.floats[target->valueint]=array->getDouble(counter->valueint);
+    }
+
+    return true;
+    */    
 }
 
 
 function runActionDebug(item) {
-
+    // TODO
 
     return true;
 }
@@ -270,9 +460,23 @@ function runBlock(block) {
 }
 
 
-export function MTRK_RenderSequence(mtrkJson) {    
-    sequence=mtrkJson;
+function prepareArrays(mtrkJson) {
+    return true;
+}
 
+
+function prepareObjects(mtrkJson) {
+    return true;
+}
+
+
+function prepareEquations(mtrkJson) {
+    // TODO: Generate secondary object containing the compiled expressions
+    return true;
+}
+
+
+export function MTRK_RenderSequence(mtrkJson) {    
     render = {
         arrTime:  [],
         arrGradX: [],
@@ -281,7 +485,6 @@ export function MTRK_RenderSequence(mtrkJson) {
         arrADC:   [],
         arrRF:    [] 
     }
-
     for (var i = 0; i<9999; i++)
     {
         render.arrTime.push(i);
@@ -291,14 +494,31 @@ export function MTRK_RenderSequence(mtrkJson) {
         render.arrADC.push(0.);
         render.arrRF.push(0.);    
     }
-
+    sequence=mtrkJson;
     resetState();
+
+    if (!prepareArrays(mtrkJson)) {
+        MTRK_LOG("ERROR: Unable to prepare arrays");
+        return false;
+    }
+    if (!prepareObjects(mtrkJson)) {
+        MTRK_LOG("ERROR: Unable to prepare objects");
+        return false;        
+    }
+    if (!prepareEquations(mtrkJson)) {
+        MTRK_LOG("ERROR: Unable to prepare equations");
+        return false;
+    }
 
     var mainBlock=getBlock(def.MTRK_OPTIONS_MAIN);
     if (mainBlock==false) {
         MTRK_LOG("ERROR: Missing main block");
         return false;
     }
-    runBlock(mainBlock);
+    if (!runBlock(mainBlock)) {
+        MTRK_LOG("ERROR: Problems running sequence");
+        return false;
+    }
+    
     return render;
 };
