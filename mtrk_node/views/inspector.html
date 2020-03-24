@@ -89,7 +89,7 @@
 
 {% block page_js %}
 <script type="module">  
-    import { MTRK_LOG } from '/mtrk/mtrk_common.mjs';
+    import { MTRK_LOG, MTRK_SetLogToConsole, MTRK_GetLogOutput } from '/mtrk/mtrk_common.mjs';
     import { MTRK_TestSequence, MTRK_RenderSequence } from '/mtrk/mtrk_parser.mjs';
     
     
@@ -105,7 +105,8 @@
         $("#mtrkLoader").val("");
     });
 
-
+    
+   
     window.arrayPlotly = document.getElementById('arrayplotly');
     window.mtrkobj = {}
 
@@ -147,7 +148,7 @@
             mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
         } catch(e) {
             swal('Invalid', 'Format of sequence file invalid', 'error');
-            clearDispays();
+            clearDisplays();
             return false;
         }
 
@@ -191,7 +192,7 @@
     }
 
 
-    function clearDispays() {
+    function clearDisplays() {
         Plotly.purge(arrayPlotly);
         $('#arraysModeSelect').hide();
         $("#arraysSelect").empty();
@@ -199,9 +200,31 @@
 
 
     $("#test").click(function (e) {
-        mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+
+        try {
+            mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        } catch(e) {
+            swal('Invalid', 'Format of sequence file invalid', 'error');
+            clearDisplays();
+            return false;
+        }
+
+        MTRK_SetLogToConsole(false);
         var render=MTRK_RenderSequence(mtrkobj);
-        MTRK_LOG("IT WORKS!!");
+        MTRK_SetLogToConsole(true);
+
+        var text="";       
+        var output=MTRK_GetLogOutput();
+
+        for (var line in output) {
+            text+=output[line]+"<br>";
+        }
+        bootbox.alert({
+            title: "Simulation Log",
+            message: '<p class="text-left mb-0">'+text+'</p>',
+            size: 'large',
+            centerVertical: true
+        });
     });    
 
 </script>
@@ -218,4 +241,5 @@
 <script src="/js/codemirror_brace-fold.js"></script>
 <script src="/js/plotly-latest.min.js"></script>        
 <script src="/js/sweetalert.min.js"></script>
+<script src="/js/bootbox.js"></script>
 {% endblock %}

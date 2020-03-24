@@ -1,6 +1,50 @@
+var logToConsole=true;
+var logOutput=[];
+
+export function MTRK_SetLogToConsole(value) {
+    logToConsole=value;
+}
+
+
+export function MTRK_GetLogOutput() {
+    return logOutput;
+}
+
+
 export function MTRK_LOG(text) {
-    console.log(text);
+    if (logToConsole) {
+        console.log(text);
+    } else {
+        logOutput.push(text.toString());
+    }    
 };
+
+
+export function jsonIsNumber(item) {
+    if (typeof item === "number") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+export function jsonIsString(item) {
+    if (typeof item === "string") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+export function jsonIsObject(item) {
+    if (typeof item === "object") {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 
 export const def = {

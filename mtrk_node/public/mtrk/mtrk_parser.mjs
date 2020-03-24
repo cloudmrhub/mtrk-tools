@@ -1,5 +1,5 @@
 
-import { MTRK_LOG, def } from './mtrk_common.mjs';
+import { MTRK_LOG, def, jsonIsNumber, jsonIsObject, jsonIsString } from './mtrk_common.mjs';
 import expr_eval from './expr-eval.mjs';
 
 
@@ -361,41 +361,81 @@ function runActionCalc(item) {
             var index=item[def.MTRK_PROPERTIES_COUNTER];
             var target=item[def.MTRK_PROPERTIES_FLOAT];
 
-            // TODO: Check bounds
+            if ((index<0) || (index>=def.MTRK_DEFS_COUNTERS)) {
+                return false;
+            }
+            if ((target<0) || (target>=def.MTRK_DEFS_FLOATS)) {
+                return false;
+            }
 
             var value=arrayGetDouble(item[def.MTRK_PROPERTIES_ARRAY],index);
             state.floats[target]=value;
             break;        
     }
-
     return true;
-
-/*
-    if (strcmp(type->valuestring, MTRK_OPTIONS_FLOAT_GET)==0)
-    {
-        MTRK_GETITEM(item, MTRK_PROPERTIES_ARRAY, arrayName)
-        MTRK_GETITEM(item, MTRK_PROPERTIES_FLOAT, target)
-        MTRK_GETITEM(item, MTRK_PROPERTIES_COUNTER, counter)
-
-        MTRK_CHECKRANGE(target->valueint, 0, MTRK_DEFS_FLOATS, "Float target index")
-        MTRK_CHECKRANGE(counter->valueint, 0, MTRK_DEFS_COUNTERS, "Counter index")
-
-        mtrk_array* array=arrays.getArray(arrayName->valuestring);
-
-        if (array==0)
-        {
-            MTRK_LOG("ERROR: Array not found " << arrayName->valuestring)
-            return false;
-        }
-
-        state.floats[target->valueint]=array->getDouble(counter->valueint);
-    }
-    */    
 }
 
 
 function runActionDebug(item) {
-    // TODO
+    if (item.hasOwnProperty(def.MTRK_PROPERTIES_MESSAGE)) {
+        MTRK_LOG(item[def.MTRK_PROPERTIES_MESSAGE]);
+    }    
+
+    if (item.hasOwnProperty(def.MTRK_PROPERTIES_COUNTER)) {
+        if (jsonIsNumber(item[def.MTRK_PROPERTIES_COUNTER])) {
+            var index=item[def.MTRK_PROPERTIES_COUNTER];
+            MTRK_LOG("CTR " + index.toString() + ": " + state.counters[index].toString());
+        } else 
+        if (jsonIsObject(item[def.MTRK_PROPERTIES_COUNTER])) {
+            var logLine="CTR: [";
+            for (var element in item[def.MTRK_PROPERTIES_COUNTER]) {
+                var index=item[def.MTRK_PROPERTIES_COUNTER][element];
+                if ((index<0) || (index>=def.MTRK_DEFS_COUNTERS)) {
+                    MTRK_LOG("ERROR: Invalid counter index");
+                    return false;
+                }
+                MTRK_LOG("CTR " + index.toString() + ": " + state.counters[index].toString());
+            }
+            logLine += "]";
+            MTRK_LOG(logLine)
+        } else 
+        if (jsonIsString(item[def.MTRK_PROPERTIES_COUNTER])) {
+            var logLine="CTR: [";
+            for (var i=0; i<def.MTRK_DEFS_COUNTERS; i++) {
+                logLine += state.counters[i].toString() + ", ";
+            }
+            logLine += "]";
+            MTRK_LOG(logLine);
+        }; 
+    }    
+
+    if (item.hasOwnProperty(def.MTRK_PROPERTIES_FLOAT)) {
+        if (jsonIsNumber(item[def.MTRK_PROPERTIES_FLOAT])) {
+            var index=item[def.MTRK_PROPERTIES_FLOAT];
+            MTRK_LOG("FLT " + index.toString() + ": " + state.counters[index].toString());
+        } else 
+        if (jsonIsObject(item[def.MTRK_PROPERTIES_FLOAT])) {
+            var logLine="FLT: [";
+            for (var element in item[def.MTRK_PROPERTIES_FLOAT]) {
+                var index=item[def.MTRK_PROPERTIES_FLOAT][element];
+                if ((index<0) || (index>=def.MTRK_DEFS_COUNTERS)) {
+                    MTRK_LOG("ERROR: Invalid counter index");
+                    return false;
+                }
+                MTRK_LOG("FLT " + index.toString() + ": " + state.counters[index].toString());
+            }
+            logLine += "]";
+            MTRK_LOG(logLine)
+        } else 
+        if (jsonIsString(item[def.MTRK_PROPERTIES_FLOAT])) {
+            var logLine="FLT: [";
+            for (var i=0; i<def.MTRK_DEFS_FLOATS; i++) {
+                logLine += state.counters[i].toString() + ", ";
+            }
+            logLine += "]";
+            MTRK_LOG(logLine);
+        }; 
+    }    
 
     return true;
 }
@@ -472,11 +512,10 @@ function prepareArrays(mtrkJson) {
         if (mtrkJson.arrays[item][def.MTRK_PROPERTIES_ENCODING]==def.MTRK_OPTIONS_TEXT) {
             newArray["data"]=mtrkJson.arrays[item][def.MTRK_PROPERTIES_DATA];
         } else {
-            // TODO
+            // TODO: Base64 encoding
         }
         arrays[item]=newArray;
     }
-    console.log(arrays);
     return true;
 }
 
