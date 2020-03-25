@@ -57,7 +57,8 @@
 }
 
 @mixin button-shadow($color, $amount: 15%) {
-  @include shadow-lighten($color, $amount);
+  //@include shadow-lighten($color, $amount);
+  box-shadow: 0 0px 0px #000;
 }
 
 @mixin icon-shadow($color, $amount: 15%) {

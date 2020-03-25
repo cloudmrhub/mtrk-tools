@@ -923,7 +923,7 @@ tr:first-child > td > .fc-day-grid-event {
   .swal-button:focus {
     box-shadow: none; }
   .swal-button.swal-button--confirm {
-    box-shadow: 0 2px 4px #3a434d;
+    box-shadow: 0 0px 0px #000;
     background-color: #191d21; }
     .swal-button.swal-button--confirm:hover {
       background-color: #191d21;
@@ -1247,7 +1247,7 @@ tr:first-child > td > .fc-day-grid-event {
         .tickets .ticket-items .ticket-item:hover .ticket-title {
           color: #191d21; }
       .tickets .ticket-items .ticket-item.active {
-        box-shadow: 0 2px 4px #3a434d;
+        box-shadow: 0 0px 0px #000;
         border-radius: 3px;
         background-color: #191d21;
         border-bottom: none; }
