@@ -18,3 +18,13 @@ body {
 .CodeMirror-fullscreen {
   z-index: 10000;
 }
+
+.breadcrumb-item+.breadcrumb-item::before {
+  content: "❘" !important;
+}
+
+.main-wrapper {
+  width: calc(100% - 60px);
+  margin-left: auto;
+  margin-right: auto;
+}

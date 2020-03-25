@@ -11,6 +11,11 @@ export function MTRK_GetLogOutput() {
 }
 
 
+export function MTRK_ClearLogOutput() {
+    logOutput=[];
+}
+
+
 export function MTRK_LOG(text) {
     if (logToConsole) {
         console.log(text);

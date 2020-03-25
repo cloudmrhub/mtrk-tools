@@ -89,13 +89,20 @@
 
 {% block page_js %}
 <script type="module">  
-    import { MTRK_LOG, MTRK_SetLogToConsole, MTRK_GetLogOutput } from '/mtrk/mtrk_common.mjs';
+    import { MTRK_LOG, MTRK_SetLogToConsole, MTRK_GetLogOutput, MTRK_ClearLogOutput } from '/mtrk/mtrk_common.mjs';
     import { MTRK_TestSequence, MTRK_RenderSequence } from '/mtrk/mtrk_parser.mjs';
     
-    
+
+    window.arrayPlotly = document.getElementById('arrayplotly');
+    window.mtrkobj = {};
+    window.filename = "";
+
+
     $("#mtrkLoader").change(function (e) {
         document.querySelector(".CodeMirror").CodeMirror.setValue("");
         var file = e.target.files[0];
+        filename=file.name;
+        console.log(filename);
         var reader = new FileReader();
         reader.onload = readerEvent => {
             document.querySelector(".CodeMirror").CodeMirror.setValue(readerEvent.target.result);
@@ -104,12 +111,31 @@
         reader.readAsText(file, 'UTF-8');
         $("#mtrkLoader").val("");
     });
-
     
-   
-    window.arrayPlotly = document.getElementById('arrayplotly');
-    window.mtrkobj = {}
 
+    $("#savemtrk").click(function (e) {
+
+        bootbox.prompt({
+            title: "Filename",
+            value: filename,
+            centerVertical: true,
+            callback: function (result) {
+                if (!result) {
+                    return;
+                }
+                filename=result;
+                var content = document.querySelector(".CodeMirror").CodeMirror.getValue();
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+                element.setAttribute('download', filename);
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            }               
+        });
+    });
+ 
 
     $("#updateDisplay").click(function (e) {
         if (!updateFile())
@@ -145,7 +171,7 @@
 
     function updateFile() {
         try {
-            mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+            mtrkobj = JSON.parse(document.querySelector(".CodeMirror").CodeMirror.getValue());
         } catch(e) {
             swal('Invalid', 'Format of sequence file invalid', 'error');
             clearDisplays();
@@ -209,6 +235,7 @@
             return false;
         }
 
+        MTRK_ClearLogOutput();
         MTRK_SetLogToConsole(false);
         var render=MTRK_RenderSequence(mtrkobj);
         MTRK_SetLogToConsole(true);
@@ -221,7 +248,7 @@
         }
         bootbox.alert({
             title: "Simulation Log",
-            message: '<p class="text-left mb-0">'+text+'</p>',
+            message: '<p class="text-left mb-0" style="max-height: 600px; overflow-y: scroll;">'+text+'</p>',
             size: 'large',
             centerVertical: true
         });
