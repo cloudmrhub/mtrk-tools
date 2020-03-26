@@ -1,7 +1,9 @@
 ## HTML UI theme used for mtrk UI
 
 This theme is based on the Stisla theme available at:
+
 <a href="https://getstisla.com">https://getstisla.com</a>
+
 <a href="https://github.com/stisla/stisla">https://github.com/stisla/stisla</a>
 
 ## Creator
