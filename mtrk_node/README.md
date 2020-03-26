@@ -1,4 +1,4 @@
-# MTRK Web UI
+# mtrk Web UI
 
 Web-baed UI for mtrk to provide an interface for sequence generation and testing.
 
