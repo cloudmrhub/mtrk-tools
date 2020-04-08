@@ -180,3 +180,7 @@ a.btn-primary {
 a.btn.btn-primary:hover  {
   color: #DDD !important;
 }
+
+.card.card-statistic-1 .card-body {
+  padding-bottom: 20px;
+}
