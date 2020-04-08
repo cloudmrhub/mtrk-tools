@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Home on mtrk</title>
+    <link>https://mtrk-dev.github.io/</link>
+    <description>Recent content in Home on mtrk</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 30 May 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://mtrk-dev.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Description Language</title>
+      <link>https://mtrk-dev.github.io/doc/sdl/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/doc/sdl/</guid>
+      <description> &amp;nbsp;Sequence Description Language &amp;nbsp; Under ConstructionSorry, this section is still missing. Please check again soon. </description>
+    </item>
+    
+    <item>
+      <title>Examples</title>
+      <link>https://mtrk-dev.github.io/resources/examples/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/resources/examples/</guid>
+      <description> &amp;nbsp;Sequence Examples Under ConstructionSorry, this section is still missing. Please check again soon. </description>
+    </item>
+    
+    <item>
+      <title>Driver Sequence</title>
+      <link>https://mtrk-dev.github.io/doc/driver/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/doc/driver/</guid>
+      <description> &amp;nbsp;Driver Sequence &amp;nbsp; Under ConstructionSorry, this section is still missing. Please check again soon. </description>
+    </item>
+    
+    <item>
+      <title>Simulation UI</title>
+      <link>https://mtrk-dev.github.io/doc/ui/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/doc/ui/</guid>
+      <description> &amp;nbsp;Simulation UI &amp;nbsp; Under ConstructionSorry, this section is still missing. Please check again soon. </description>
+    </item>
+    
+    <item>
+      <title>Source Code</title>
+      <link>https://mtrk-dev.github.io/resources/code/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/resources/code/</guid>
+      <description> &amp;nbsp;Source Code All of the mtrk source code is hosted in public Github repositories. You can find the code for the individual components in the table below or via the Github page of the mtrk Team.
+&amp;nbsp;  Repository Content Link   mtrk_seq mtrk driver sequence (requires Siemens IDEA) Open   mtrk_node mtrk UI for sequence testing (based on Node.js and express.js) Open   mtrk_stisla HTML/CSS theme used for the mtrk UI Open      </description>
+    </item>
+    
+    <item>
+      <title>Related Projects</title>
+      <link>https://mtrk-dev.github.io/resources/related/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/resources/related/</guid>
+      <description> &amp;nbsp;Related Projects Under ConstructionSorry, this section is still missing. Please check again soon. </description>
+    </item>
+    
+    <item>
+      <title>FAQ</title>
+      <link>https://mtrk-dev.github.io/doc/faq/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/doc/faq/</guid>
+      <description>&amp;nbsp;Frequently Asked Questions &amp;nbsp; Can I create mtrk files without generator?The mtrk format is human-readable and, therefore, it is possible to modify sequences by directly editing the file in a text editor. However, except for debugging tasks, it is generally easier to write a small program that generates the mtrk file (referred to as generator).How can I get help?Please use our Gitter Channel to get in touch (click the OPEN CHAT button on the bottom-right).</description>
+    </item>
+    
+    <item>
+      <title>Ongoing Development Work</title>
+      <link>https://mtrk-dev.github.io/blog/welcome/</link>
+      <pubDate>Wed, 08 Apr 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/blog/welcome/</guid>
+      <description>Welcome to the mtrk website! We decided to put this page online already at this early stage to make the development as transparent as possible. However, please be aware that the project is still under active development and that the programming work has not been completed yet. We will announce on this website when a first stable release is available. In the meantime, feel free to follow or join our development work on Github.</description>
+    </item>
+    
+    <item>
+      <title>Disclaimer</title>
+      <link>https://mtrk-dev.github.io/disclaimer/</link>
+      <pubDate>Thu, 01 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/disclaimer/</guid>
+      <description>Disclaimer The Yarra framework is provided free of charge for use in research applications. It must not be used for diagnostic applications. The authors take no responsibility of any kind for the accuracy or integrity of the created data sets. No data created using the framework should be used to make diagnostic decisions.  The Yarra framework provided through this website, including all of its software components, comes without any warranties.</description>
+    </item>
+    
+    <item>
+      <title>License</title>
+      <link>https://mtrk-dev.github.io/license/</link>
+      <pubDate>Thu, 01 Oct 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/license/</guid>
+      <description>License Information The Yarra framework is provided free of charge for use in research applications. It must not be used for diagnostic applications. The author takes no responsibility of any kind for the accuracy or integrity of the created data sets. No data created using the framework should be used to make diagnostic decisions.  The Yarra framework, including all of its software components, comes without any warranties. Operation of the software is solely on the user’s own risk.</description>
+    </item>
+    
+  </channel>
+</rss>

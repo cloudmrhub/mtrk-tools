@@ -1,0 +1,182 @@
+/**
+ *
+ * You can write your CSS code here, DO NOT touch the default JavaScript file
+ * because it will make it harder for you to update.
+ * 
+ */
+
+/*# sourceMappingURL=custom.css.map */
+
+body {
+    overflow-y: scroll;
+  }
+
+.CodeMirror {
+  z-index: 10000;
+}
+
+.CodeMirror-fullscreen {
+  z-index: 10000;
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+  content: "❘" !important;
+}
+
+.main-wrapper {
+  width: calc(100% - 60px);
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 1024px) {
+  .main-wrapper {
+    width: calc(100% - 20px);
+  }
+}
+
+.gitter-chat-embed {
+  z-index: 99999 !important;
+}
+
+.gitter-open-chat-button, .gitter-open-chat-button:visited, .gitter-open-chat-button:hover {
+  background-color: #c4a987;
+}
+
+.post-meta {
+  margin-bottom: 1rem;
+  display: table;
+  color: #c4a987;
+  text-transform: uppercase;
+}
+
+.post-meta-item {
+  margin-right: 10px;
+  float: left;
+}
+
+.post-meta-item > a {
+  text-decoration: none;
+  color: #c4a987;
+}
+
+.article-category-link {
+  font-weight: 400;
+}
+
+.navbar .navbar-nav > .nav-item > .nav-link.active span {
+  color: #FFF !important;
+}
+.navbar .navbar-nav > .nav-item > .nav-link span {
+  color: #6c757d !important;
+  font-size: 15px;
+}
+.navbar .navbar-nav > .nav-item:hover {
+  background-color: #c4a987;
+}
+.navbar .navbar-nav > .nav-item:hover > .nav-link span {
+  color: #FFF !important;
+}
+
+@media (max-width: 1024px) {
+  .navbar .navbar-nav > .nav-item > .nav-link.active span {
+    color: #000 !important;
+  }
+  .navbar .navbar-nav > .nav-item:hover > .nav-link span {
+    color: #c4a987 !important;
+  }  
+  .main-content {
+    padding-top: 100px;
+  }
+} 
+
+body.layout-3 .navbar .navbar-nav > .nav-item .nav-link {
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  margin-left: 0px !important;
+  margin-right: 0px !important;  
+}
+
+.navbar {
+  padding: .5rem 0rem;
+}
+
+.post-title, .post-title a {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.faq .card-header .fas {
+  color: #c4a987;
+  margin-right: 6px;
+  transition: .3s transform ease-in-out;
+}
+
+.faq .card-header .collapsed .fas {
+  transform: rotate(-90deg);
+}
+
+.faq .card-header {
+  font-size: 15px;
+  padding: 8px;
+  min-height: 40px;
+}
+
+.faq .card-body {
+  font-size: 15px;
+}
+
+.faq {
+  margin-bottom: 2px !important;
+}
+
+.faq .card-header:hover {
+  cursor: pointer;
+}
+
+p {
+  font-size: 15px;
+  text-align: justify;
+}
+
+.content a {
+  color: #b3997a;
+}
+
+.content a:hover {
+  color: #0056b3 !important;
+}
+
+footer {
+  font-size: 14px;  
+}
+
+@media (min-width: 1024px) {
+  a.nav-link.gitlink {
+    padding-right: 0px !important;
+  }
+}
+
+a.nav-link.gitlink:hover i {
+  transform: rotateY(180deg);
+  transition: 0.5s;
+}
+
+a.nav-link.gitlink i {
+  transition: 0.5s;
+}
+
+::selection {
+  color: #FFF;
+  background: #0056b3;
+}
+
+a.btn-primary {
+  color: #FFF;
+}
+
+
+a.btn.btn-primary:hover  {
+  color: #DDD !important;
+}
