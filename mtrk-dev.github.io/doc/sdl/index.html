@@ -38,7 +38,7 @@
     },
     "datePublished": "2018-06-15",
     "description": "",
-    "wordCount": 11
+    "wordCount": 149
   }
 </script>
 
@@ -146,13 +146,17 @@
               class="list-group-item list-group-item-action active">&ndash;&nbsp;
             Description Language</a>
             
-            <a href="/doc/driver/"
+            <a href="/doc/sample/"
               class="list-group-item list-group-item-action ">&ndash;&nbsp;
-            Driver Sequence</a>
+            Sample Sequence</a>
             
             <a href="/doc/ui/"
               class="list-group-item list-group-item-action ">&ndash;&nbsp;
             Simulation UI</a>
+            
+            <a href="/doc/driver/"
+              class="list-group-item list-group-item-action ">&ndash;&nbsp;
+            Driver Sequence</a>
             
             <a href="/doc/faq/"
               class="list-group-item list-group-item-action ">&ndash;&nbsp;
@@ -164,26 +168,59 @@
           <div class="content pt-2">
       
 
-<h3 id="hahahugoshortcode-0xc00011d900-1-hbhb">
+<h3 id="hahahugoshortcode-0xc000854500-1-hbhb">
 <div style="margin-bottom: 20px;"><i class="fas fa-angle-double-right" style="color: #c4a987; font-size: 24px;">&nbsp;</i>Sequence Description Language</div>
 
 </h3>
 
 <div style="margin-bottom: 10px; font-size: 0px;">&nbsp;</div>
 
-<div class="card card-statistic-1">
-    <div class="card-icon bg-primary">
-        <i class="fas fa-tools"></i>
-    </div>
-    <div class="card-wrap">
-        <div class="card-header">
-            <h4>Under Construction</h4>
-        </div>
-        <div class="card-body">
-            Sorry, section is still missing.
-        </div>
-    </div>
-</div>
+<h4 id="hahahugoshortcode-0xc000854500-3-hbhb">
+<div style="margin-bottom: 20px;"><i class="fas fa-minus" style="color: #c4a987; font-size: 24px; margin-right: 8px;"></i>File Structure</div>
+
+</h4>
+
+<div style="margin-bottom: 10px; font-size: 0px;">&nbsp;</div>
+
+<p>mtrk files are UTF-8 encoded text-files in the JSON format and need to contain the following properties:</p>
+
+<pre><code class="language-json">{
+    "file": {
+        // General information about the sequence and suited MR system
+    },
+    "settings": {
+        // Settings relevant for the sequence execution
+    },
+    "infos": {
+        // Parameters that are passed to IDEA (without impact on the sequence execution)
+        // E.g., values that should be written into the DICOM tags
+    },
+    "instructions": {        
+        // Blocks with instructions (actions) that are executed during the sequence run
+    },
+    "objects": {
+        // List of event objects that are used for the actions
+    },
+    "arrays": {
+        // Data arrays for RF / gradient waveforms or other purpose
+    },
+    "equations": {
+        // List of equations evaluated during the sequence run
+    },
+    "generator": {
+        // Generator parameters used to calculate the sequence. Only stored for reference.
+    }   
+}
+</code></pre>
+
+<div style="margin-bottom: 30px; font-size: 0px;">&nbsp;</div>
+
+<h4 id="hahahugoshortcode-0xc000854500-6-hbhb">
+<div style="margin-bottom: 20px;"><i class="fas fa-minus" style="color: #c4a987; font-size: 24px; margin-right: 8px;"></i>Instructions</div>
+
+</h4>
+
+<div style="margin-bottom: 10px; font-size: 0px;">&nbsp;</div>
 
 </div>
 
@@ -195,7 +232,7 @@
 </div>
         <footer class="main-footer">
         <div class="footer-left">
-            Copyright &copy; 2020 <div class="bullet"></div> Developed by the <a href="#">mtrk Team</a>
+            Copyright &copy; 2020 <div class="bullet"></div> Developed by the <a href="https://github.com/orgs/mtrk-dev/people" target="_blank">mtrk Team</a>
         </div>
         <div class="footer-right">
         </div>

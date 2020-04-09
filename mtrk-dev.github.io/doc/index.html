@@ -124,11 +124,14 @@
             <a href="https://mtrk-dev.github.io/doc/sdl/"
               class="list-group-item list-group-item-action">&ndash;&nbsp; Description Language</a>
             
-            <a href="https://mtrk-dev.github.io/doc/driver/"
-              class="list-group-item list-group-item-action">&ndash;&nbsp; Driver Sequence</a>
+            <a href="https://mtrk-dev.github.io/doc/sample/"
+              class="list-group-item list-group-item-action">&ndash;&nbsp; Sample Sequence</a>
             
             <a href="https://mtrk-dev.github.io/doc/ui/"
               class="list-group-item list-group-item-action">&ndash;&nbsp; Simulation UI</a>
+            
+            <a href="https://mtrk-dev.github.io/doc/driver/"
+              class="list-group-item list-group-item-action">&ndash;&nbsp; Driver Sequence</a>
             
             <a href="https://mtrk-dev.github.io/doc/faq/"
               class="list-group-item list-group-item-action">&ndash;&nbsp; FAQ</a>
@@ -139,10 +142,14 @@
           <div class="content pt-2">
             
 
-<h3 id="hahahugoshortcode-0xc0000e2000-1-hbhb">
+<h3 id="hahahugoshortcode-0xc000854a00-1-hbhb">
 <div style="margin-bottom: 20px;"><i class="fas fa-angle-double-right" style="color: #c4a987; font-size: 24px;">&nbsp;</i>Overview</div>
 
 </h3>
+
+<p>Core element of mtrk is the <a href="/doc/sdl">Sequence Description Language (SDL)</a>, which is a formalism to describe what actions the MRI scanner should execute when running a sequence. mtrk files can be executed on MRI scanners using the mtrk <a href="/doc/driver">Driver Sequence</a>, which reads the instructions and plays out the actions.</p>
+
+<p>In most cases, mtrk files are created using a small generator program provided by the sequence developer. There is no requirement regarding which programming language needs to be used for such generator programs, as most languages can process JSON files. Generator programs can either be provided as command-line tool, stand-alone software, or even as web service. For analyzing generated mtrk files, the web-based <a href="/doc/ui">Simulation UI</a> application is available that allows testing and visualizing the sequences.</p>
 
           </div>
         </div>
@@ -152,7 +159,7 @@
 </div>
         <footer class="main-footer">
         <div class="footer-left">
-            Copyright &copy; 2020 <div class="bullet"></div> Developed by the <a href="#">mtrk Team</a>
+            Copyright &copy; 2020 <div class="bullet"></div> Developed by the <a href="https://github.com/orgs/mtrk-dev/people" target="_blank">mtrk Team</a>
         </div>
         <div class="footer-right">
         </div>

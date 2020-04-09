@@ -121,18 +121,18 @@
             <div class="content" style="margin-bottom: 40px;">
               
 
-<h3 id="hahahugoshortcode-0xc00000d900-1-hbhb">
+<h3 id="hahahugoshortcode-0xc000890500-1-hbhb">
 <div style="margin-bottom: 20px;"><i class="fas fa-angle-double-right" style="color: #c4a987; font-size: 24px;">&nbsp;</i>What is mtrk?</div>
 
 </h3>
 
-<p>mtrk is a novel concept for developing and working with pulse sequences in Magnetic Resonance Imaging (MRI). Traditionally, MRI pulse sequences are developed as dynamically loadable binary libraries, programmed using vendor-provided proprietary SDKs. These monolithic SDKs are complex, barely documented, and only in part accessible to external developers and members of the MRI research community. This makes MRI development very challenging - on the one hand because only few researchers manage to work with the SDKs, on the other hand because frequent invasive changes to vendor SDKs create significant maintenance effort. Furthermore, strict license agreements make dissemination of research developments impossible and contend with the idea of <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27939" target="_blank">reproducible research</a>.</p>
+<p>mtrk is a novel concept for developing and working with pulse sequences in Magnetic Resonance Imaging (MRI). Traditionally, MRI pulse sequences are developed as dynamically loadable binary libraries, programmed using vendor-provided proprietary SDKs. These monolithic SDKs are complex, barely documented, and only in part accessible to external developers and members of the MRI research community. This makes MRI development very challenging - on the one hand because only few researchers manage to work with the SDKs, on the other hand because frequent invasive changes to the vendor SDKs create significant maintenance effort. Furthermore, strict license agreements make dissemination of research developments impossible and contend with the idea of <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.27939" target="_blank">reproducible research</a>.</p>
 
 <p>mtrk is an attempt to change the paradigm in MRI sequence development towards a modern Open-Source-driven model.</p>
 
 <div style="margin-bottom: 20px; font-size: 0px;">&nbsp;</div>
 
-<h3 id="hahahugoshortcode-0xc00000d900-3-hbhb">
+<h3 id="hahahugoshortcode-0xc000890500-3-hbhb">
 <div style="margin-bottom: 20px;"><i class="fas fa-angle-double-right" style="color: #c4a987; font-size: 24px;">&nbsp;</i>Flexibility</div>
 
 </h3>
@@ -141,21 +141,21 @@
 
 <div style="margin-bottom: 20px; font-size: 0px;">&nbsp;</div>
 
-<h3 id="hahahugoshortcode-0xc00000d900-5-hbhb">
+<h3 id="hahahugoshortcode-0xc000890500-5-hbhb">
 <div style="margin-bottom: 20px;"><i class="fas fa-angle-double-right" style="color: #c4a987; font-size: 24px;">&nbsp;</i>Reproducibility</div>
 
 </h3>
 
-<p>When executing an mtrk sequence, the MRI scanner plays out the instructions and pulses contained in the mtrk file. This means that the pulse sequence is entirely defined by the mtrk file and not dependent on the specific MRI software version used during data acquisition. Hence, researchers can reproduce scientific results at a later time or at a different location, as the mtrk file can be easily archived or distributed. Because the SDL format is decoupled from the vendor SDKs, the mtrk files can be shared in Git repositories attached to publications without violating license agreements, and they do not require refactoring for every software update installed on the MRI scanners.</p>
+<p>When executing an mtrk sequence, the MRI scanner plays out the instructions and pulses contained in the mtrk file. This means that the pulse sequence is entirely defined by the mtrk file and not dependent on the specific MRI software version used during data acquisition. Hence, researchers can reproduce scientific results at a later time or at a different location because the mtrk file can be easily archived or distributed. Because the SDL format is decoupled from the vendor SDKs, the mtrk files can be shared in Git repositories attached to publications without violating license agreements, and they do not require refactoring for every software update installed on the MRI scanners.</p>
 
 <div style="margin-bottom: 20px; font-size: 0px;">&nbsp;</div>
 
-<h3 id="hahahugoshortcode-0xc00000d900-7-hbhb">
+<h3 id="hahahugoshortcode-0xc000890500-7-hbhb">
 <div style="margin-bottom: 20px;"><i class="fas fa-angle-double-right" style="color: #c4a987; font-size: 24px;">&nbsp;</i>Transparency</div>
 
 </h3>
 
-<p>With the traditional development model, sequence binaries are a black-box in the sense that it is unclear how the sequence settings translate into DSP instructions. Moreover, because part of the instructions are hard-coded into the MRI software and can change over time, it is impossible to say which exact waveforms were created to acquire the data. With mtrk on the other hand, all instructions can transparently be read form the mtrk file. This enables exact Bloch simulation of the sequence, so that automated testing and quality control of sequences is possible. Furthermore, part of the development work can be shifted from sitting in front of the MRI scanner towards simulation-driven development.</p>
+<p>With the traditional development model, sequence binaries are black-boxes in the sense that it is unclear how the sequence settings translate into DSP instructions. Moreover, because part of the functions are hard-coded into the MRI software platform and can change with every release, it is impossible to say which exact waveforms and timings were used to acquire the data. With mtrk on the other hand, all instructions can transparently be read form the mtrk file. This enables exact Bloch simulations of the sequence, so that automated testing and quality control of sequences is possible. Furthermore, part of the development work can be shifted from sitting in front of an MRI scanner towards simulation-driven development.</p>
 
 <div style="margin-bottom: 20px; font-size: 0px;">&nbsp;</div>
 
@@ -198,7 +198,7 @@
 </div>
         <footer class="main-footer">
         <div class="footer-left">
-            Copyright &copy; 2020 <div class="bullet"></div> Developed by the <a href="#">mtrk Team</a>
+            Copyright &copy; 2020 <div class="bullet"></div> Developed by the <a href="https://github.com/orgs/mtrk-dev/people" target="_blank">mtrk Team</a>
         </div>
         <div class="footer-right">
         </div>

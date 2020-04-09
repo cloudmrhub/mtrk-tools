@@ -17,25 +17,28 @@
       <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
       
       <guid>https://mtrk-dev.github.io/doc/sdl/</guid>
-      <description> &amp;nbsp;Sequence Description Language &amp;nbsp; Under ConstructionSorry, section is still missing. </description>
+      <description>&amp;nbsp;Sequence Description Language &amp;nbsp; File Structure &amp;nbsp; mtrk files are UTF-8 encoded text-files in the JSON format and need to contain the following properties:
+{ &#34;file&#34;: { // General information about the sequence and suited MR system }, &#34;settings&#34;: { // Settings relevant for the sequence execution }, &#34;infos&#34;: { // Parameters that are passed to IDEA (without impact on the sequence execution) // E.g., values that should be written into the DICOM tags }, &#34;</description>
     </item>
     
     <item>
-      <title>Examples</title>
-      <link>https://mtrk-dev.github.io/resources/examples/</link>
+      <title>Source Code</title>
+      <link>https://mtrk-dev.github.io/resources/code/</link>
       <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
       
-      <guid>https://mtrk-dev.github.io/resources/examples/</guid>
-      <description> &amp;nbsp;Sequence Examples Under ConstructionSorry, section is still missing. </description>
+      <guid>https://mtrk-dev.github.io/resources/code/</guid>
+      <description> &amp;nbsp;Source Code All of the mtrk source code is hosted in public Github repositories. You can find the code for the individual components in the table below or via the Github page of the mtrk Team.
+&amp;nbsp;  Repository Content Link   mtrk_seq mtrk driver sequence (requires Siemens IDEA) Open   mtrk_node mtrk UI for sequence testing (based on Node.js and express.js) Open   mtrk_stisla HTML/CSS theme used for the mtrk UI Open      </description>
     </item>
     
     <item>
-      <title>Driver Sequence</title>
-      <link>https://mtrk-dev.github.io/doc/driver/</link>
+      <title>Sample Sequence</title>
+      <link>https://mtrk-dev.github.io/doc/sample/</link>
       <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
       
-      <guid>https://mtrk-dev.github.io/doc/driver/</guid>
-      <description> &amp;nbsp;Driver Sequence &amp;nbsp; Under ConstructionSorry, section is still missing. </description>
+      <guid>https://mtrk-dev.github.io/doc/sample/</guid>
+      <description>&amp;nbsp;Sample Sequence &amp;nbsp; The code below shows how the famous &amp;ldquo;MiniFLASH&amp;rdquo; sequence can be expressed using the mtrk SDL. In this formulation, the amplitude of the phase-encoding gradient is varied using an equation. Alternatively, the gradient amplitude could also be stored and read from an array using the line-counter as index.
+{ &#34;file&#34;: { &#34;format&#34;: &#34;mtrk-SDL&#34;, &#34;version&#34;: 1, &#34;measurement&#34;: &#34;abc&#34;, &#34;system&#34;: &#34;Skyra-XQ&#34; }, &#34;settings&#34;: { &#34;readout_os&#34;: 2 }, &#34;</description>
     </item>
     
     <item>
@@ -48,13 +51,21 @@
     </item>
     
     <item>
-      <title>Source Code</title>
-      <link>https://mtrk-dev.github.io/resources/code/</link>
+      <title>Driver Sequence</title>
+      <link>https://mtrk-dev.github.io/doc/driver/</link>
       <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
       
-      <guid>https://mtrk-dev.github.io/resources/code/</guid>
-      <description> &amp;nbsp;Source Code All of the mtrk source code is hosted in public Github repositories. You can find the code for the individual components in the table below or via the Github page of the mtrk Team.
-&amp;nbsp;  Repository Content Link   mtrk_seq mtrk driver sequence (requires Siemens IDEA) Open   mtrk_node mtrk UI for sequence testing (based on Node.js and express.js) Open   mtrk_stisla HTML/CSS theme used for the mtrk UI Open      </description>
+      <guid>https://mtrk-dev.github.io/doc/driver/</guid>
+      <description> &amp;nbsp;Driver Sequence &amp;nbsp; Under ConstructionSorry, section is still missing. </description>
+    </item>
+    
+    <item>
+      <title>Examples</title>
+      <link>https://mtrk-dev.github.io/resources/examples/</link>
+      <pubDate>Fri, 15 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/resources/examples/</guid>
+      <description> &amp;nbsp;Sequence Examples Under ConstructionSorry, section is still missing. </description>
     </item>
     
     <item>
