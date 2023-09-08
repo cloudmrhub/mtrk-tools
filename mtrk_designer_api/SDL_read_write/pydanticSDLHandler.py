@@ -114,7 +114,11 @@ class Grad(Step):
 
 
 class GradWithAmplitude(Grad):
-    amplitude: Union[str, Amplitude]
+    amplitude: str
+
+
+class GradWithEquation(Grad):
+    amplitude: Amplitude
 
 
 class Amplitude(BaseModel):

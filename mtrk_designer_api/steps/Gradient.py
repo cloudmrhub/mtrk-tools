@@ -9,33 +9,30 @@
 from steps.Step import Step
 
 class Gradient(Step):
-    # default constructor
-    def __init__(self):
+    # constructor
+    def __init__(self, *args):
         Step.__init__(self)
         self._action = "grad"
-        self._axis = "default_axis"
-        self._amplitude_type = ""
-        self._amplitude_equation = ""
+        if len(args) == 3:
+            self._axis = args[0]
+            self._object = args[1]
+            self._start_time_usec = args[2]
+        elif len(args) == 4:
+            self._axis = args[0]
+            self._object = args[1]
+            self._start_time_usec = args[2]
+            self._amplitude_type = args[3]
+        elif len(args) == 5:
+            self._axis = args[0]
+            self._object = args[1]
+            self._start_time_usec = args[2]
+            self._amplitude_type = args[3]
+            self._amplitude_equation = args[4]
+        else:
+            self._axis = "default_axis"
+            self._amplitude_type = ""
+            self._amplitude_equation = ""
     
-    # Generation of generic gradient parameters
-    def generateGradient(self, axis, object, start_time_usec):
-        self._axis = axis
-        self._object = object
-        self._start_time_usec = start_time_usec
-
-    def generateGradientAmplitude(self, axis, object, start_time_usec, amplitude_type):
-        self._axis = axis
-        self._object = object
-        self._start_time_usec = start_time_usec
-        self._amplitude_type = amplitude_type
-
-    def generateGradientEquation(self, axis, object, start_time_usec, amplitude_equation):
-        self._axis = axis
-        self._object = object
-        self._start_time_usec = start_time_usec
-        self._amplitude_type = "equation"
-        self._amplitude_equation = amplitude_equation
-
     # getters
     def getAxis(self):
         return self._axis

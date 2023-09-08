@@ -7,7 +7,7 @@
 ################################################################################
 
 class Step:
-    # default constructor
+    # constructor
     def __init__(self):
         self._action = "default_step"
         self._object = "default_step"

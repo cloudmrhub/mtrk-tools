@@ -9,28 +9,28 @@
 from steps.Step import Step
 
 class RfPulse(Step):
-    # default constructor
-    def __init__(self):
+    # constructor
+    def __init__(self, *args):
         Step.__init__(self)
         self._action = "rf"
-        self._added_phase = True
-        self._added_phase_type = "undefined"
-        self._added_phase_float = 0.0 ### unclear!
-    
-    # Generation of excitation pulse parameters
-    def generateExcitationPulse(self, start_time_usec, added_phase, added_phase_parameters):
-        self._object = "rf_excitation"
-        self._start_time_usec = start_time_usec
-        self._added_phase = added_phase
-        if added_phase == True:
-            self._added_phase_type = added_phase_parameters[0]
-            self._added_phase_float = added_phase_parameters[1]
+        if len(args) == 3:
+            self._object = args[0]
+            self._start_time_usec = args[1]
+            self._added_phase = args[2]
+        if len(args) == 4:
+            self._object = args[0]
+            self._start_time_usec = args[1]
+            self._added_phase = args[2]
+            self._added_phase_type = args[3][0]
+            self._added_phase_float = args[4][1]
         else:
-            pass
+            self._added_phase = True
+            self._added_phase_type = "undefined"
+            self._added_phase_float = 0.0 ### unclear!
     
-    # Generation of refocusing pulse parameters
-    def generateRefocusingPulse(self, start_time_usec, added_phase, added_phase_parameters):
-        self._object = "rf_refocusing"
+    # Generation of RF pulse parameters
+    def __init__(self, object, start_time_usec, added_phase, added_phase_parameters):
+        self._object = object
         self._start_time_usec = start_time_usec
         self._added_phase = added_phase
         if added_phase == True:
