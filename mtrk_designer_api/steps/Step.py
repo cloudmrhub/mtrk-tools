@@ -8,8 +8,11 @@
 
 class Step:
     # constructor
-    def __init__(self):
-        self._action = "default_step"
+    def __init__(self, *args):
+        if len(args) == 1:
+            self._action = args[0]
+        else:
+            self._action = "default_step"
         self._object = "default_step"
         self._start_time_usec = 0
     

@@ -12,16 +12,24 @@ import re
 from pprint import pprint
 from devtools import debug
 
+from miniFlashModifier import miniFlashModifier
+
 from initialization.FileInit import FileInit
 from initialization.InfoInit import InfoInit
 from initialization.SettingsInit import SettingsInit
 
+from steps.Step import Step as StepType
 from steps.Initialization import Initialization
 from steps.Synchronization import Synchronization
 from steps.RfPulse import RfPulse 
 from steps.Gradient import Gradient
 from steps.AnalogToDigitalConverter import AnalogToDigitalConverter
 from steps.Marking import Marking
+
+from objects.RfObject import RfObject
+from objects.GradientObject import GradientObject as GradientObjectType
+from objects.AdcObject import AdcObject
+from objects.SynchronizationObject import SynchronizationObject
 
 from SDL_read_write.pydanticSDLHandler import *
 
@@ -45,7 +53,7 @@ settingsInit = SettingsInit(2)
 infoInit = InfoInit("MiniFlash equivalent", 2, 300, 128, "YARRA", "%SiemensIceProgs%\\IceProgram2D")
 
 
-### Defining sequence
+### Defining sequence (instructions field)
 # initialization
 initialization = Initialization("logical")
 
@@ -74,81 +82,29 @@ analogToDigitalConverter = AnalogToDigitalConverter("adc_readouts", 9460, 0, 0, 
 # marking
 marking = Marking(20000)
 
+# submitting
+submit = StepType("submit")
+
+### Defining objects to be used in the creation of real time events
+rfExcitation = RfObject(2560, "rfpulse", 0, 5, 15, "excitation")
+gradSliceSelect = GradientObjectType(2660, "grad_100_2560_100", 0, 4.95)
+gradSliceRefocus = GradientObjectType(300, "grad_220_80_220", 0, -21.96)
+gradReadDephase = GradientObjectType(230, "grad_220_10_220", 0, -21.96)
+gradReadReadout = GradientObjectType(3870, "grad_30_3840_30", 0, 2.61)
+gradPhaseEncode = GradientObjectType(230, "grad_220_10_220", 0, 10.00)
+gradientList = [gradSliceSelect, gradSliceRefocus, gradReadDephase, gradReadReadout, gradPhaseEncode]
+adcReadout = AdcObject(3840, 128, 30000)
+ttl = SynchronizationObject(10, "osc0")
 
 ### filling instructions in an already created SDL file
-# temporarily relying on classes to discriminate between spoiling and other gradients
-sequence_data.file.format = fileInit.getFormat()
-sequence_data.file.version = fileInit.getVersion()
-sequence_data.file.measurement = fileInit.getMeasurement()
-sequence_data.file.system = fileInit.getSystem()
-
-sequence_data.infos.description = infoInit.getDescription()
-sequence_data.infos.slices = infoInit.getSlices()
-sequence_data.infos.fov = infoInit.getFov()
-sequence_data.infos.pelines = infoInit.getPeLines()
-sequence_data.infos.seqstring = infoInit.getSeqString()
-sequence_data.infos.reconstruction = infoInit.getReconstruction()
-
-sequence_data.settings.readout_os = settingsInit.getReadoutOs()
-
-selectedGradient = Gradient()
-for instruction in list(sequence_data.instructions):
-    for data in sequence_data.instructions[instruction]:
-        if data[0] == "steps":
-            for elem in data[1]:
-                if type(elem) == Init:
-                    elem.gradients = initialization.getGradients()
-                if type(elem) == Sync:
-                    elem.object = synchronization.getObject()
-                    elem.time = synchronization.getStartTimeUsec()
-                if type(elem) == Rf:
-                    elem.object = rfPulse.getObject()
-                    elem.time = rfPulse.getStartTimeUsec()
-                    if rfPulse.getAddedPhase == True :
-                        elem.added_phase.type = rfPulse.getAddedPhaseType()
-                        elem.added_phase.float = rfPulse.getAddedPhaseFloat()
-                if type(elem) == Grad:
-                    if elem.object == "grad_slice_select":
-                        selectedGradient = sliceSelectionGradient
-                    if elem.object == "grad_slice_refocus":
-                        selectedGradient = sliceRefocusingGradient
-                    if elem.object == "grad_read_dephase":
-                        selectedGradient = readoutDephasingGradient
-                    if elem.object == "grad_phase_encode":
-                        selectedGradient = phaseEncodingGradient
-                    if elem.object == "grad_read_readout":
-                        selectedGradient = readoutGradient
-                    elem.action = selectedGradient.getAction()
-                    elem.axis = selectedGradient.getAxis()
-                    elem.time = selectedGradient.getStartTimeUsec()
-                if type(elem) == GradWithAmplitude:
-                    if elem.object == "grad_slice_refocus":
-                        selectedGradient = sliceSpoilingGradient
-                    if elem.object == "grad_phase_encode":
-                        selectedGradient = phaseSpoilingGradient
-                    elem.action = selectedGradient.getAction()
-                    elem.axis = selectedGradient.getAxis()
-                    elem.time = selectedGradient.getStartTimeUsec()
-                    elem.amplitude = selectedGradient.getAmplitudeType()
-                if type(elem) == GradWithEquation:
-                    elem.amplitude.type = selectedGradient.getAmplitudeType()
-                    elem.amplitude.equation = selectedGradient.getAmplitudeEquation()
-                if type(elem) == Adc:
-                    elem.object = analogToDigitalConverter.getObject()
-                    elem.time = analogToDigitalConverter.getStartTimeUsec()
-                    elem.frequency = analogToDigitalConverter.getFrequency()
-                    elem.phase = analogToDigitalConverter.getPhase()
-                    elem.added_phase.type = analogToDigitalConverter.getAddedPhaseType()
-                    elem.added_phase.float = analogToDigitalConverter.getAddedPhaseFloat()
-                    # elem.mdh = {}
-                    loop_counter = 0
-                    for eventName in analogToDigitalConverter.getMdhEvents():
-                        elem.mdh[eventName].type = analogToDigitalConverter.getMdhDetails()[loop_counter][0]
-                        elem.mdh[eventName].counter = analogToDigitalConverter.getMdhDetails()[loop_counter][1]
-                        elem.mdh[eventName].target = analogToDigitalConverter.getMdhDetails()[loop_counter][2]
-                        loop_counter += 1
-                if type(elem) == Mark:
-                    elem.time = marking.getStartTimeUsec()
+sequence_data = miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
+                                initialization, synchronization, rfPulse, \
+                                sliceSelectionGradient, sliceRefocusingGradient, \
+                                readoutDephasingGradient, phaseEncodingGradient, \
+                                readoutGradient, sliceSpoilingGradient, \
+                                phaseSpoilingGradient, analogToDigitalConverter, \
+                                marking, submit, rfExcitation, gradientList, adcReadout, \
+                                ttl)
 
 ### creating SDL file correcponding to instructions
 
