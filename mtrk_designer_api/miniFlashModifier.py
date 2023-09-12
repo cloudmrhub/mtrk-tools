@@ -16,13 +16,16 @@ def miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
                       readoutGradient, sliceSpoilingGradient, \
                       phaseSpoilingGradient, analogToDigitalConverter, \
                       marking, submit, rfExcitation, gradientList, adcReadout, \
-                      ttl):
+                      ttl, arrayList, equationList):
     # temporarily relying on classes to discriminate between spoiling and other gradients
+    
+    ### file section
     sequence_data.file.format = fileInit.getFormat()
     sequence_data.file.version = fileInit.getVersion()
     sequence_data.file.measurement = fileInit.getMeasurement()
     sequence_data.file.system = fileInit.getSystem()
 
+    ### info section
     sequence_data.infos.description = infoInit.getDescription()
     sequence_data.infos.slices = infoInit.getSlices()
     sequence_data.infos.fov = infoInit.getFov()
@@ -30,8 +33,10 @@ def miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
     sequence_data.infos.seqstring = infoInit.getSeqString()
     sequence_data.infos.reconstruction = infoInit.getReconstruction()
 
+    ### settings section
     sequence_data.settings.readout_os = settingsInit.getReadoutOs()
 
+    ### instructions section
     selectedGradient = Gradient()
     for instruction in list(sequence_data.instructions):
         for data in sequence_data.instructions[instruction]:
@@ -93,6 +98,7 @@ def miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
                     if type(elem) == Submit:
                         elem.action = submit.getAction()
 
+    ### objects section
     gradient_counter = 0
     for object in list(sequence_data.objects):
         if list(sequence_data.objects[object])[0][1] == "rf":
@@ -116,4 +122,19 @@ def miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
             sequence_data.objects[object].duration = ttl.getDuration()
             sequence_data.objects[object].event = ttl.getEvent()
     
+    ### arrays section
+    array_counter = 0
+    for array in list(sequence_data.arrays):
+        sequence_data.arrays[array].encoding = arrayList[array_counter].getEncoding()
+        sequence_data.arrays[array].type = arrayList[array_counter].getType()
+        sequence_data.arrays[array].size = arrayList[array_counter].getSize()
+        sequence_data.arrays[array].data = arrayList[array_counter].getData()
+        array_counter += 1
+
+    ### equations section
+    equation_counter = 0
+    for equation in list(sequence_data.equations):
+        sequence_data.equations[equation].equation = equationList[equation_counter].getEquation()
+        equation_counter += 1
+
     return sequence_data
