@@ -8,31 +8,33 @@
 
 from __future__ import annotations
 
+# from initialization.File import File
+
 from typing import List, Optional, Union
 from typing_extensions import Literal, Any
 from pydantic import BaseModel, SerializeAsAny
 
 ### file section
 class File(BaseModel):
-    format: str
-    version: int
-    measurement: str
-    system: str
+    format: str = "mtrk-SDL"
+    version: int = 9999
+    measurement: str = "default_measurement"
+    system: str = "default_system"
 
 
 ### settings section
 class Settings(BaseModel):
-    readout_os: int
+    readout_os: int = 9999
 
 
 ### infos section
-class Infos(BaseModel):
-    description: str
-    slices: int
-    fov: int
-    pelines: int
-    seqstring: str
-    reconstruction: str
+class Info(BaseModel):
+    description: str = "default_description"
+    slices: int = 9999
+    fov: int = 9999
+    pelines: int = 9999
+    seqstring: str = "default_seqstring"
+    reconstruction: str = "default_reconstruction"
 
 
 ### instructions section
@@ -71,95 +73,91 @@ class HasSteps():
 
 class Instruction(HasSteps,BaseModel):
     print_counter: Optional[str] = "off"
-    print_message: str
+    print_message: str = "default_print_message"
 
     steps: List[SerializeAsAny[Step]]
 
 
 class Loop(HasSteps,Step):
-    action: Literal["loop"]
-    counter: int
-    range: int
+    action: Literal["loop"] = "loop"
+    counter: int = 9999
+    range: int = 9999
     steps: List[Step]
 
 
 class RunBlock(Step):
-    action: Literal["run_block"]
-    block: str
+    action: Literal["run_block"] = "run_block"
+    block: str = "default_block"
 
 
 class Calc(Step):
-    action: Literal["calc"]
-    type: str
-    float: int
-    increment: int
+    action: Literal["calc"] = "calc"
+    type: str = "default_type"
+    float: int = 9999 
+    increment: int = 9999
 
 
 class Init(Step):
-    action: Literal["init"]
-    gradients: str
+    action: Literal["init"] = "init"
+    gradients: str = "default_gradients"
 
 
 class Sync(Step):
-    action: Literal["sync"]
-    object: str
-    time: int
+    action: Literal["sync"] = "sync"
+    object: str = "default_object"
+    time: int = 9999
 
 
 class Grad(Step):
-    action: Literal["grad"]
-    axis: str
-    object: str
-    time: int
+    action: Literal["grad"] = "grad"
+    axis: str = "default_axis"
+    object: str = "default_object"
+    time: int = 9999
 
 
 class GradWithAmplitude(Grad):
-    amplitude: str
-
-
-class GradWithEquation(Grad):
-    amplitude: Amplitude
+    amplitude: Union[str, Amplitude] = "default_amplitude"
 
 
 class Amplitude(BaseModel):
-    type: str
-    equation: str
+    type: str = "default_amplitude_type"
+    equation: str = "default_equation"
 
 
 class Rf(Step):
-    action: Literal["rf"]
+    action: Literal["rf"] = "rf"
     object: str
     time: int
     added_phase: AddedPhase
 
 
-class AddedPhase(BaseModel):
-    type: str
-    float: int
-
-
 class Adc(Step):
-    action: Literal["adc"]
-    object: str
-    time: int
-    frequency: int
-    phase: int
+    action: Literal["adc"] = "adc"
+    object: str = "default_object"
+    time: int = 9999
+    frequency: int = 9999
+    phase: int = 9999
     added_phase: AddedPhase  
     mdh: dict[str, MdhOption]
 
 
+class AddedPhase(BaseModel):
+    type: str = "default_added_phase_type"
+    float: int = 9999
+
+
 class MdhOption(BaseModel):
-    type: str
-    counter: int
+    type: str = "default_mdh_type"
+    counter: int = 9999
     target: Optional[int] = None
 
 class Mark(Step):
-    action: Literal["mark"]
-    time: int
+    action: Literal["mark"] = "mark"
+    time: int = 9999
 
 
 class Submit(Step):
-    action: Literal["submit"]
+    action: Literal["submit"] = "submit"
 
 
 ### objects section
@@ -167,8 +165,8 @@ object_subclass_registry = {}
 
 
 class Object(BaseModel):
-    type: str
-    duration: int
+    type: str = "default_type"
+    duration: int = 9999
     
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -200,53 +198,53 @@ class HasObjects():
 
 
 class RfExcitation(Object):
-    type: Literal["rf"]
-    array: str
-    duration: int
-    initial_phase: int
-    thickness: int
-    flipangle: int
-    purpose: str
+    type: Literal["rf"] = "rf"
+    array: str = "default_array"
+    duration: int = 9999
+    initial_phase: int = 9999
+    thickness: int = 9999
+    flipangle: int = 9999
+    purpose: str = "default_purpose"
 
 
 class GradientObject(Object):
-    type: Literal["grad"]
-    array: str
-    duration: int
-    tail: int
-    amplitude: float
+    type: Literal["grad"] = "grad"
+    array: str = "default_array"
+    duration: int = 9999
+    tail: int = 9999
+    amplitude: float = 9.999
 
 
 class AdcReadout(Object):
-    type: Literal["adc"]
-    samples: int
-    dwelltime: int
+    type: Literal["adc"] = "adc"
+    samples: int = 9999
+    dwelltime: int = 9999
 
 
 class Ttl(Object):
-    type: Literal["sync"]
-    duration: int
-    event: str
+    type: Literal["sync"] = "sync"
+    duration: int = 9999
+    event: str = "default_event"
 
 
 ### arrays section
 class GradientTemplate(BaseModel):
-    encoding: str
-    type: str
-    size: int
-    data: List[float]
+    encoding: str = "default_encoding"
+    type: str = "default_type"
+    size: int = 9999
+    data: List[float] = []
 
 
 ### equations section
 class Equation(BaseModel):
-    equation: str
+    equation: str = "default_equation"
 
 
 ### definition of entire SDL model
 class PulseSequence(HasObjects, BaseModel):
     file: File
     settings: Settings
-    infos: Infos
+    infos: Info
     instructions: dict[str, Instruction]
     objects: dict[str, SerializeAsAny[Object]]
     arrays: dict[str, GradientTemplate]

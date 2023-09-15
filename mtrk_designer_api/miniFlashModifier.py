@@ -6,11 +6,12 @@
 ### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
 ################################################################################  
 
-from steps.Gradient import Gradient
+# from steps.Gradient import Gradient
 from SDL_read_write.pydanticSDLHandler import *
 
-def miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
-                      initialization, synchronization, rfPulse, \
+def miniFlashModifier(mainLoop, PELoop, \
+                      sequence_data, fileInit, infoInit, settingsInit, \
+                      rfSpoiling, initialization, synchronization, rfPulse, \
                       sliceSelectionGradient, sliceRefocusingGradient, \
                       readoutDephasingGradient, phaseEncodingGradient, \
                       readoutGradient, sliceSpoilingGradient, \
@@ -20,121 +21,119 @@ def miniFlashModifier(sequence_data, fileInit, infoInit, settingsInit, \
     # temporarily relying on classes to discriminate between spoiling and other gradients
     
     ### file section
-    sequence_data.file.format = fileInit.getFormat()
-    sequence_data.file.version = fileInit.getVersion()
-    sequence_data.file.measurement = fileInit.getMeasurement()
-    sequence_data.file.system = fileInit.getSystem()
+    sequence_data.file = fileInit
 
     ### info section
-    sequence_data.infos.description = infoInit.getDescription()
-    sequence_data.infos.slices = infoInit.getSlices()
-    sequence_data.infos.fov = infoInit.getFov()
-    sequence_data.infos.pelines = infoInit.getPeLines()
-    sequence_data.infos.seqstring = infoInit.getSeqString()
-    sequence_data.infos.reconstruction = infoInit.getReconstruction()
+    sequence_data.infos = infoInit
 
     ### settings section
-    sequence_data.settings.readout_os = settingsInit.getReadoutOs()
+    sequence_data.settings = settingsInit
 
     ### instructions section
-    selectedGradient = Gradient()
     for instruction in list(sequence_data.instructions):
         for data in sequence_data.instructions[instruction]:
             if data[0] == "steps":
-                for elem in data[1]:
-                    if type(elem) == Init:
-                        elem.gradients = initialization.getGradients()
-                    if type(elem) == Sync:
-                        elem.object = synchronization.getObject()
-                        elem.time = synchronization.getStartTimeUsec()
-                    if type(elem) == Rf:
-                        elem.object = rfPulse.getObject()
-                        elem.time = rfPulse.getStartTimeUsec()
-                        if rfPulse.getAddedPhase == True :
-                            elem.added_phase.type = rfPulse.getAddedPhaseType()
-                            elem.added_phase.float = rfPulse.getAddedPhaseFloat()
-                    if type(elem) == Grad:
+                counter = 0
+                for counter in range(len(data[1])):
+                    elem = \
+                          sequence_data.instructions[instruction].steps[counter]
+                    if type(elem) == Calc:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                                    = rfSpoiling
+                    elif type(elem) == Init:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                                = initialization
+                    elif type(elem) == Sync:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                               = synchronization
+                    elif type(elem) == Rf:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                                       = rfPulse
+                    elif type(elem) == Grad:
                         if elem.object == "grad_slice_select":
-                            selectedGradient = sliceSelectionGradient
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                        = sliceSelectionGradient
                         if elem.object == "grad_slice_refocus":
-                            selectedGradient = sliceRefocusingGradient
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                       = sliceRefocusingGradient
                         if elem.object == "grad_read_dephase":
-                            selectedGradient = readoutDephasingGradient
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                      = readoutDephasingGradient
                         if elem.object == "grad_phase_encode":
-                            selectedGradient = phaseEncodingGradient
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                         = phaseEncodingGradient
                         if elem.object == "grad_read_readout":
-                            selectedGradient = readoutGradient
-                        elem.action = selectedGradient.getAction()
-                        elem.axis = selectedGradient.getAxis()
-                        elem.time = selectedGradient.getStartTimeUsec()
-                    if type(elem) == GradWithAmplitude:
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                               = readoutGradient
+                    elif type(elem) == GradWithAmplitude:
                         if elem.object == "grad_slice_refocus":
-                            selectedGradient = sliceSpoilingGradient
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                         = sliceSpoilingGradient
+                        elif elem.object == "grad_phase_encode" and \
+                                                       elem.amplitude == "flip":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                         = phaseSpoilingGradient
+                        elif elem.object == "grad_phase_encode":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                         = phaseEncodingGradient
+                    elif type(elem) == Grad:
+                        if elem.object == "grad_slice_select":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                        = sliceSelectionGradient
+                        if elem.object == "grad_slice_refocus":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                       = sliceRefocusingGradient
+                        if elem.object == "grad_read_dephase":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                      = readoutDephasingGradient
                         if elem.object == "grad_phase_encode":
-                            selectedGradient = phaseSpoilingGradient
-                        elem.action = selectedGradient.getAction()
-                        elem.axis = selectedGradient.getAxis()
-                        elem.time = selectedGradient.getStartTimeUsec()
-                        elem.amplitude = selectedGradient.getAmplitudeType()
-                    if type(elem) == GradWithEquation:
-                        elem.amplitude.type = selectedGradient.getAmplitudeType()
-                        elem.amplitude.equation = selectedGradient.getAmplitudeEquation()
-                    if type(elem) == Adc:
-                        elem.object = analogToDigitalConverter.getObject()
-                        elem.time = analogToDigitalConverter.getStartTimeUsec()
-                        elem.frequency = analogToDigitalConverter.getFrequency()
-                        elem.phase = analogToDigitalConverter.getPhase()
-                        elem.added_phase.type = analogToDigitalConverter.getAddedPhaseType()
-                        elem.added_phase.float = analogToDigitalConverter.getAddedPhaseFloat()
-                        # elem.mdh = {}
-                        loop_counter = 0
-                        for eventName in analogToDigitalConverter.getMdhEvents():
-                            elem.mdh[eventName].type = analogToDigitalConverter.getMdhDetails()[loop_counter][0]
-                            elem.mdh[eventName].counter = analogToDigitalConverter.getMdhDetails()[loop_counter][1]
-                            elem.mdh[eventName].target = analogToDigitalConverter.getMdhDetails()[loop_counter][2]
-                            loop_counter += 1
-                    if type(elem) == Mark:
-                        elem.time = marking.getStartTimeUsec()
-                    if type(elem) == Submit:
-                        elem.action = submit.getAction()
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                         = phaseEncodingGradient
+                        if elem.object == "grad_read_readout":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                               = readoutGradient
+                    elif type(elem) == Adc:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                      = analogToDigitalConverter
+                    elif type(elem) == Mark:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                                       = marking
+                    elif type(elem) == Submit:
+                        sequence_data.instructions[instruction].steps[counter] \
+                                                                        = submit
+                    elif type(elem) == Loop:
+                        if elem.steps[0].block == "block_phaseEncoding":
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                                      = mainLoop  
+                        else:
+                            sequence_data.instructions[instruction].steps[counter] \
+                                                                      = PELoop   
+                    else:
+                        print("error " + str(elem))
 
     ### objects section
     gradient_counter = 0
     for object in list(sequence_data.objects):
         if list(sequence_data.objects[object])[0][1] == "rf":
-            sequence_data.objects[object].duration = rfExcitation.getDuration()
-            sequence_data.objects[object].array = rfExcitation.getArray()
-            sequence_data.objects[object].initial_phase = rfExcitation.getInitialPhase()
-            sequence_data.objects[object].thickness = rfExcitation.getThickness()
-            sequence_data.objects[object].flipangle = rfExcitation.getFlipAngle()
-            sequence_data.objects[object].purpose = rfExcitation.getPurpose()
+            sequence_data.objects[object] = rfExcitation
         if list(sequence_data.objects[object])[0][1] == "grad":
-            sequence_data.objects[object].duration = gradientList[gradient_counter].getDuration()
-            sequence_data.objects[object].array = gradientList[gradient_counter].getArray()
-            sequence_data.objects[object].tail = gradientList[gradient_counter].getTail()
-            sequence_data.objects[object].amplitude = gradientList[gradient_counter].getAmplitude()
+            sequence_data.objects[object] = gradientList[gradient_counter]
             gradient_counter += 1
         if list(sequence_data.objects[object])[0][1] == "adc":
-            sequence_data.objects[object].duration = adcReadout.getDuration()
-            sequence_data.objects[object].samples = adcReadout.getSamples()
-            sequence_data.objects[object].dwelltime = adcReadout.getDwellTime()
+            sequence_data.objects[object] = adcReadout
         if list(sequence_data.objects[object])[0][1] == "sync":
-            sequence_data.objects[object].duration = ttl.getDuration()
-            sequence_data.objects[object].event = ttl.getEvent()
+            sequence_data.objects[object] = ttl
     
     ### arrays section
     array_counter = 0
     for array in list(sequence_data.arrays):
-        sequence_data.arrays[array].encoding = arrayList[array_counter].getEncoding()
-        sequence_data.arrays[array].type = arrayList[array_counter].getType()
-        sequence_data.arrays[array].size = arrayList[array_counter].getSize()
-        sequence_data.arrays[array].data = arrayList[array_counter].getData()
+        sequence_data.arrays[array] = arrayList[array_counter]
         array_counter += 1
 
     ### equations section
     equation_counter = 0
     for equation in list(sequence_data.equations):
-        sequence_data.equations[equation].equation = equationList[equation_counter].getEquation()
+        sequence_data.equations[equation] = equationList[equation_counter]
         equation_counter += 1
 
     return sequence_data
