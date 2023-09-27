@@ -8,8 +8,6 @@
 
 from __future__ import annotations
 
-# from initialization.File import File
-
 from typing import List, Optional, Union
 from typing_extensions import Literal, Any
 from pydantic import BaseModel, SerializeAsAny
@@ -126,8 +124,8 @@ class Amplitude(BaseModel):
 
 class Rf(Step):
     action: Literal["rf"] = "rf"
-    object: str
-    time: int
+    object: str = "default_object"
+    time: int = 9999
     added_phase: AddedPhase
 
 

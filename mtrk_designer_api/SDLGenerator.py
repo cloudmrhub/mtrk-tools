@@ -13,6 +13,7 @@ from pprint import pprint
 from devtools import debug
 
 from miniFlashModifier import miniFlashModifier
+from sdlFileCreator import sdlFileCreator
 
 from SDL_read_write.pydanticSDLHandler import *
 
@@ -130,17 +131,18 @@ phaseEncodingEquation = Equation(equation = "0.3378125*(ctr(1)-64.5)")
 equationList = [phaseEncodingEquation]
 
 ### filling instructions in an already created SDL file
-sequence_data = miniFlashModifier(mainLoop, PELoop, \
-                                  sequence_data, fileInit, infoInit, settingsInit, \
-                                  rfSpoiling, initialization, synchronization, rfPulse, \
-                                  sliceSelectionGradient, sliceRefocusingGradient, \
-                                  readoutDephasingGradient, phaseEncodingGradient, \
-                                  readoutGradient, sliceSpoilingGradient, \
-                                  phaseSpoilingGradient, analogToDigitalConverter, \
-                                  marking, submit, rfExcitation, gradientList, adcReadout, \
-                                  ttl, arrayList, equationList)
+# sequence_data = miniFlashModifier(mainLoop, PELoop, \
+#                                   sequence_data, fileInit, infoInit, settingsInit, \
+#                                   rfSpoiling, initialization, synchronization, rfPulse, \
+#                                   sliceSelectionGradient, sliceRefocusingGradient, \
+#                                   readoutDephasingGradient, phaseEncodingGradient, \
+#                                   readoutGradient, sliceSpoilingGradient, \
+#                                   phaseSpoilingGradient, analogToDigitalConverter, \
+#                                   marking, submit, rfExcitation, gradientList, adcReadout, \
+#                                   ttl, arrayList, equationList)
 
 ### creating SDL file correcponding to instructions
+sequence_data = sdlFileCreator(sequence_data)
 
 
 ### writing of json schema to SDL file with formatting options

@@ -6,7 +6,6 @@
 ### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
 ################################################################################  
 
-# from steps.Gradient import Gradient
 from SDL_read_write.pydanticSDLHandler import *
 
 def miniFlashModifier(mainLoop, PELoop, \
