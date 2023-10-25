@@ -69,6 +69,25 @@ class HasSteps():
                 kwargs['steps'][index] = current_step
         super().__init__(**kwargs)
 
+    # def __init__(self, **kwargs):
+    #     if(len(kwargs['steps'])!=0):
+    #         for index in range(len(kwargs['steps'])):
+    #             current_step = kwargs['steps'][index]
+    #             if isinstance(current_step, dict):
+    #                 item_step_keys = sorted(current_step.keys())
+    #                 for name, cls in step_subclass_registry.items():
+    #                     registery_step_keys = sorted(cls.model_fields.keys())
+    #                     if item_step_keys == registery_step_keys:
+    #                         try:
+    #                             current_step = cls(**current_step)
+    #                         except: 
+    #                             pass
+    #                         break
+    #                 else:
+    #                     raise Exception(f"Unknown step action \"{current_step['action']}\"")
+    #                 kwargs['steps'][index] = current_step
+    #         super().__init__(**kwargs)
+
 class Instruction(HasSteps,BaseModel):
     print_counter: Optional[str] = "off"
     print_message: str = "default_print_message"
@@ -80,7 +99,7 @@ class Loop(HasSteps,Step):
     action: Literal["loop"] = "loop"
     counter: int = 9999
     range: int = 9999
-    steps: List[Step]
+    steps: List[Step] = []
 
 
 class RunBlock(Step):

@@ -9,90 +9,133 @@
 from SDL_read_write.pydanticSDLHandler import *
 
 #############################################################
-### Console user interface
+### User interface type connexion
 #############################################################
 
+# Allows to fill in parameters using console input in console mode and another 
+# input in any other UI mode.
+def inputParameter(UI_mode = "console", parameter = ""):
+    if( UI_mode == "console"):
+        return input()
+    else:
+        return parameter # TO DO: connect this to input from graphical UI
+
+# Allows to print the console UI in console mode. May not be useful in any other
+# UI mode.
+def printIfConsole(UI_mode = "console", stringToPrint =""):
+    if( UI_mode == "console"):
+        print(stringToPrint)
+    else:
+        pass
+
+# Setting of the current UI mode
+UI_mode = "console"
+# UI_mode = "other"
+
+#############################################################
+### User interface interaction
+#############################################################
+
+### Sections can be commented to play only the needed section(s)
 def sdlFileCreator(sequence_data):
     sdlInitialize(sequence_data)
 
     ### file section
-    print("*************** - FILE - ***************")
-    print("Do you want to provide file information? (yes/no)")
-    if(input() == "yes"):
-        sequence_data = completeFileInformation(sequence_data)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - FILE - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide file information? (yes/no)")
+    if(inputParameter(UI_mode=UI_mode) == "yes"):
+        completeFileInformation(sequence_data)
     else:
-        print("Default File information used.")
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default File information used.")
+    
+    ### settings section
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - SETTINGS - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide general sequence settings? (yes/no)")
+    if(inputParameter(UI_mode=UI_mode) == "yes"):
+        completeSequenceSettings(sequence_data)
+    else:
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Settings information used.")
 
     ### info section
-    print("*************** - INFORMATION - ***************")
-    print("Do you want to provide general sequence information? (yes/no)")
-    if(input() == "yes"):
-        sequence_data = completeSequenceInformation(sequence_data)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - INFORMATION - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide general sequence information? (yes/no)")
+    if(inputParameter(UI_mode=UI_mode) == "yes"):
+        completeSequenceInformation(sequence_data)
     else:
-        print("Default Info information used.")
-
-    ### settings section
-    sequence_data.settings = Settings()
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Info information used.")
 
     ### instructions section
-    print("*************** - INSTRUCTIONS - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - INSTRUCTIONS - ***************")
     answer = "yes"
     while(answer == "yes"):
-        print("*** Do you want to add a new instruction? (yes/no)")
-        answer = input()
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "*** Do you want to add a new instruction? (yes/no)")
+        answer = inputParameter(UI_mode=UI_mode)
         if(answer == "yes"):
-            sequence_data = addInstruction(sequence_data)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Instruction name (str):")
+            instructionName = inputParameter(UI_mode=UI_mode)
+            addInstruction(sequence_data, instructionName)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide instruction information? (yes/no)")
+            if(inputParameter(UI_mode=UI_mode) == "yes"):
+                completeInstructionInformation(sequence_data.instructions[instructionName])
+            else:
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Instruction information used.")
         else:
-            print("*******************************************")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "*******************************************")
 
     ### objects section
-    print("*************** - OBJECTS - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - OBJECTS - ***************")
     answer = "yes"
     while(answer == "yes"):
-        print("*** Do you want to add a new object? (yes/no)")
-        answer = input()
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "*** Do you want to add a new object? (yes/no)")
+        answer = inputParameter(UI_mode=UI_mode)
         if(answer == "yes"):
-            sequence_data = addObject(sequence_data)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Object name (str):")
+            objectName = inputParameter(UI_mode=UI_mode)
+            addObject(sequence_data, objectName)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide object information? (yes/no)")
+            if(inputParameter(UI_mode=UI_mode) == "yes"):
+                completeObjectInformation(sequence_data, objectName)
+            else:
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Object information used.")
         else:
-            print("*******************************************")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "*******************************************")
     
     ### arrays section
-    print("*************** - ARRAYS - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - ARRAYS - ***************")
     answer = "yes"
     while(answer == "yes"):
-        print("*** Do you want to add a new array? (yes/no)")
-        answer = input()
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "*** Do you want to add a new array? (yes/no)")
+        answer = inputParameter(UI_mode=UI_mode)
         if(answer == "yes"):
-            print("Array name (str):")
-            arrayName = input()
-            sequence_data = addArray(sequence_data, arrayName)
-            print("Do you want to provide array information? (yes/no)")
-            if(input() == "yes"):
-                sequence_data = completeArrayInformation(sequence_data, \
-                                                         arrayName)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Array name (str):")
+            arrayName = inputParameter(UI_mode=UI_mode)
+            addArray(sequence_data, arrayName)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide array information? (yes/no)")
+            if(inputParameter(UI_mode=UI_mode) == "yes"):
+                completeArrayInformation(sequence_data, arrayName)
             else:
-                print("Default Array information used.")
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Array information used.")
         else:
-            print("*******************************************")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "*******************************************")
 
     ### equations section
-    print("*************** - EQUATIONS - ***************")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - EQUATIONS - ***************")
     answer = "yes"
     while(answer == "yes"):
-        print("*** Do you want to add a new equation? (yes/no)")
-        answer = input()
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "*** Do you want to add a new equation? (yes/no)")
+        answer = inputParameter(UI_mode=UI_mode)
         if(answer == "yes"):
-            print("Equation name (str):")
-            equationName = input()
-            sequence_data = addEquation(sequence_data, equationName)
-            print("Do you want to provide equation information? (yes/no)")
-            if(input() == "yes"):
-                sequence_data = completeEquationInformation(sequence_data, \
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Equation name (str):")
+            equationName = inputParameter(UI_mode=UI_mode)
+            addEquation(sequence_data, equationName)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide equation information? (yes/no)")
+            if(inputParameter(UI_mode=UI_mode) == "yes"):
+                completeEquationInformation(sequence_data, \
                                                             equationName)
             else:
-                print("Default Equation information used.")
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Equation information used.")
         else:
-            print("*******************************************")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "*******************************************")
     
     return sequence_data
 
@@ -101,8 +144,14 @@ def sdlFileCreator(sequence_data):
 ### Functions to create SDL file objects
 #############################################################
 
+# TO DO: automatically create linked objects when they do not already exist:
+# Block -> creation of a new instruction
+# Object -> creation of a new object
+# Equation -> creation of a new equation
+# Array -> creation of a new array
+
+### SDL file initialization with mandatory sections and default values
 def sdlInitialize(sequence_data):
-    ### SDL file initialization
     sequence_data.file = File()
     sequence_data.infos = Info()
     sequence_data.settings = Settings()
@@ -110,86 +159,60 @@ def sdlInitialize(sequence_data):
     sequence_data.objects = {}
     sequence_data.arrays = {}
     sequence_data.equations = {}
-    return sequence_data
 
 
-def addInstruction(sequence_data):
-    print("Provide instruction information: ")
-    print("Instruction name (str): ")
-    instructionName = input()
+def addInstruction(sequence_data, instructionName):
     sequence_data.instructions[instructionName] = Instruction(steps=[])
-    print("Message to print (str): ")
-    sequence_data.instructions[instructionName].print_message = input()
-    print("Printing counter option (on/off): ")
-    printCounterOption = input()
-    if(printCounterOption=="on" or printCounterOption=="off"):
-        sequence_data.instructions[instructionName].print_counter = \
-                                                              printCounterOption
-    else:
-        print(printCounterOption + " is not valid.")
-    stepAnswer = "yes"
-    stepIndex = 0
-    while(stepAnswer == "yes"):
-        print("Do you want to add a new step? (yes/no)")
-        stepAnswer = input()
-        if(stepAnswer == "yes"):
-            sequence_data = addStep(sequence_data, instructionName, stepIndex)
-            stepIndex += 1
-        else:
-            pass
-        
-    return sequence_data
 
-def addStep(sequence_data, instructionName, stepIndex):
-    print("Provide step information: ")
-    print("Action (calc/init/sync/grad/rf/adc/mark/submit): ")
-    actionName = input()
+
+def addStep(instructionToModify, stepIndex):
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Provide step action type: ")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Action (run_block/loop/calc/init/sync/grad/rf/adc/mark/submit): ")
+    actionName = inputParameter(UI_mode=UI_mode)
     match actionName:
+        case "run_block":
+            instructionToModify.steps.append(RunBlock())
+        case "loop":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = instructionToModify)
+            instructionToModify.steps.append(Loop(steps=[]))
         case "calc":
-            sequence_data.instructions[instructionName].steps.append(Calc())
+            instructionToModify.steps.append(Calc())
         case "init":
-            sequence_data.instructions[instructionName].steps.append(Init())
+            instructionToModify.steps.append(Init())
         case "sync":
-            sequence_data.instructions[instructionName].steps.append(Sync())
+            instructionToModify.steps.append(Sync())
         case "grad":
-            sequence_data.instructions[instructionName].steps.append(Grad())
+            instructionToModify.steps.append(Grad())
         case "rf":
-            sequence_data.instructions[instructionName].steps.append( \
-                                                 Rf(added_phase = AddedPhase()))
+            instructionToModify.steps.append( Rf(added_phase = AddedPhase()))
         case "adc":
-            sequence_data.instructions[instructionName].steps.append( \
-                                        Adc(added_phase = AddedPhase(), mdh={}))
+            instructionToModify.steps.append( Adc(added_phase = AddedPhase(), \
+                                                                        mdh={}))
             mdhOptAnswer = "yes"
             while(mdhOptAnswer == "yes"):
-                print("Do you want to add a new MDH option? (yes/no)")
-                mdhOptAnswer = input()
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to add a new MDH option? (yes/no)")
+                mdhOptAnswer = inputParameter(UI_mode=UI_mode)
                 if(mdhOptAnswer == "yes"):
-                    sequence_data = addMdhOption(sequence_data,\
-                                                 instructionName, stepIndex)
+                    addMdhOption(instructionToModify.steps, stepIndex)
                 else:
                     pass
         case "mark":
-            sequence_data.instructions[instructionName].steps.append(Mark())
+            instructionToModify.steps.append(Mark())
         case "submit":
-            sequence_data.instructions[instructionName].steps.append(Submit())
+            instructionToModify.steps.append(Submit())
         case _: 
-            print(actionName + " is not available")    
-    return sequence_data
+            printIfConsole(UI_mode = UI_mode, stringToPrint = actionName + " is not available")    
 
-def addMdhOption(sequence_data, instructionName, stepIndex):
-    print("Provide MDH option information: ")
-    print("MDH option type (str): ")
-    sequence_data.instructions[instructionName].steps[stepIndex].mdh[input()]=\
-                                                                     MdhOption()
-    return sequence_data
 
-def addObject(sequence_data):
-    print("Provide object information: ")
-    print("Object name (str): ")
-    objectName = input()
-    # sequence_data.objects[objectName] = Object()
-    print("Object type (rf/grad/adc/sync):")
-    typeName = input()
+def addMdhOption(stepToModify, stepIndex):
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Provide MDH option information: ")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "MDH option type (str): ")
+    stepToModify[stepIndex].mdh[inputParameter(UI_mode=UI_mode)] = MdhOption()
+
+
+def addObject(sequence_data, objectName):
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Object type (rf/grad/adc/sync):")
+    typeName = inputParameter(UI_mode=UI_mode)
     match typeName:
         case "rf":
            sequence_data.objects[objectName]=RfExcitation() 
@@ -200,69 +223,231 @@ def addObject(sequence_data):
         case "sync":
             sequence_data.objects[objectName]=Ttl() 
         case _:
-            print(typeName + "is not available")
-    return sequence_data
+            printIfConsole(UI_mode = UI_mode, stringToPrint = typeName + " is not available")
+
 
 def addArray(sequence_data, arrayName):
     sequence_data.arrays[arrayName] = GradientTemplate()
-    return sequence_data
+
 
 def addEquation(sequence_data, equationName):
     sequence_data.equations[equationName] = Equation()
-    return sequence_data
+
 
 #############################################################
 ### Functions to fill SDL file objects with new values
 #############################################################
 
 def completeFileInformation(sequence_data):
-    print("format (str)")
-    formatInfo = input()
-    print("version (int)")
-    versionInfo = int(input())
-    print("measurement (str)")
-    measurementInfo = input()
-    print("system (str)")
-    systemInfo = input()
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "format (str)")
+    formatInfo = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "version (int)")
+    versionInfo = int(inputParameter(UI_mode=UI_mode))
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "measurement (str)")
+    measurementInfo = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "system (str)")
+    systemInfo = inputParameter(UI_mode=UI_mode)
     sequence_data.file = File(format = formatInfo, version = versionInfo, \
                              measurement = measurementInfo, system = systemInfo)
-    return sequence_data
+
+def completeSequenceSettings(sequence_data):
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "readout_os (int)")
+    readoutOsInfo = inputParameter(UI_mode=UI_mode)
+    sequence_data.settings = Settings(readout_os = readoutOsInfo)
     
 def completeSequenceInformation(sequence_data):
-    print("description (str)")
-    descriptionInfo = input()
-    print("slices (int)")
-    slicesInfo = int(input())
-    print("fov (int)")
-    fovInfo = int(input())
-    print("pelines (int)")
-    pelinesInfo = int(input())
-    print("seqstring (str)")
-    seqstringInfo = input()
-    print("reconstruction (str)")
-    reconstructionInfo = input()
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "description (str)")
+    descriptionInfo = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "slices (int)")
+    slicesInfo = int(inputParameter(UI_mode=UI_mode))
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "fov (int)")
+    fovInfo = int(inputParameter(UI_mode=UI_mode))
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "pelines (int)")
+    pelinesInfo = int(inputParameter(UI_mode=UI_mode))
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "seqstring (str)")
+    seqstringInfo = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "reconstruction (str)")
+    reconstructionInfo = inputParameter(UI_mode=UI_mode)
     sequence_data.infos = Info(description = descriptionInfo, \
                                slices = slicesInfo, fov = fovInfo,  \
                                pelines = pelinesInfo, seqstring = seqstringInfo,\
                                reconstruction = reconstructionInfo)
-    return sequence_data
+
+def completeInstructionInformation(instructionToModify):
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Message to print (str): ")
+    instructionToModify.print_message = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Printing counter option (on/off): ")
+    printCounterOption = inputParameter(UI_mode=UI_mode)
+    if(printCounterOption=="on" or printCounterOption=="off"):
+        instructionToModify.print_counter = printCounterOption
+    else:
+        printIfConsole(UI_mode = UI_mode, stringToPrint = printCounterOption + " is not valid.")
+    stepAnswer = "yes"
+    stepIndex = 0
+    while(stepAnswer == "yes"):
+        printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to add a new step? (yes/no)")
+        stepAnswer = inputParameter(UI_mode=UI_mode)
+        if(stepAnswer == "yes"):
+            addStep(instructionToModify, stepIndex)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide step information? (yes/no)")
+            if(inputParameter(UI_mode=UI_mode) == "yes"):
+                stepToModify = instructionToModify.steps[stepIndex]
+                completeStepInformation(stepToModify, "Instruction")
+            else:
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Instruction information used.")
+            stepIndex += 1
+        else:
+            pass
+
+def completeStepInformation(stepToModify, instructionOrLoop):
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Completing for step in " + instructionOrLoop)
+    actionInfo = stepToModify.action
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Provide information for step of type " + str(actionInfo) + ": ")
+    match actionInfo:
+        case "run_block":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "block (str)")
+            stepToModify.block= inputParameter(UI_mode=UI_mode)
+        case "loop":
+            # TO DO: fix imbricated loops
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "counter (int)")
+            stepToModify.counter = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "range (int)")
+            stepToModify.range= inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "steps (Step)")
+            stepAnswerLoop = "yes"
+            stepIndexLoop = 0
+            while(stepAnswerLoop == "yes"):
+                loopStepToModify = stepToModify
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to add a new step in the loop? (yes/no)")
+                stepAnswerLoop = inputParameter(UI_mode=UI_mode)
+                if(stepAnswerLoop == "yes"):
+                    # printIfConsole(UI_mode = UI_mode, stringToPrint = "Step name (str):")
+                    # stepName = inputParameter(UI_mode=UI_mode)
+                    addStep(loopStepToModify, stepIndexLoop)
+                    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide step information? (yes/no)")
+                    if(inputParameter(UI_mode=UI_mode) == "yes"):
+                        print(loopStepToModify[stepIndexLoop])
+                        completeStepInformation(loopStepToModify[stepIndexLoop], "Loop")
+                    else:
+                        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Loop information used.")
+                    stepIndexLoop += 1
+                else:
+                    pass
+                completeStepInformation(loopStepToModify, "Loop")        
+        case "calc":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "type (str)")
+            stepToModify.type = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "float (float)")
+            stepToModify.float= inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "increment (int)")
+            stepToModify.increment = inputParameter(UI_mode=UI_mode) 
+        case "init":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "gradients (str)")
+            stepToModify.gradients = inputParameter(UI_mode=UI_mode)
+        case "sync":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "object (str)")
+            stepToModify.object = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "time (int)")
+            stepToModify.time = inputParameter(UI_mode=UI_mode)
+        case "grad":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "axis (str -> precise!)")
+            stepToModify.axis = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "object (str)")
+            stepToModify.object= inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "time (int)")
+            stepToModify.time = inputParameter(UI_mode=UI_mode) 
+        case "rf":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "object (str)")
+            stepToModify.object= inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "time (float)")
+            stepToModify.time = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "added_phase (AddedPhase)")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "passed for now")
+        case "adc":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "object (str)")
+            stepToModify.object= inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "time (float)")
+            stepToModify.time = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "frequency (int)")
+            stepToModify.frequency = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "phase (int)")
+            stepToModify.phase= inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "added_phase (AddedPhase)")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "passed for now")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "mdh (dict[str, MdhOption])")
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "passed for now") 
+        case "mark":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "time (float)")
+            stepToModify.time = inputParameter(UI_mode=UI_mode)
+        case "submit":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "Nothing to customize in submit.")
+        case _:
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "The type " + actionInfo + " could not be identified.")
+
+
+def completeObjectInformation(sequence_data, objectName):
+    typeInfo = sequence_data.objects[objectName].type
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "Provide information for object of type " + str(typeInfo) + ": ")
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "duration (int)")
+    durationInfo = inputParameter(UI_mode=UI_mode)
+    match typeInfo:
+        case "rf":
+           printIfConsole(UI_mode = UI_mode, stringToPrint = "array (str)")
+           arrayInfo = inputParameter(UI_mode=UI_mode)
+           printIfConsole(UI_mode = UI_mode, stringToPrint = "initial_phase (int)")
+           initPhaseInfo = inputParameter(UI_mode=UI_mode)
+           printIfConsole(UI_mode = UI_mode, stringToPrint = "thickness (int)")
+           thicknessInfo = inputParameter(UI_mode=UI_mode)
+           printIfConsole(UI_mode = UI_mode, stringToPrint = "flipangle (int)")
+           flipangleInfo = inputParameter(UI_mode=UI_mode)
+           printIfConsole(UI_mode = UI_mode, stringToPrint = "purpose (str)")
+           purposeInfo = inputParameter(UI_mode=UI_mode)
+           sequence_data.objects[objectName]=RfExcitation( \
+               duration = durationInfo, array = arrayInfo, \
+               initial_phase =  initPhaseInfo, thickness = thicknessInfo, \
+               flipangle = flipangleInfo, purpose = purposeInfo) 
+        case "grad":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "array (str)")
+            arrayInfo = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "tail (int)")
+            tailInfo = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "amplitude (float)")
+            amplitudeInfo = inputParameter(UI_mode=UI_mode)
+            sequence_data.objects[objectName]=GradientObject( \
+                duration = durationInfo, array = arrayInfo,\
+                tail = tailInfo, amplitude = amplitudeInfo) 
+        case "adc":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "samples (int)")
+            samplesInfo = inputParameter(UI_mode=UI_mode)
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "dwelltime (int)")
+            dwelltimeInfo = inputParameter(UI_mode=UI_mode)
+            sequence_data.objects[objectName]=AdcReadout( \
+                duration = durationInfo, samples = samplesInfo, \
+                dwelltime = dwelltimeInfo) 
+        case "sync":
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "event (str)")
+            eventInfo = inputParameter(UI_mode=UI_mode)
+            sequence_data.objects[objectName]=Ttl(duration = durationInfo, \
+                                                  event = eventInfo) 
+        case _:
+            printIfConsole(UI_mode = UI_mode, stringToPrint = "The type " + typeInfo + " could not be identified.")
+
 
 def completeArrayInformation(sequence_data, arrayName):
-    print("encoding (str)")
-    encodingInfo = input()
-    print("type (str)")
-    typeInfo = input()
-    print("size (int)")
-    sizeInfo = int(input())
-    print("data (float, float, ...)")
-    dataInfo = [float(elem) for elem in input().split(", ")]
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "encoding (str)")
+    encodingInfo = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "type (str)")
+    typeInfo = inputParameter(UI_mode=UI_mode)
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "size (int)")
+    sizeInfo = int(inputParameter(UI_mode=UI_mode))
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "data (float, float, ...)")
+    dataInfo = [float(elem) for elem in inputParameter(UI_mode=UI_mode).split(", ")]
     sequence_data.arrays[arrayName] = GradientTemplate(
                                      encoding = encodingInfo, type = typeInfo, \
                                      size = sizeInfo, data = dataInfo)
-    return sequence_data
+
 
 def completeEquationInformation(sequence_data, equationName):
-    print("equation (str)")
-    equationInfo = input()
+    printIfConsole(UI_mode = UI_mode, stringToPrint = "equation (str)")
+    equationInfo = inputParameter(UI_mode=UI_mode)
     sequence_data.equations[equationName] = Equation(equation = equationInfo)
-    return sequence_data
