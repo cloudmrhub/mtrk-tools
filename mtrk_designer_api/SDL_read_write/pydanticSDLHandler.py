@@ -137,7 +137,7 @@ class GradWithAmplitude(Grad):
 
 
 class Amplitude(BaseModel):
-    type: str = "default_amplitude_type"
+    type: str = "equation"
     equation: str = "default_equation"
 
 
