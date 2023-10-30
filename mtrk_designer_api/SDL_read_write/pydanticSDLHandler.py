@@ -99,7 +99,7 @@ class Loop(HasSteps,Step):
     action: Literal["loop"] = "loop"
     counter: int = 9999
     range: int = 9999
-    steps: List[Step] = []
+    steps: List[SerializeAsAny[Step]] = []
 
 
 class RunBlock(Step):
