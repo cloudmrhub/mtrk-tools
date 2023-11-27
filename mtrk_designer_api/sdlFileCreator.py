@@ -40,29 +40,29 @@ UI_mode = "console"
 def sdlFileCreator(sequence_data):
     sdlInitialize(sequence_data)
 
-    ### file section
-    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - FILE - ***************")
-    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide file information? (yes/no)")
-    if(inputParameter(UI_mode=UI_mode) == "yes"):
-        completeFileInformation(sequence_data)
-    else:
-        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default File information used.")
+    # ### file section
+    # printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - FILE - ***************")
+    # printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide file information? (yes/no)")
+    # if(inputParameter(UI_mode=UI_mode) == "yes"):
+    #     completeFileInformation(sequence_data)
+    # else:
+    #     printIfConsole(UI_mode = UI_mode, stringToPrint = "Default File information used.")
     
-    ### settings section
-    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - SETTINGS - ***************")
-    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide general sequence settings? (yes/no)")
-    if(inputParameter(UI_mode=UI_mode) == "yes"):
-        completeSequenceSettings(sequence_data)
-    else:
-        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Settings information used.")
+    # ### settings section
+    # printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - SETTINGS - ***************")
+    # printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide general sequence settings? (yes/no)")
+    # if(inputParameter(UI_mode=UI_mode) == "yes"):
+    #     completeSequenceSettings(sequence_data)
+    # else:
+    #     printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Settings information used.")
 
-    ### info section
-    printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - INFORMATION - ***************")
-    printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide general sequence information? (yes/no)")
-    if(inputParameter(UI_mode=UI_mode) == "yes"):
-        completeSequenceInformation(sequence_data)
-    else:
-        printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Info information used.")
+    # ### info section
+    # printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - INFORMATION - ***************")
+    # printIfConsole(UI_mode = UI_mode, stringToPrint = "Do you want to provide general sequence information? (yes/no)")
+    # if(inputParameter(UI_mode=UI_mode) == "yes"):
+    #     completeSequenceInformation(sequence_data)
+    # else:
+    #     printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Info information used.")
 
     ### instructions section
     printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - INSTRUCTIONS - ***************")
@@ -104,7 +104,7 @@ def sdlFileCreator(sequence_data):
     #     else:
     #         printIfConsole(UI_mode = UI_mode, stringToPrint = "*******************************************")
     
-    # ### arrays section
+    ### arrays section
     # printIfConsole(UI_mode = UI_mode, stringToPrint = "*************** - ARRAYS - ***************")
     # answer = "yes"
     # while(answer == "yes"):
@@ -391,7 +391,7 @@ def completeStepInformation(sequence_data, stepToModify, instructionOrLoop):
                         printIfConsole(UI_mode = UI_mode, stringToPrint = "equation (str)")
                         sequence_data.equations[stepToModify.amplitude.equation].equation=inputParameter(UI_mode=UI_mode)
             else:
-                printIfConsole(UI_mode = UI_mode, stringToPrint = "Default Gradient information used.")
+                printIfConsole(UI_mode = UI_mode, stringToPrint = "No amplitude option added.")
 
         case "rf":
             printIfConsole(UI_mode = UI_mode, stringToPrint = "object (str)")

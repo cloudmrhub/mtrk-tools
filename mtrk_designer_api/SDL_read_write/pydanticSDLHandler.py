@@ -110,7 +110,7 @@ class RunBlock(Step):
 class Calc(Step):
     action: Literal["calc"] = "calc"
     type: str = "default_type"
-    float: int = 9999 
+    float: int = 9.999 
     increment: int = 9999
 
 
@@ -137,7 +137,7 @@ class GradWithAmplitude(Grad):
 
 
 class Amplitude(BaseModel):
-    type: str = "equation"
+    type: str = "default_amplitude_type"
     equation: str = "default_equation"
 
 
