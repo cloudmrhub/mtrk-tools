@@ -9,8 +9,9 @@
 from __future__ import annotations
 
 from typing import List, Optional, Union
-from typing_extensions import Literal, Any
+from typing_extensions import Literal, Any 
 from pydantic import BaseModel, SerializeAsAny
+from decimal import Decimal
 
 ### file section
 class File(BaseModel):
@@ -110,7 +111,7 @@ class RunBlock(Step):
 class Calc(Step):
     action: Literal["calc"] = "calc"
     type: str = "default_type"
-    float: int = 9.999 
+    float: Decimal = 9.999
     increment: int = 9999
 
 
@@ -160,7 +161,7 @@ class Adc(Step):
 
 class AddedPhase(BaseModel):
     type: str = "default_added_phase_type"
-    float: int = 9999
+    float: Decimal = 9.999
 
 
 class MdhOption(BaseModel):
