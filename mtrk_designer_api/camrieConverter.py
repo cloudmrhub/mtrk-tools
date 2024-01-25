@@ -2,7 +2,10 @@ from SDL_read_write.pydanticSDLHandler import *
 import numpy as np
 from typing import List
 import matplotlib.pyplot as plt
-
+import struct
+import math
+from struct import pack, unpack
+import io
 
 def camrieConverter(sequence_data):
     ### Retrieving useful data from SDL format
@@ -18,6 +21,9 @@ def camrieConverter(sequence_data):
 
     ### Plotting whole sequence chronogram
     plotChronogram(sequenceTiming)
+
+    ### Converting to PSUdoMRI format
+    convertToPsudomri(sequenceTiming)
     
 
 def extractDataFromSDL(sequence_data, counter = 0):
@@ -262,6 +268,90 @@ def plotChronogram(sequenceTiming):
     axis[5].set_xlabel('ADC')
     plt.show()
 
+def convertToPsudomri(sequenceTiming):
+    rfMagnAxis, rfPhaseAxis, xAxis, yAxis, zAxis, adcAxis, timeAxis = \
+    decodeSequenceTiming(sequenceTiming)
+
+    ### Header data
+    totalNumberOfData = len(timeAxis) # TO DO: Is it exact?
+    nbOfTransmitCoils = 1 # TO DO: Extract info from SDL?
+    numberOfReceiveCoils = 1 # TO DO: Extract info from SDL?
+
+    ### Time data
+    time = timeAxis
+
+    ### Sequence data
+    receiverEvents = generateAxisHeader(adcAxis) # For now, we do not flag end of TR and crushing
+    realRf = [0.0]*len(rfMagnAxis)
+    imaginaryRf =  [0.0]*len(rfMagnAxis)
+    for rfValueCounter in range(0, len(rfMagnAxis)):
+        realRf[rfValueCounter] = rfMagnAxis[rfValueCounter]*math.cos(rfPhaseAxis[rfValueCounter])
+        imaginaryRf[rfValueCounter] = rfMagnAxis[rfValueCounter]*math.sin(rfPhaseAxis[rfValueCounter])
+    rfOffset = [0]*len(rfMagnAxis) # TO DO???
+    # For each time step, RF should provide real, imaginary, and offset parts
+    combinedRf = []
+    for rfCounter in range(0, len(realRf)):
+        combinedRf += [realRf[rfCounter], imaginaryRf[rfCounter], rfOffset[rfCounter]]
+    # combinedRf = generateAxisHeader(combinedRf)
+    xGradient = generateAxisHeader(xAxis)
+    yGradient = generateAxisHeader(yAxis)
+    zGradient = generateAxisHeader(zAxis)
+
+    dataToDump = [totalNumberOfData, nbOfTransmitCoils, numberOfReceiveCoils, \
+                  len(time), 1, [0.01] * len(time), \
+                  receiverEvents, \
+                  int(len(combinedRf)/3), 1, combinedRf, xGradient, \
+                  yGradient, zGradient]
+    dumpToTextFile(dataToDump)
+    dumpToBinaryFile(dataToDump)
+
+def dumpToTextFile(dataToDump):
+    ### Dumping in text file
+    with open('Sequence.txt', 'w') as textSequenceFile:
+        for data in dataToDump:
+            if type(data) == int:
+                textSequenceFile.write(str(data) + '\n')
+            else:
+                for value in data:
+                   textSequenceFile.write(str(value) + '\n') 
+
+def dumpToBinaryFile(dataToDump):
+    ### Dumping in text file
+    # stringToDump = ""
+    # for data in dataToDump:
+    #     if type(data) == int:
+    #         stringToDump += str(pack('f', data))[2:-1]
+    #         textSequenceFile.write(pack('f', data))
+    #     else:
+    #         for value in data:
+    #             stringToDump += str(pack('f', value))[2:-1] + '\n'
+    #             textSequenceFile.writepack('f', value)
+
+    with open('Sequence.seqn', 'wb') as textSequenceFile:
+        # textSequenceFile.write(stringToDump)
+        for data in dataToDump:
+            if type(data) == int:
+                textSequenceFile.write(pack('f', data))
+            else:
+                for value in data:
+                    textSequenceFile.write(pack('f', value))
+        # for character in list(stringToDump):
+            # if character != '\n':
+            #     textSequenceFile.write(pack('c', character))
+            # else:
+            #     textSequenceFile.write('\n')      
+           
+      
+def generateAxisHeader(axisData):
+    nbElementsPerLoop = len(axisData)
+    nbOfLoops = 1
+    fullData = [nbElementsPerLoop, nbOfLoops] + axisData
+
+    return fullData
+
+def listToBinary(data, fileName):
+    listToDump = np.array(data).astype('float32')
+    listToDump.tofile(fileName)
 
 def decodeRawData(rawData):
     loopCounters = rawData[0]
@@ -303,3 +393,7 @@ def decodeSequenceTiming(sequenceTiming):
     timeAxis = sequenceTiming[6]
 
     return rfMagnAxis, rfPhaseAxis, xAxis, yAxis, zAxis, adcAxis, timeAxis
+
+# Source: https://stackoverflow.com/questions/16444726/binary-representation-of-float-in-python-bits-not-hex
+def binary(num):
+    return ''.join('{:0>8b}'.format(c) for c in struct.pack('!f', num))
