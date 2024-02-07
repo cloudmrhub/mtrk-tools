@@ -60,7 +60,9 @@ def create_sdl_from_ui_inputs(boxes):
         data_to_print = jsbeautifier.beautify(json.dumps(sequence_data.model_dump(mode="json")), options)
         sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) #purely aesthetic
         
-############################################################
+#############################################################
+### Functions to get new values from the web-based UI
+#############################################################
 
 def getInstructionInformation(sequence_data, instructionToModify, boxes):
     stepIndex = 0
