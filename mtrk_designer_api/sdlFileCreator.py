@@ -2,32 +2,11 @@
 ### mtrk project - SDL file generator allowing to simply define MRI pulse    ###
 ### sequences that can be read by the mtrk project simulator and driver      ###
 ### sequence.                                                                ###
-### Version 1.0.0                                                            ###
+### Version 0.0.1                                                            ###
 ### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
 ################################################################################  
 
 from SDL_read_write.pydanticSDLHandler import *
-
-#############################################################
-### Creating SDL file from web-based UI
-#############################################################
-
-# def create_sdl_from_ui_inputs(boxes):
-#     # Initialize SDL file
-#     # TO DO - need to intialize without loading file
-#     with open('/vagrant/miniflash.json') as sdlFile:
-#         sdlData = json.load(sdlFile)
-#         sequence_data = PulseSequence(**sdlData)
-#     sdlInitialize(sequence_data)
-
-#     updateSDLFile(sequence_data, boxes)
-    
-#     ### writing of json schema to SDL file with formatting options
-#     with open('output.mtrk', 'w') as sdlFileOut:
-#         options = jsbeautifier.default_options()
-#         options.indent_size = 4
-#         data_to_print = jsbeautifier.beautify(json.dumps(sequence_data.model_dump(mode="json")), options)
-#         sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) #purely aesthetic
 
 #############################################################
 ### Functions to create SDL file objects
@@ -47,10 +26,12 @@ def sdlInitialize(sequence_data):
 def addInstruction(sequence_data, instructionName):
     sequence_data.instructions[instructionName] = Instruction(steps=[])
 
-def addStep(instructionToModify, stepIndex, actionName, mdhOptions):
+
+def addStep(instructionToModify, stepIndex, actionName):
     match actionName:
         case "run_block":
             instructionToModify.steps.append(RunBlock())
+            print("Disclaimer: no actual block created here, it will be created if you provide information for the step.")
         case "loop":
             instructionToModify.steps.append(Loop(steps=[]))
         case "calc":
@@ -66,8 +47,14 @@ def addStep(instructionToModify, stepIndex, actionName, mdhOptions):
         case "adc":
             instructionToModify.steps.append( Adc(added_phase = AddedPhase(), \
                                                                         mdh={}))
-            for option in mdhOptions:
-                addMdhOption(instructionToModify.steps, stepIndex, option)
+            mdhOptAnswer = "yes"
+            while(mdhOptAnswer == "yes"):
+                print("Do you want to add a new MDH option? (yes/no)")
+                mdhOptAnswer = input()
+                if(mdhOptAnswer == "yes"):
+                    addMdhOption(instructionToModify.steps, stepIndex)
+                else:
+                    pass
         case "mark":
             instructionToModify.steps.append(Mark())
         case "submit":
@@ -76,12 +63,14 @@ def addStep(instructionToModify, stepIndex, actionName, mdhOptions):
             print(actionName + " is not available")    
 
 
-def addMdhOption(stepToModify, stepIndex, mdhOptionType):
-    stepToModify[stepIndex].mdh[mdhOptionType] = MdhOption()
+def addMdhOption(stepToModify, stepIndex):
+    print("Provide MDH option information: ")
+    print("MDH option type (str): ")
+    stepToModify[stepIndex].mdh[input()] = MdhOption()
 
 
-def addObject(sequence_data, objectName, objectType):
-    match objectType:
+def addObject(sequence_data, objectName, typeName):
+    match typeName:
         case "rf":
            sequence_data.objects[objectName]=RfExcitation() 
         case "grad":
@@ -91,7 +80,7 @@ def addObject(sequence_data, objectName, objectType):
         case "sync":
             sequence_data.objects[objectName]=Ttl() 
         case _:
-            print(objectType + " is not available")
+            print(typeName + " is not available")
 
 
 def addArray(sequence_data, arrayName):
@@ -107,176 +96,280 @@ def addEquation(sequence_data, equationName):
 #############################################################
 
 def completeFileInformation(sequence_data, fileInformationList):
-    # fileInformationList = [formatInfo, versionInfo, measurementInfo, 
-    #                        systemInfo]
-    sequence_data.file = File(format = fileInformationList[0], version = fileInformationList[1], \
-                             measurement = fileInformationList[2], system = fileInformationList[3])
+    ## fileInformationList = [formatInfo, versionInfo, measurementInfo, 
+    ##                        systemInfo]
+    if(fileInformationList != []):
+        sequence_data.file = File(format = fileInformationList[0], 
+                                  version = int(fileInformationList[1]), 
+                                  measurement = fileInformationList[2], 
+                                  system = fileInformationList[3])
 
-def completeSequenceSettings(sequence_data, readoutOsInfo):
-    sequence_data.settings = Settings(readout_os = readoutOsInfo)
+def completeSequenceSettings(sequence_data, settingsInformationList):
+    ## settingsInformationList = [readoutOsInfo]
+    if(settingsInformationList != []):
+        sequence_data.settings = Settings(readout_os = \
+                                                     settingsInformationList[0])
 
-def completeSequenceInformation(sequence_data, sequenceInformationList):
-    # sequenceInformationList = [descriptionInfo, slicesInfo, fovInfo, 
-    #                            pelinesInfo, seqstringInfo, reconstructionInfo]
-    sequence_data.infos = Info(description = sequenceInformationList[0], \
-                               slices = sequenceInformationList[1], fov = sequenceInformationList[2],  \
-                               pelines = sequenceInformationList[3], seqstring = sequenceInformationList[4],\
-                               reconstruction = sequenceInformationList[5])
+def completeSequenceInformation(sequence_data, sequenceInfoInformationList):
+    ## sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 
+    ##                                pelinesInfo, seqstringInfo, 
+    ##                                reconstructionInfo]
+    if(sequenceInfoInformationList != []):
+        sequence_data.infos = Info(
+                               description = sequenceInfoInformationList[0], 
+                               slices = int(sequenceInfoInformationList[1]), 
+                               fov = int(sequenceInfoInformationList[2]),  
+                               pelines = int(sequenceInfoInformationList[3]), 
+                               seqstring = sequenceInfoInformationList[4],
+                               reconstruction = sequenceInfoInformationList[5])
+
+def completeInstructionInformation(sequence_data, instructionInformationList):
+    ## instructionInformationList = [instructionName, printMessageInfo, 
+    ##                               printCounterInfo, allStepInformationLists]
+    if(instructionInformationList != []):
+        instructionToModify = \
+                       sequence_data.instructions[instructionInformationList[0]]
+        instructionToModify.print_message = instructionInformationList[1]
+        printCounterOption = instructionInformationList[2]
+        if(printCounterOption=="on" or printCounterOption=="off"):
+            instructionToModify.print_counter = printCounterOption
+        else:
+            print(printCounterOption + 
+                  " is not valid. It should be 'on' or 'off'.")
+        for stepIndex in range(0, len(instructionInformationList[3])):
+            ## stepInformationList = [actionName, actionSpecificElements...]
+            addStep(instructionToModify = instructionToModify, 
+                    stepIndex = stepIndex, 
+                    actionName = instructionInformationList[3][stepIndex][0])
+            stepToModify = instructionToModify.steps[stepIndex]
+            completeStepInformation(sequence_data = sequence_data, 
+                                    stepToModify = stepToModify, 
+                                    stepInformationList = \
+                                       instructionInformationList[3][stepIndex])
+
+def completeStepInformation(sequence_data, stepToModify, stepInformationList):
+    ## stepInformationList = [actionName, actionSpecificElements...]
+    if(stepInformationList != []):
+        actionInfo = stepInformationList[0]
+        match actionInfo:
+            case "run_block":
+                ## stepInformationList = [actionName, blockName, 
+                ##                        blockInformationList]
+                stepToModify.block= stepInformationList[1]
+                addInstruction(sequence_data, stepToModify.block)
+                if(stepInformationList[2]!= []):
+                    completeInstructionInformation(
+                                               sequence_data = sequence_data, 
+                                               instructionInformationList = \
+                                                         stepInformationList[2])
+                else:
+                    print("Default Array information used.")
+            case "loop":
+                ## stepInformationList = [actionName, counterInfo, rangeInfo, 
+                ##                        allStepInformationLists]
+                savedStepToModify = stepToModify
+                savedStepToModify.counter = stepInformationList[1]
+                savedStepToModify.range= stepInformationList[2]
+                for stepIndexLoop in range(0, len(stepInformationList[3])):
+                    addStep(instructionToModify = savedStepToModify, 
+                            stepIndex = stepIndexLoop, 
+                            actionName = stepInformationList[3][stepIndexLoop][0])
+                    completeStepInformation(sequence_data = sequence_data, 
+                                            stepToModify = \
+                                         savedStepToModify.steps[stepIndexLoop], 
+                                            stepInformationList = \
+                                          stepInformationList[3][stepIndexLoop]) 
+                stepToModify = savedStepToModify  
+            case "calc":
+                ## stepInformationList = [actionName, typeInfo, floatInfo, 
+                ##                        incrementInfo]
+                stepToModify.type = stepInformationList[1]
+                stepToModify.float= stepInformationList[2]
+                stepToModify.increment = stepInformationList[3] 
+            case "init":
+                ## stepInformationList = [actionName, gradientInfo]
+                stepToModify.gradients = stepInformationList[1]
+            case "sync":
+                ## stepInformationList = [actionName, objectInfo, 
+                ##                        objectInformationList, timeInfo]
+                stepToModify.object = stepInformationList[1]
+                if stepToModify.object not in sequence_data.objects:
+                    addObject(sequence_data=sequence_data, 
+                            objectName=stepToModify.object,
+                            typeName = "sync")
+                completeObjectInformation(sequence_data = sequence_data, 
+                                          objectName = stepToModify.object,
+                                          objectInformationList = \
+                                                         stepInformationList[2])
+                stepToModify.time = stepInformationList[3]
+            case "grad":
+                ## stepInformationList = [actionName, axisInfo, objectInfo, 
+                ##                        objectInformationList, timeInfo]
+                stepToModify.axis = stepInformationList[1]
+                stepToModify.object= stepInformationList[2]
+                if stepToModify.object not in sequence_data.objects:
+                    addObject(sequence_data=sequence_data, 
+                              objectName=stepToModify.object,
+                              typeName = "grad")
+                completeObjectInformation(sequence_data = sequence_data, 
+                                          objectName = stepToModify.object,
+                                          objectInformationList = \
+                                                         stepInformationList[3])
+                stepToModify.time = stepInformationList[4]
+                if(len(stepInformationList) >= 6):
+                    amplitudeAnswer = stepInformationList[5]
+                    if(amplitudeAnswer=="flip"):
+                        ## stepInformationList = [actionName, axisInfo, objectInfo, 
+                        ##                        objectInformationList, timeInfo, 
+                        ##                        flipAmplitudeInfo]
+                        stepToModify.amplitude = "flip"
+                    elif(amplitudeAnswer=="equation"):
+                        ## stepInformationList = [actionName, axisInfo, objectInfo, 
+                        ##                        objectInformationList, timeInfo, 
+                        ##                        amplitudeTypeInfo, 
+                        ##                        amplitudeEquationNameInfo]
+                        stepToModify.amplitude = Amplitude()
+                        stepToModify.amplitude.type = stepInformationList[5]
+                        stepToModify.amplitude.equation = stepInformationList[6]
+                        addEquation(sequence_data = sequence_data, 
+                                equationName = stepToModify.amplitude.equation)
+                        if(len(stepInformationList) == 8):
+                            ## stepInformationList = [actionName, axisInfo, 
+                            ##                        objectInfo, 
+                            ##                        objectInformationList, 
+                            ##                        timeInfo, amplitudeTypeInfo, 
+                            ##                        amplitudeEquationNameInfo, 
+                            ##                        equationInfo]
+                            sequence_data.equations[\
+                                stepToModify.amplitude.equation].equation = \
+                                                          stepInformationList[7]
+                else:
+                    print("No amplitude option added.")
+
+            case "rf":
+                ## stepInformationList = [actionName, objectInfo, 
+                ##                        objectInformationList, timeInfo, 
+                ##                        addedPhaseTypeInfo, addedPhaseFloatInfo]
+                stepToModify.object= stepInformationList[1]
+                if stepToModify.object not in sequence_data.objects:
+                    addObject(sequence_data=sequence_data, 
+                              objectName=stepToModify.object,
+                              typeName = "rf")
+                completeObjectInformation(sequence_data = sequence_data, 
+                                          objectName = stepToModify.object,
+                                          objectInformationList = \
+                                                         stepInformationList[2])
+                stepToModify.time = stepInformationList[3]
+                stepToModify.added_phase = AddedPhase()
+                stepToModify.added_phase.type = stepInformationList[4]
+                stepToModify.added_phase.float = stepInformationList[5]
+            case "adc":
+                ## stepInformationList = [actionName, objectInfo, 
+                ##                        objectInformationList, timeInfo, 
+                ##                        frequencyInfo, phaseInfo,
+                ##                        addedPhaseTypeInfo, addedPhaseFloatInfo,
+                ##                        mdhInfoList]
+                stepToModify.object= stepInformationList[1]
+                if stepToModify.object not in sequence_data.objects:
+                    addObject(sequence_data=sequence_data, 
+                              objectName=stepToModify.object,
+                              typeName = "adc")
+                completeObjectInformation(sequence_data = sequence_data, 
+                                          objectName = stepToModify.object,
+                                          objectInformationList = \
+                                                         stepInformationList[2])
+                stepToModify.time = stepInformationList[3]
+                stepToModify.frequency = stepInformationList[4]
+                stepToModify.phase= stepInformationList[5]
+                stepToModify.added_phase = AddedPhase()
+                stepToModify.added_phase.type = stepInformationList[6]
+                stepToModify.added_phase.float = stepInformationList[7]
+                ## TO DO !!! mdhInfoList = stepInformationList[8]
+                print("passed for now") 
+            case "mark":
+                ## stepInformationList = [actionName, timeInfo]
+                stepToModify.time = stepInformationList[1]
+            case "submit":
+                pass
+            case _:
+                print("The type " + actionInfo + " could not be identified.")
 
 
-def completeInstructionInformation(sequence_data, instructionToModify, messageInfo, printCounterOption, stepList):
-    instructionToModify.print_message = messageInfo
-    if(printCounterOption=="on" or printCounterOption=="off"):
-        instructionToModify.print_counter = printCounterOption
-    else:
-        print(printCounterOption + " is not valid.")
-    stepIndex = 0
-    for stepIndex in range(0, len(stepList)):
-        addStep(instructionToModify, stepIndex)
-        stepToModify = instructionToModify.steps[stepIndex]
-        completeStepInformation(sequence_data, stepToModify, "Instruction")
+def completeObjectInformation(sequence_data, objectName, objectInformationList):
+    ## objectInformationList = [typeInfo, durationInfo, objectSpecificInfo...]
+    if(objectInformationList != []):
+        typeInfo = objectInformationList[0]
+        durationInfo = objectInformationList[1]
+        match typeInfo:
+            case "rf":
+                ## objectInformationList = [typeInfo, durationInfo, arrayInfo, 
+                ##                          arrayInformationList, initPhaseInfo, 
+                ##                          thicknessInfo, flipAngleInfo, 
+                ##                          purposeInfo]
+                arrayInfo = objectInformationList[2]
+                if arrayInfo not in sequence_data.arrays:
+                    addArray(sequence_data = sequence_data, 
+                             arrayName = arrayInfo)
+                completeArrayInformation(sequence_data = sequence_data, 
+                                         arrayName = arrayInfo,
+                                         arrayInformationList = \
+                                                       objectInformationList[3])
+                initPhaseInfo = objectInformationList[4]
+                thicknessInfo = objectInformationList[5]
+                flipangleInfo = objectInformationList[6]
+                purposeInfo = objectInformationList[7]
+                sequence_data.objects[objectName]=RfExcitation( 
+                                                duration = durationInfo, 
+                                                array = arrayInfo, 
+                                                initial_phase =  initPhaseInfo, 
+                                                thickness = thicknessInfo, 
+                                                flipangle = flipangleInfo, 
+                                                purpose = purposeInfo) 
+            case "grad":
+                ## objectInformationList = [arrayInfo, durationInfo, 
+                ##                          arrayName, arrayInformationList, 
+                ##                          tailInfo, amplitudeInfo]
+                arrayInfo = objectInformationList[2]
+                if arrayInfo not in sequence_data.arrays:
+                    addArray(sequence_data = sequence_data, 
+                             arrayName = arrayInfo)
+                completeArrayInformation(sequence_data = sequence_data, 
+                                         arrayName = arrayInfo,
+                                         arrayInformationList = \
+                                                       objectInformationList[3])
+                tailInfo = objectInformationList[4]
+                amplitudeInfo = objectInformationList[5]
+                sequence_data.objects[objectName]=GradientObject(
+                                                    duration = durationInfo, 
+                                                    array = arrayInfo,
+                                                    tail = tailInfo, 
+                                                    amplitude = amplitudeInfo) 
+            case "adc":
+                ## objectInformationList = [arrayInfo, durationInfo, samplesInfo, 
+                ##                          dwelltimeInfo]
+                samplesInfo = objectInformationList[2]
+                dwelltimeInfo = objectInformationList[3]
+                sequence_data.objects[objectName]=AdcReadout( 
+                                                    duration = durationInfo, 
+                                                    samples = samplesInfo, 
+                                                    dwelltime = dwelltimeInfo) 
+            case "sync":
+                ## objectInformationList = [arrayInfo, durationInfo, eventInfo]
+                eventInfo = objectInformationList[2]
+                sequence_data.objects[objectName]=Ttl(duration = durationInfo, 
+                                                      event = eventInfo) 
+            case _:
+                print("The type " + typeInfo + " could not be identified.")
 
 
-def completeStepInformation(sequence_data, stepToModify, actionInfo, actionArray):
-    match actionInfo:
-        case "run_block":
-            # actionArray = [blockName]
-            stepToModify.block= actionArray[0]
-            addInstruction(sequence_data, stepToModify.block)
-            completeInstructionInformation(sequence_data=sequence_data, instructionToModify=sequence_data.instructions[stepToModify.block])
-        
-        case "loop":
-            # actionArray = [loopCounter, loopRange, loopStepList]
-            savedStepToModify = stepToModify
-            savedStepToModify.counter = actionArray[0]
-            savedStepToModify.range= actionArray[1]
-            stepIndexLoop = 0
-            # TO DO check for issues when adding steps inside loops
-            for step in actionArray[2]:
-                addStep(savedStepToModify, stepIndexLoop)
-                completeStepInformation(sequence_data, savedStepToModify.steps[stepIndexLoop], step)
-                stepIndexLoop += 1 
-            stepToModify = savedStepToModify  
-        
-        case "calc":
-            # actionArray = [calcType, calcFloat, calcIncrement]
-            stepToModify.type = actionArray[0]
-            stepToModify.float= actionArray[1]
-            stepToModify.increment = actionArray[2]
-        
-        case "init":
-            # actionArray = [initGradients]
-            stepToModify.gradients = actionArray[0]
-        
-        case "sync":
-            # actionArray = [syncObject, syncTime]
-            stepToModify.object = actionArray[0]
-            if stepToModify.object not in sequence_data.objects:
-                addObject(sequence_data=sequence_data, objectName=stepToModify.object)
-            completeObjectInformation(sequence_data=sequence_data, objectName=stepToModify.object)
-            stepToModify.time = actionArray[1]
-        
-        case "grad":
-            # actionArray = [gradAxis, gradObject, gradTime, gradAmplitude, gradAmplidueOptions]
-            stepToModify.axis = actionArray[0]
-            stepToModify.object= actionArray[1]
-            if stepToModify.object not in sequence_data.objects:
-                addObject(sequence_data=sequence_data, objectName=stepToModify.object)
-            completeObjectInformation(sequence_data=sequence_data, objectName=stepToModify.object)
-            stepToModify.time = actionArray[2]
-            if(actionArray[3]=="flip"):
-                stepToModify.amplitude = "flip"
-            elif(actionArray[3]=="equation"):
-                # gradAmplidueOptions = [gradAmplType, gradAmplEquationName, gradAmplEquationValue]
-                stepToModify.amplitude = Amplitude()
-                stepToModify.amplitude.type = actionArray[4][0]
-                stepToModify.amplitude.equation = actionArray[4][1]
-                addEquation(sequence_data=sequence_data, equationName=stepToModify.amplitude.equation)
-                sequence_data.equations[stepToModify.amplitude.equation].equation=actionArray[4][2]
-
-        case "rf":
-            # actionArray = [rfObject, rfTime, rfAddedPhaseType, rfAddedPhaseFloat]
-            stepToModify.object= actionArray[0]
-            if stepToModify.object not in sequence_data.objects:
-                addObject(sequence_data=sequence_data, objectName=stepToModify.object)
-            completeObjectInformation(sequence_data=sequence_data, objectName=stepToModify.object)
-            stepToModify.time = actionArray[1]
-            stepToModify.added_phase = AddedPhase()
-            stepToModify.added_phase.type = actionArray[2]
-            stepToModify.added_phase.float = actionArray[3]
-        
-        case "adc":
-            # actionArray = [adcObject, adcTime, adcFrequency, adcPhase, adcAddedPhaseType, adcAddedPhaseFloat, adcMdh]
-            stepToModify.object= actionArray[0]
-            if stepToModify.object not in sequence_data.objects:
-                addObject(sequence_data=sequence_data, objectName=stepToModify.object)
-            completeObjectInformation(sequence_data=sequence_data, objectName=stepToModify.object)
-            stepToModify.time = actionArray[1]
-            stepToModify.frequency = actionArray[2]
-            stepToModify.phase= actionArray[3]
-            stepToModify.added_phase = AddedPhase()
-            stepToModify.added_phase.type = actionArray[4]
-            stepToModify.added_phase.float = actionArray[5]
-            # TO DO !!! MDH -> adcMdh = actionArray[6]
-        
-        case "mark":
-             # actionArray = [markTime]
-            stepToModify.time = actionArray[0]
-        
-        case "submit":
-            pass
-        
-        case _:
-            print("The type " + actionInfo + " could not be identified.")
-
-
-def completeObjectInformation(sequence_data, objectName, objectDuration, objectInfo):
-    typeInfo = sequence_data.objects[objectName].type
-    durationInfo = objectDuration
-    match typeInfo:
-        case "rf":
-            # objectInfo = [rfArrayName, rfInitPhase, rfThickness, rfFlipAngle, rfPurpose]
-            arrayInfo = objectInfo[0]
-            addArray(sequence_data=sequence_data, arrayName=arrayInfo)
-            if arrayInfo not in sequence_data.arrays:
-                addArray(sequence_data=sequence_data, arrayName=arrayInfo)
-            completeArrayInformation(sequence_data=sequence_data, arrayName=arrayInfo)
-            sequence_data.objects[objectName]=RfExcitation( \
-                duration = durationInfo, array = arrayInfo, \
-                initial_phase =  objectInfo[1], thickness = objectInfo[2], \
-                flipangle = objectInfo[3], purpose = objectInfo[4]) 
-        
-        case "grad":
-            # objectInfo = [gradArray, gradTail, gradAmplitude]
-            arrayInfo = objectInfo[0]
-            addArray(sequence_data=sequence_data, arrayName=arrayInfo)
-            if arrayInfo not in sequence_data.arrays:
-                addArray(sequence_data=sequence_data, arrayName=arrayInfo)
-            completeArrayInformation(sequence_data=sequence_data, arrayName=arrayInfo)
-            sequence_data.objects[objectName]=GradientObject( \
-                duration = durationInfo, array = arrayInfo,\
-                tail = objectInfo[1], amplitude = objectInfo[2]) 
-        
-        case "adc":
-            # objectInfo = [adcSamples, adcDwellTime]
-            sequence_data.objects[objectName]=AdcReadout( \
-                duration = durationInfo, samples = objectInfo[0], \
-                dwelltime = objectInfo[1]) 
-        
-        case "sync":
-            # objectInfo = [syncEvent]
-            sequence_data.objects[objectName]=Ttl(duration = durationInfo, \
-                                                  event = objectInfo[0]) 
-        case _:
-            print(U"The type " + typeInfo + " could not be identified.")
-
-
-def completeArrayInformation(sequence_data, arrayName, arrayInfo):
-    # arrayInfo = [arrayEncoding, arrayType, arraySize, arrayData]
-    sequence_data.arrays[arrayName] = GradientTemplate(
-                                    encoding = arrayInfo[0], type = arrayInfo[1], \
-                                    size = arrayInfo[2], data = arrayInfo[3])
-
-
-def completeEquationInformation(sequence_data, equationName, equationInfo):
-    sequence_data.equations[equationName] = Equation(equation = equationInfo)
+def completeArrayInformation(sequence_data, arrayName, arrayInformationList):
+    ## arrayInformationList = [encodingInfo, typeInfo, sizeInfo, dataInfoList]
+    if(arrayInformationList != []):
+        encodingInfo = arrayInformationList[0]
+        typeInfo = arrayInformationList[1]
+        sizeInfo = int(arrayInformationList[2])
+        dataInfo = arrayInformationList[3]
+        sequence_data.arrays[arrayName] = GradientTemplate( encoding = encodingInfo, 
+                                                            type = typeInfo, 
+                                                            size = sizeInfo, 
+                                                            data = dataInfo)
