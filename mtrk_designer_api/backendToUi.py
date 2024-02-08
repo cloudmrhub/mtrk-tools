@@ -38,10 +38,8 @@ def create_sdl_from_ui_inputs(boxes):
 def updateSDLFile(sequence_data, boxes):
     instructionName = "dummy_instruction_name"
     addInstruction(sequence_data, instructionName)
-    instructionInformationList = getInstructionInformation(
-            sequence_data = sequence_data, 
-            instructionToModify = sequence_data.instructions[instructionName], 
-            boxes = boxes)
+    instructionInformationList = getInstructionInformation(boxes = boxes,
+                                                           instructionName = instructionName)
     completeInstructionInformation(sequence_data = sequence_data, 
                                    instructionInformationList = \
                                                      instructionInformationList)
@@ -51,9 +49,8 @@ def updateSDLFile(sequence_data, boxes):
 ### Functions to get new values from the web-based UI
 #############################################################
 
-def getInstructionInformation(boxes):
+def getInstructionInformation(boxes, instructionName):
     ### begin: not used for now
-    instructionName = "dummy_inst"
     printMessageInfo = "dummy_message"
     printCounterInfo = "off"
     ### end: not used for now
@@ -118,7 +115,7 @@ def getStepInformation(box):
     return stepInformationList
             
 def getObjectInformation(typeInfo, box):
-    durationInfo = len(box["array"])
+    durationInfo = len(box["array_info"]["array"])
     objectInformationList = [typeInfo, durationInfo]
     match typeInfo:
         case "rf":
@@ -162,7 +159,7 @@ def getArrayInformation(box):
     # TO DO: change the fixed encoding and type info.
     encodingInfo = "text"
     typeInfo = "float"
-    array = box['array']
+    array = box["array_info"]["array"]
     sizeInfo = len(array)
     dataInfoList = array
     arrayInformationList = [encodingInfo, typeInfo, sizeInfo, dataInfoList]
