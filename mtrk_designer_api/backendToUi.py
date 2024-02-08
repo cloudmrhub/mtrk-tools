@@ -30,8 +30,10 @@ def create_sdl_from_ui_inputs(boxes):
     with open('output.mtrk', 'w') as sdlFileOut:
         options = jsbeautifier.default_options()
         options.indent_size = 4
-        data_to_print = jsbeautifier.beautify(json.dumps(sequence_data.model_dump(mode="json")), options)
-        sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) #purely aesthetic
+        data_to_print = jsbeautifier.beautify(\
+                     json.dumps(sequence_data.model_dump(mode="json")), options)
+        sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) 
+        #purely aesthetic
 
 def updateSDLFile(sequence_data, boxes):
     instructionName = "dummy_instruction_name"
@@ -41,38 +43,27 @@ def updateSDLFile(sequence_data, boxes):
             instructionToModify = sequence_data.instructions[instructionName], 
             boxes = boxes)
     completeInstructionInformation(sequence_data = sequence_data, 
-                                   instructionInformationList = instructionInformationList)
+                                   instructionInformationList = \
+                                                     instructionInformationList)
 
-def create_sdl_from_ui_inputs(boxes):
-    # Initialize SDL file
-    # TO DO - need to intialize without loading file
-    with open('/vagrant/miniflash.json') as sdlFile:
-        sdlData = json.load(sdlFile)
-        sequence_data = PulseSequence(**sdlData)
-    sdlInitialize(sequence_data)
-
-    updateSDLFile(sequence_data, boxes)
-    
-    ### writing of json schema to SDL file with formatting options
-    with open('output.mtrk', 'w') as sdlFileOut:
-        options = jsbeautifier.default_options()
-        options.indent_size = 4
-        data_to_print = jsbeautifier.beautify(json.dumps(sequence_data.model_dump(mode="json")), options)
-        sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) #purely aesthetic
         
 #############################################################
 ### Functions to get new values from the web-based UI
 #############################################################
 
-def getInstructionInformation(sequence_data, instructionToModify, boxes):
-    stepIndex = 0
+def getInstructionInformation(boxes):
+    ### begin: not used for now
+    instructionName = "dummy_inst"
+    printMessageInfo = "dummy_message"
+    printCounterInfo = "off"
+    ### end: not used for now
+    allStepInformationLists = []
     for box in boxes:
-        addStep(instructionToModify = instructionToModify, 
-                stepIndex = stepIndex, 
-                actionName = box["type"])
-        stepToModify = instructionToModify.steps[stepIndex]
-        completeStepInformation(sequence_data, stepToModify, "Instruction", box)
-        stepIndex += 1
+        stepInformationList = getStepInformation(box)
+        allStepInformationLists.append(stepInformationList)
+    instructionInformationList = [instructionName, printMessageInfo,\
+                                  printCounterInfo, allStepInformationLists]
+    return instructionInformationList
             
 def getStepInformation(box):
     actionName = box["type"]
