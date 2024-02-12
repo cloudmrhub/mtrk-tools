@@ -54,8 +54,8 @@ def getInstructionInformation(boxes, instructionName):
     # TO DO add "message" to the dictionnary
     # printMessageInfo = box["message"]
     printMessageInfo = "dummy_message"
-    # TO DO add "counter_on_off" to the dictionnary
-    # printCounterInfo = box["counter_on_off"]
+    # TO DO add "print_counter_on_off" to the dictionnary
+    # printCounterInfo = box["print_counter_on_off"]
     printCounterInfo = "off"
     allStepInformationLists = []
     for box in boxes:
@@ -174,14 +174,14 @@ def getStepInformation(box):
             # TO DO add "phase" to the dictionnary
             # phaseInfo = box["phase"]
             phaseInfo = 0
-            # TO DO add "rf_added_phase_float" to the dictionnary
+            # TO DO add "adc_added_phase_type" to the dictionnary
             # addedPhaseTypeInfo = box["adc_added_phase_type"]
             addedPhaseTypeInfo = "dummy_phase"
             # TO DO add "rf_added_phase_float" to the dictionnary
             # addedPhaseFloatInfo = box["adc_added_phase_float"]
             addedPhaseFloatInfo = 0.0
-            # TO DO add "mdh" to the dictionnary
-            # mdhInfoList = box["mdh"]
+            # TO DO add "header" to the dictionnary
+            # mdhInfoList = box["header"]
             mdhInfoList = []
             #### TO DO !!! complete mdhInfoList
             ## WARNING: the above TO DO is true for all codes for now (02/07/24)
