@@ -144,13 +144,13 @@ equationList = [phaseEncodingEquation]
 #                                   ttl, arrayList, equationList)
 
 ### creating SDL file correcponding to instructions
-sequence_data = mtrkConsoleUI(sequence_data)
+# sequence_data = mtrkConsoleUI(sequence_data)
 
 ### converting SDL format to PSUdoMRI format
 # camrieConverter(sequence_data)
 
 ### converting SDL format to Pulseq format
-# pulseqConverter(sequence_data)
+pulseqConverter(sequence_data)
 
 ### writing of json schema to SDL file with formatting options
 with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\test.mtrk', 'w') as sdlFileOut:

@@ -19,7 +19,7 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     Ny = sequence_data.infos.pelines
     # Nx = 2
     # Ny = 2
-    alpha = sequence_data.objects["rf_excitation"].flipangle  # flip angle
+    # alpha = sequence_data.objects["rf_excitation"].flipangle  # flip angle
     slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3  # slice
     TR = 10e-3  # Repetition time # !!! TO DO add to SDL format
     TE = 20e-3  # Echo time # !!! TO DO add to SDL format
@@ -44,194 +44,161 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     # CREATE EVENTS
     # ======
 
-    rf_signal_array=[]
-    # rf_amplitude = 10 # !!! TO DO evaluate actual RF amplitude according to flip angle
-    for value_counter in range(0, len(sequence_data.arrays[sequence_data.objects["rf_excitation"].array].data)):
-        if value_counter%2 == 0:
-            rf_signal_array.append(sequence_data.arrays[sequence_data.objects["rf_excitation"].array].data[value_counter])
-        else:
-            pass
-    
-    rf_dwell_time = sequence_data.objects["rf_excitation"].duration/sequence_data.arrays[sequence_data.objects["rf_excitation"].array].size
-    rf_bandwidth = 2.7/sequence_data.objects["rf_excitation"].duration*1e6
-    rf = pypulseq.make_arbitrary_rf(
-        signal=np.array(rf_signal_array),
-        flip_angle=alpha * math.pi / 180,
-        bandwidth=rf_bandwidth, # !!! TO DO verify is this value is okay, see if BW*time=2.7
-        delay=0,
-        dwell=rf_dwell_time*1e-6, 
-        freq_offset=0,
-        no_signal_scaling=False,
-        max_grad=0,
-        max_slew=0,
-        phase_offset=0,
-        return_delay=False,
-        return_gz=False,
-        slice_thickness=slice_thickness,
-        system=system,
-        time_bw_product=2.7,
-        use="excitation"     
-    )
+    eventList = []
+    timingList = []
+    variableEventsList = []
+    allVariableAmplitudesList = []
+    sdlBlockName = "block_TR"
+    for stepIndex in range(0, len(sequence_data.instructions[sdlBlockName].steps)):
+        if "object" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]):
+            currentObject = sequence_data.instructions[sdlBlockName].steps[stepIndex].object
+        match sequence_data.instructions[sdlBlockName].steps[stepIndex].action:
+            case "rf":
+                rfSignalArray=[]
+                # rfAmplitude = 10 # !!! TO DO evaluate actual RF amplitude according to flip angle in the right unit
+                rfAmplitude = 10
+                alpha = sequence_data.objects[currentObject].flipangle  # flip angle
+                sliceThickness = sequence_data.objects[currentObject].thickness*1e-3  # slice
+                for value_counter in range(0, len(sequence_data.arrays[sequence_data.objects[currentObject].array].data)):
+                    if value_counter%2 == 0:
+                        rfSignalArray.append(rfAmplitude*sequence_data.arrays[sequence_data.objects[currentObject].array].data[value_counter])
+                    else:
+                        pass
+                rfDwellTime = sequence_data.objects[currentObject].duration/sequence_data.arrays[sequence_data.objects[currentObject].array].size
+                rfBandwidth = 2.7/sequence_data.objects[currentObject].duration*1e6
+                rfEvent = pypulseq.make_arbitrary_rf(
+                    signal=np.array(rfSignalArray),
+                    flip_angle=alpha * math.pi / 180,
+                    bandwidth=rfBandwidth, # !!! TO DO verify is this value is okay, see if BW*time=2.7
+                    delay=sequence_data.instructions[sdlBlockName].steps[stepIndex].time*1e-6,
+                    dwell=rfDwellTime*1e-6, 
+                    freq_offset=0,
+                    no_signal_scaling=False,
+                    max_grad=0,
+                    max_slew=0,
+                    phase_offset=0,
+                    return_delay=False,
+                    return_gz=False,
+                    slice_thickness=sliceThickness,
+                    system=system,
+                    time_bw_product=2.7,
+                    use=sequence_data.objects[currentObject].purpose)
+                eventList.append(rfEvent)
+            case "grad":
+                variableAmplitudeFlag = False
+                gradientArray = []
+                gradientAmplitude = sequence_data.objects[currentObject].amplitude
+                if "amplitude" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]):
+                    if sequence_data.instructions[sdlBlockName].steps[stepIndex].amplitude == "flip":
+                        gradientAmplitude = -gradientAmplitude
+                    else: 
+                        # TO DO generalize if it is not phase
+                        # TO DO support the case of the spoiler
+                        equationName = sequence_data.instructions[sdlBlockName].steps[stepIndex].amplitude.equation
+                        equationString = sequence_data.equations[equationName].equation
+                        equationString = equationString.replace("ctr(1)", "phaseStep")
+                        variableAmplitudesList = []
+                        for phaseStep in range(0, Ny): 
+                            variableAmplitudesList.append(eval(equationString))
+                        gradientAmplitude = variableAmplitudesList[0]
+                        allVariableAmplitudesList.append(variableAmplitudesList)
+                        variableAmplitudeFlag = True
 
-    # Plot RF
-    # np.set_printoptions(threshold=sys.maxsize)
-    # plt.plot(np.arange(len(rf.signal)), rf.signal)
-    # # plt.plot(np.arange(len(rf_signal_array)), rf_signal_array)
-    # plt.show()
-    # print(sequence_data.arrays[sequence_data.objects["rf_excitation"].array].data)
+                for value in sequence_data.arrays[sequence_data.objects[currentObject].array].data:
+                    gradientArray.append(gradientAmplitude * value)
+                gradientAxis = ""
+                if sequence_data.instructions[sdlBlockName].steps[stepIndex].axis == "slice":
+                    gradientAxis = 'z'
+                elif sequence_data.instructions[sdlBlockName].steps[stepIndex].axis == "read":
+                    gradientAxis = 'x'
+                elif sequence_data.instructions[sdlBlockName].steps[stepIndex].axis == "phase":
+                    gradientAxis = 'y'
+                else:
+                    print(str(sequence_data.instructions[sdlBlockName].steps[stepIndex].axis) + "is not a valid axis name.")
+                gradientEvent = pypulseq.make_arbitrary_grad(
+                    channel=gradientAxis,
+                    waveform=np.array(gradientArray),
+                    delay=sequence_data.instructions[sdlBlockName].steps[stepIndex].time*1e-6,
+                    system=system)
+                eventList.append(gradientEvent)
+                if variableAmplitudeFlag == True:
+                    variableEventsList.append(gradientEvent)
 
-    # Define other gradients and ADC events
-    # print(sequence_data.arrays[sequence_data.objects["grad_read_readout"].array].data)
-    # sequence_data.objects["grad_read_readout"].amplitude
+            case "adc":
+                # adc_delay = sequence_data.objects["grad_read_readout"].duration - sequence_data.objects["adc_readout"].duration
+                adc_delay = sequence_data.instructions[sdlBlockName].steps[stepIndex].time # !!! TO DO manage this delay
+                adcEvent = pypulseq.make_adc(num_samples = Nx, 
+                                             duration = sequence_data.objects[currentObject].duration*1e-6, 
+                                             delay = adc_delay*1e-6, 
+                                             system = system)
+                eventList.append(adcEvent)
+        if "object" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]):
+            if sequence_data.instructions[sdlBlockName].steps[stepIndex].action == "sync":
+                pass
+            else:
+                startTime = sequence_data.instructions[sdlBlockName].steps[stepIndex].time
+                endTime = startTime + sequence_data.objects[currentObject].duration
+                timingList.append([startTime, endTime])
 
-    # !!! TO DO automate with the sdl file readout of gradient type objects
-    gx_grad_read_readout = pypulseq.make_arbitrary_grad(
-        channel='x',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_read_readout"].array].data),
-        delay=0,
-        system=system
-    )
+    # Creating an event signature list to facilitate block sorting
+    eventSignatureList = []
+    for eventIndex in range(0, len(eventList)):
+        eventStartTime = timingList[eventIndex][0]
+        eventEndTime = timingList[eventIndex][1]
+        eventSignature = [eventIndex, eventStartTime, eventEndTime]   
+        eventSignatureList.append(eventSignature)      
 
-    gx_grad_read_dephase = pypulseq.make_arbitrary_grad(
-        channel='x',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_read_dephase"].array].data),
-        delay=0,
-        system=system
-    )
-
-    gy_grad_phase_encode = pypulseq.make_arbitrary_grad(
-        channel='y',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_phase_encode"].array].data),
-        delay=0,
-        system=system
-    )
-
-    gy_grad_phase_spoil = pypulseq.make_arbitrary_grad(
-        channel='y',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_phase_encode"].array].data)*-1,
-        delay=0,
-        system=system
-    )
-
-    gz_grad_slice_select = pypulseq.make_arbitrary_grad(
-        channel='z',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_slice_select"].array].data)*-1,
-        delay=0,
-        system=system
-    )
-
-    gz_grad_slice_refocus = pypulseq.make_arbitrary_grad(
-        channel='z',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_slice_refocus"].array].data),
-        delay=0,
-        system=system
-    )
-
-    gz_grad_slice_spoil = pypulseq.make_arbitrary_grad(
-        channel='z',
-        waveform=np.array(sequence_data.arrays[sequence_data.objects["grad_slice_refocus"].array].data)*-1,
-        delay=0,
-        system=system
-    )
-
-    # !!! TO DO generalize ramp time calculation
-    adc_delay = sequence_data.objects["grad_read_readout"].duration - sequence_data.objects["adc_readout"].duration
-    adc = pypulseq.make_adc(
-        num_samples=Nx, duration=sequence_data.objects["adc_readout"].duration*1e-6, delay=adc_delay*1e-6, system=system
-    )
-    delta_k = 1 / fov
-    phase_areas = (np.arange(Ny) - Ny / 2) * delta_k
-
-    # delta_k = 1 / fov
-    # gx = pypulseq.make_trapezoid(
-    #     channel="x", flat_area=Nx * delta_k, flat_time=3.2e-3, system=system
-    # )
-    # adc = pypulseq.make_adc(
-    #     num_samples=Nx, duration=gx.flat_time, delay=gx.rise_time, system=system
-    # )
-    # gx_pre = pypulseq.make_trapezoid(
-    #     channel="x", area=-gx.area / 2, duration=1e-3, system=system
-    # )
-    # gz_reph = pypulseq.make_trapezoid(
-    #     channel="z", area=-gz.area / 2, duration=1e-3, system=system
-    # )
-    # phase_areas = (np.arange(Ny) - Ny / 2) * delta_k
+    # Sorting all events in blocks according to their overlapping
+    eventIndexBlockList = []
+    while eventSignatureList != []:
+        signature = eventSignatureList[0]
+        overlappingList = [signature[0]]
+        eventSignatureList.remove(signature)
+        for otherSignature in eventSignatureList:
+            if signature[1]<otherSignature[2] and signature[2]>otherSignature[1]:
+                overlappingList.append(otherSignature[0])
+        for overlappingEventIndex in overlappingList:
+            for signatureFound in eventSignatureList:
+                if signatureFound[0] == overlappingEventIndex:
+                    eventSignatureList.remove(signatureFound)
+        eventIndexBlockList.append(overlappingList)
 
     # # gradient spoiling
+    # # TO DO !!! use these calculations for our spoilers
+    # delta_k = 1 / fov
+    # phase_areas = (np.arange(Ny) - Ny / 2) * delta_k
     # gx_spoil = pypulseq.make_trapezoid(channel="x", area=2 * Nx * delta_k, system=system)
     # gz_spoil = pypulseq.make_trapezoid(channel="z", area=4 / slice_thickness, system=system)
 
-    # Calculate timing
-    # !!! TO DO understand what is happening and correct
-    delay_TE = (
-        np.ceil(
-            (
-                TE
-                - pypulseq.calc_duration(gx_grad_read_dephase)
-                - pypulseq.calc_duration(gz_grad_slice_select) / 2
-                - pypulseq.calc_duration(gx_grad_read_readout) / 2
-            )
-            / seq.grad_raster_time
-        )
-        * seq.grad_raster_time
-    )
-
-    delay_TR = (
-        np.ceil(
-            (
-                TR
-                - pypulseq.calc_duration(gz_grad_slice_select)
-                - pypulseq.calc_duration(gx_grad_read_dephase)
-                - pypulseq.calc_duration(gx_grad_read_readout)
-                - delay_TE
-            )
-            / seq.grad_raster_time
-        )
-        * seq.grad_raster_time
-    )
-
-    # assert np.all(delay_TE >= 0)
-    # assert np.all(delay_TR >= pypulseq.calc_duration(gx_grad_read_dephase, gz_grad_slice_refocus))
-
-    rf_phase = 0
-    rf_inc = 0
+    # rf_phase = 0
+    # rf_inc = 0
 
     # ======
     # CONSTRUCT SEQUENCE
     # ======
     # Loop over phase encodes and define sequence blocks
     for i in range(Ny):
-        rf.phase_offset = rf_phase / 180 * np.pi
-        adc.phase_offset = rf_phase / 180 * np.pi
-        rf_inc = divmod(rf_inc + rf_spoiling_inc, 360.0)[1]
-        rf_phase = divmod(rf_phase + rf_inc, 360.0)[1]
+        # TO DO support RF spoiling
+        # TD DO make this more flexible, without using match/case
+        for blockList in eventIndexBlockList:
+            for variableAmplitudeEventIndex in range(0, len(variableEventsList)):
+                variableAmplitudeEvent = variableEventsList[variableAmplitudeEventIndex]
+                amplitude = allVariableAmplitudesList[variableAmplitudeEventIndex][i]
+                if i != 0:
+                    variableAmplitudeEvent.waveform = amplitude*(variableAmplitudeEvent.waveform/allVariableAmplitudesList[variableAmplitudeEventIndex][i-1])
+            match len(blockList):
+                case 1:
+                    seq.add_block(eventList[blockList[0]])
+                case 2:
+                    seq.add_block(eventList[blockList[0]], 
+                                  eventList[blockList[1]])
+                case 3:
+                    seq.add_block(eventList[blockList[0]], 
+                                  eventList[blockList[1]], 
+                                  eventList[blockList[2]])
 
-        seq.add_block(rf, gz_grad_slice_select)
-        gy_pre = pypulseq.make_trapezoid(
-            channel="y",
-            area=phase_areas[i],
-            duration=pypulseq.calc_duration(gx_grad_read_dephase),
-            system=system,
-        )
-        seq.add_block(gx_grad_read_dephase, gy_grad_phase_encode, gz_grad_slice_refocus)
-        seq.add_block(pypulseq.make_delay(delay_TE))
-        seq.add_block(gx_grad_read_readout, adc)
-        
-        # !!! TO DO handle spoiling
-        # gy_grad_phase_encode.amplitude = -gy_grad_phase_encode.amplitude
-        # gx_grad_read_dephase.amplitude = -gy_grad_phase_encode.amplitude
-        # gz_grad_slice_refocus.amplitude = -gy_grad_phase_encode.amplitude
-        seq.add_block(pypulseq.make_delay(TR), gy_grad_phase_spoil, gz_grad_slice_spoil)
 
-    # Check whether the timing of the sequence is correct
-    ok, error_report = seq.check_timing()
-    if ok:
-        print("Timing check passed successfully")
-    else:
-        print("Timing check failed. Error listing follows:")
-        [print(e) for e in error_report]
-
-    # ======
+    # # ======
     # VISUALIZATION
     # ======
     if plot:
@@ -250,7 +217,6 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     if write_seq:
         # Prepare the sequence output for the scanner
         seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
-        seq.set_definition(key="Name", value="gre")
+        seq.set_definition(key="Name", value=sequence_data.infos.seqstring)
 
         seq.write(seq_filename)
-
