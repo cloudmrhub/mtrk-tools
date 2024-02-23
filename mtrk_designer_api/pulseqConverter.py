@@ -17,17 +17,12 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     fov = sequence_data.infos.fov*1e-3  # Define FOV and resolution
     Nx = sequence_data.objects["adc_readout"].samples
     Ny = sequence_data.infos.pelines
-    # Nx = 2
-    # Ny = 2
-    # alpha = sequence_data.objects["rf_excitation"].flipangle  # flip angle
     slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3  # slice
-    TR = 10e-3  # Repetition time # !!! TO DO add to SDL format
-    TE = 20e-3  # Echo time # !!! TO DO add to SDL format
 
-    for step in sequence_data.instructions["block_TR"].steps:
-        if step.action == "calc" and step.type == "float_rfspoil":
-            increment = step.increment
-    rf_spoiling_inc = increment  # RF spoiling increment
+    # for step in sequence_data.instructions["block_TR"].steps:
+    #     if step.action == "calc" and step.type == "float_rfspoil":
+    #         increment = step.increment
+    # rf_spoiling_inc = increment  # RF spoiling increment
 
     # !!! TO DO add these info to SDL
     system = pypulseq.Opts(
@@ -48,12 +43,18 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     eventList = []
     timingList = []
     variableEventsList = []
+    rfSpoilingList = []
+    rfSpoilingFlag = False
     allVariableAmplitudesList = []
     sdlBlockName = "block_TR"
     for stepIndex in range(0, len(sequence_data.instructions[sdlBlockName].steps)):
         if "object" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]):
             currentObject = sequence_data.instructions[sdlBlockName].steps[stepIndex].object
         match sequence_data.instructions[sdlBlockName].steps[stepIndex].action:
+            case "calc":
+                if sequence_data.instructions[sdlBlockName].steps[stepIndex].type == "float_rfspoil":
+                    rfSpoilingFlag = True 
+                    rf_spoiling_inc =  sequence_data.instructions[sdlBlockName].steps[stepIndex].increment   
             case "rf":
                 rfSignalArray=[]
                 alpha = sequence_data.objects[currentObject].flipangle  # flip angle
@@ -83,6 +84,8 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                     time_bw_product=2.7,
                     use=sequence_data.objects[currentObject].purpose)
                 eventList.append(rfEvent)
+                if rfSpoilingFlag == True and sequence_data.objects[currentObject].purpose == "excitation":
+                    rfSpoilingList.append(rfEvent)  
             case "grad":
                 variableAmplitudeFlag = False
                 gradientArray = []
@@ -133,6 +136,8 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                                              delay = adc_delay*1e-6, 
                                              system = system)
                 eventList.append(adcEvent)
+                if rfSpoilingFlag == True:
+                    rfSpoilingList.append(adcEvent)  
             case "mark":
                 eventList.append(pypulseq.make_delay(sequence_data.instructions[sdlBlockName].steps[stepIndex].time*1e-6))
         if "object" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]) or\
@@ -148,6 +153,9 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                 endTime = startTime + sequence_data.objects[currentObject].duration
                 timingList.append([startTime, endTime])
 
+    if len(rfSpoilingList) != 2:
+        print("ERROR in Rf Spoiling")
+
     # Creating an event signature list to facilitate block sorting
     eventSignatureList = []
     eventEndTimes = []
@@ -159,13 +167,13 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
         eventSignature = [eventIndex, eventStartTime, eventEndTime]   
         eventSignatureList.append(eventSignature)      
     
-    for eventIndex in range(0,len(eventList)):
-        # !!! TO DO generalize (only going for one TR here)
-        if eventList[eventIndex].type == "delay":
-            lastEventEndTime = eventEndTimes[eventEndTimes.index(max(eventEndTimes))]
-            eventEndTime = eventSignatureList[eventIndex][2]
-            delayDuration = np.ceil(((eventEndTime-lastEventEndTime)*1e-6)/ seq.grad_raster_time)* seq.grad_raster_time
-            eventList[eventIndex] = pypulseq.make_delay(delayDuration)
+    # for eventIndex in range(0,len(eventList)):
+    #     # !!! TO DO generalize (only going for one TR here)
+    #     if eventList[eventIndex].type == "delay":
+    #         lastEventEndTime = eventEndTimes[eventEndTimes.index(max(eventEndTimes))]
+    #         eventEndTime = eventSignatureList[eventIndex][2]
+    #         delayDuration = np.ceil(((eventEndTime-lastEventEndTime)*1e-6)/ seq.grad_raster_time)* seq.grad_raster_time
+    #         eventList[eventIndex] = pypulseq.make_delay(delayDuration)
             
 
     # Sorting all events in blocks according to their overlapping
@@ -190,8 +198,8 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     # gx_spoil = pypulseq.make_trapezoid(channel="x", area=2 * Nx * delta_k, system=system)
     # gz_spoil = pypulseq.make_trapezoid(channel="z", area=4 / slice_thickness, system=system)
 
-    # rf_phase = 0
-    # rf_inc = 0
+    rf_phase = 0
+    rf_inc = 0
 
     # ======
     # CONSTRUCT SEQUENCE
@@ -200,8 +208,37 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     if variableEventsList != []:
         variableAmplitudeEvent = variableEventsList[0]
         normalizedWaveform = variableAmplitudeEvent.waveform
+
+    # Modifying delays
+    elapsedDurationList = []
+    for blockList in eventIndexBlockList:
+        match len(blockList):
+            case 1:
+                elapsedDuration = pypulseq.calc_duration(eventList[blockList[0]])
+            case 2:
+                elapsedDuration = pypulseq.calc_duration(eventList[blockList[0]], 
+                                                         eventList[blockList[1]])
+            case 3:
+                elapsedDuration = pypulseq.calc_duration(eventList[blockList[0]], 
+                                                            eventList[blockList[1]],
+                                                            eventList[blockList[2]])
+        elapsedDurationList.append(elapsedDuration)
+
+    print("+-+-+ seq.grad_raster_time " + str(seq.grad_raster_time))
+    for blockListIndex in range(1, len(eventIndexBlockList)):
+        for eventIndex in eventIndexBlockList[blockListIndex]:
+            eventList[eventIndex].delay -= elapsedDurationList[blockListIndex-1]
+            if eventList[eventIndex].delay < seq.grad_raster_time:
+                eventList[eventIndex].delay = 0.0
+
+    # Building sequence
     for i in range(Ny):
-        # TO DO support RF spoiling
+        if rfSpoilingList != []:
+                # rfSpoilingList = [rf_event, adc_event]
+                rfSpoilingList[0].phase_offset = rf_phase / 180 * np.pi
+                rfSpoilingList[1].phase_offset = rf_phase / 180 * np.pi
+                rf_inc = divmod(rf_inc + rf_spoiling_inc, 360.0)[1]
+                rf_phase = divmod(rf_phase + rf_inc, 360.0)[1]
         # TD DO make this more flexible, without using match/case
         for blockList in eventIndexBlockList:
             if variableEventsList != []:
@@ -219,13 +256,6 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                     seq.add_block(eventList[blockList[0]], 
                                   eventList[blockList[1]], 
                                   eventList[blockList[2]])
-                    print("+-+-+ type a " + str(eventList[blockList[2]].type))
-                    print("+-+-+ time a " + str(pypulseq.calc_duration(eventList[blockList[2]])))
-                case 4:
-                    seq.add_block(eventList[blockList[0]], 
-                                  eventList[blockList[1]], 
-                                  eventList[blockList[2]],
-                                  eventList[blockList[3]])
     
     # Check whether the timing of the sequence is correct
     ok, error_report = seq.check_timing()
@@ -246,8 +276,8 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
 
     # Very optional slow step, but useful for testing during development e.g. for the real TE, TR or for staying within
     # slew-rate limits
-    rep = seq.test_report()
-    print(rep)
+    # rep = seq.test_report()
+    # print(rep)
 
     # =========
     # WRITE .SEQ
