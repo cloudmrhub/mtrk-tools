@@ -38,6 +38,7 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
         rf_ringdown_time=20e-6,
         rf_dead_time=100e-6,
         adc_dead_time=10e-6,
+        
     )
 
     # ======
@@ -55,13 +56,11 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
         match sequence_data.instructions[sdlBlockName].steps[stepIndex].action:
             case "rf":
                 rfSignalArray=[]
-                # rfAmplitude = 10 # !!! TO DO evaluate actual RF amplitude according to flip angle in the right unit
-                rfAmplitude = 10
                 alpha = sequence_data.objects[currentObject].flipangle  # flip angle
                 sliceThickness = sequence_data.objects[currentObject].thickness*1e-3  # slice
                 for value_counter in range(0, len(sequence_data.arrays[sequence_data.objects[currentObject].array].data)):
                     if value_counter%2 == 0:
-                        rfSignalArray.append(rfAmplitude*sequence_data.arrays[sequence_data.objects[currentObject].array].data[value_counter])
+                        rfSignalArray.append(sequence_data.arrays[sequence_data.objects[currentObject].array].data[value_counter])
                     else:
                         pass
                 rfDwellTime = sequence_data.objects[currentObject].duration/sequence_data.arrays[sequence_data.objects[currentObject].array].size
@@ -87,7 +86,8 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
             case "grad":
                 variableAmplitudeFlag = False
                 gradientArray = []
-                gradientAmplitude = sequence_data.objects[currentObject].amplitude
+                conversionmTmToHzm = 42570 #!!! To do verify this conversion
+                gradientAmplitude = sequence_data.objects[currentObject].amplitude*conversionmTmToHzm
                 if "amplitude" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]):
                     if sequence_data.instructions[sdlBlockName].steps[stepIndex].amplitude == "flip":
                         gradientAmplitude = -gradientAmplitude
@@ -99,8 +99,9 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                         equationString = equationString.replace("ctr(1)", "phaseStep")
                         variableAmplitudesList = []
                         for phaseStep in range(0, Ny): 
-                            variableAmplitudesList.append(eval(equationString))
-                        gradientAmplitude = variableAmplitudesList[0]
+                            variableAmplitudesList.append(eval(equationString)*conversionmTmToHzm)
+                        # gradientAmplitude = variableAmplitudesList[0]
+                        gradientAmplitude = 1
                         allVariableAmplitudesList.append(variableAmplitudesList)
                         variableAmplitudeFlag = True
 
@@ -132,9 +133,16 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                                              delay = adc_delay*1e-6, 
                                              system = system)
                 eventList.append(adcEvent)
-        if "object" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]):
+            case "mark":
+                eventList.append(pypulseq.make_delay(sequence_data.instructions[sdlBlockName].steps[stepIndex].time*1e-6))
+        if "object" in dict(sequence_data.instructions[sdlBlockName].steps[stepIndex]) or\
+            sequence_data.instructions[sdlBlockName].steps[stepIndex].action == "mark":
             if sequence_data.instructions[sdlBlockName].steps[stepIndex].action == "sync":
                 pass
+            elif sequence_data.instructions[sdlBlockName].steps[stepIndex].action == "mark": 
+                startTime = sequence_data.instructions[sdlBlockName].steps[stepIndex].time
+                endTime = sequence_data.instructions[sdlBlockName].steps[stepIndex].time
+                timingList.append([startTime, endTime])  
             else:
                 startTime = sequence_data.instructions[sdlBlockName].steps[stepIndex].time
                 endTime = startTime + sequence_data.objects[currentObject].duration
@@ -142,11 +150,23 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
 
     # Creating an event signature list to facilitate block sorting
     eventSignatureList = []
+    eventEndTimes = []
     for eventIndex in range(0, len(eventList)):
         eventStartTime = timingList[eventIndex][0]
         eventEndTime = timingList[eventIndex][1]
+        if eventList[eventIndex].type != "delay":
+            eventEndTimes.append(eventEndTime)
         eventSignature = [eventIndex, eventStartTime, eventEndTime]   
         eventSignatureList.append(eventSignature)      
+    
+    for eventIndex in range(0,len(eventList)):
+        # !!! TO DO generalize (only going for one TR here)
+        if eventList[eventIndex].type == "delay":
+            lastEventEndTime = eventEndTimes[eventEndTimes.index(max(eventEndTimes))]
+            eventEndTime = eventSignatureList[eventIndex][2]
+            delayDuration = np.ceil(((eventEndTime-lastEventEndTime)*1e-6)/ seq.grad_raster_time)* seq.grad_raster_time
+            eventList[eventIndex] = pypulseq.make_delay(delayDuration)
+            
 
     # Sorting all events in blocks according to their overlapping
     eventIndexBlockList = []
@@ -177,15 +197,18 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
     # CONSTRUCT SEQUENCE
     # ======
     # Loop over phase encodes and define sequence blocks
+    if variableEventsList != []:
+        variableAmplitudeEvent = variableEventsList[0]
+        normalizedWaveform = variableAmplitudeEvent.waveform
     for i in range(Ny):
         # TO DO support RF spoiling
         # TD DO make this more flexible, without using match/case
         for blockList in eventIndexBlockList:
-            for variableAmplitudeEventIndex in range(0, len(variableEventsList)):
-                variableAmplitudeEvent = variableEventsList[variableAmplitudeEventIndex]
-                amplitude = allVariableAmplitudesList[variableAmplitudeEventIndex][i]
-                if i != 0:
-                    variableAmplitudeEvent.waveform = amplitude*(variableAmplitudeEvent.waveform/allVariableAmplitudesList[variableAmplitudeEventIndex][i-1])
+            if variableEventsList != []:
+                for variableAmplitudeEventIndex in range(0, len(variableEventsList)):
+                    variableAmplitudeEvent = variableEventsList[variableAmplitudeEventIndex]
+                    amplitude = allVariableAmplitudesList[variableAmplitudeEventIndex][i]
+                    variableAmplitudeEvent.waveform = amplitude*(normalizedWaveform)
             match len(blockList):
                 case 1:
                     seq.add_block(eventList[blockList[0]])
@@ -196,6 +219,21 @@ def fillSequence(sequence_data, plot: bool, write_seq: bool, seq_filename: str =
                     seq.add_block(eventList[blockList[0]], 
                                   eventList[blockList[1]], 
                                   eventList[blockList[2]])
+                    print("+-+-+ type a " + str(eventList[blockList[2]].type))
+                    print("+-+-+ time a " + str(pypulseq.calc_duration(eventList[blockList[2]])))
+                case 4:
+                    seq.add_block(eventList[blockList[0]], 
+                                  eventList[blockList[1]], 
+                                  eventList[blockList[2]],
+                                  eventList[blockList[3]])
+    
+    # Check whether the timing of the sequence is correct
+    ok, error_report = seq.check_timing()
+    if ok:
+        print("Timing check passed successfully")
+    else:
+        print("Timing check failed. Error listing follows:")
+        [print(e) for e in error_report]
 
 
     # # ======

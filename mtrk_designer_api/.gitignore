@@ -165,3 +165,5 @@ Sequence.txt
 Sequence_analyzed.txt
 Sequence-old.txt
 set.reg
+fid.seq
+write_gre.py
