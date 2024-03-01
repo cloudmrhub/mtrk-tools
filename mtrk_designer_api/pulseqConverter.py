@@ -109,7 +109,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                            loopCountersList, seq):
     eventList = []
     rfSpoilingList = []
-    allVariableAmplitudesList = []
+    allEquationsList = []
     variableEventsList = []
     timingList = []
     rfSpoilingInc = 0
@@ -192,15 +192,9 @@ def extractStepInformation(sequence_data, currentBlock, system,
                         equationName = \
                             currentBlock.steps[stepIndex].amplitude.equation
                         equationString = \
-                            sequence_data.equations[equationName].equation
-                        equationString = equationString.replace("ctr(1)", 
-                                                                "phaseStep")
-                        variableAmplitudesList = []
-                        for phaseStep in range(0, sequence_data.infos.pelines): 
-                            variableAmplitudesList.append(
-                                        eval(equationString)*gyromagneticRatio)
+                            sequence_data.equations[equationName].equation                      
                         gradientAmplitude = 1
-                        allVariableAmplitudesList.append(variableAmplitudesList)
+                        allEquationsList.append(equationString)
                         variableAmplitudeFlag = True
                 for value in currentArray.data:
                     gradientArray.append(gradientAmplitude * value)
@@ -298,24 +292,42 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 eventList[eventIndex].delay = 0.0
 
     stepInfoList =  [eventList, rfSpoilingList, 
-                     allVariableAmplitudesList, variableEventsList, 
+                     allEquationsList, variableEventsList, 
                      rfSpoilingInc, eventIndexBlockList]
     return stepInfoList
 
 def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform, 
                               rf_inc, rf_phase):
     # stepInfoList =  [eventList, rfSpoilingList, 
-    #                  allVariableAmplitudesList, variableEventsList, 
+    #                  allEquationsList, variableEventsList, 
     #                  rfSpoilingInc, eventIndexBlockList]
     for blockList in stepInfoList[5]:
         if stepInfoList[3] != []:
             for variableAmplitudeEventIndex in range(0, len(stepInfoList[3])):
+                equationString = stepInfoList[2][variableAmplitudeEventIndex]
+                counterNumberFound = False
+                stringCounterIndex = 0
+                while counterNumberFound == False:
+                    if "ctr(" + str(stringCounterIndex) + ")" in \
+                                                         equationString:
+                        stringToReplace = str("ctr(" + str(stringCounterIndex) + ")")
+                        counterNumberFound = True
+                    stringCounterIndex += 1
+                equationString = equationString.replace(
+                                 stringToReplace, 
+                                 "index")
+                print("+-+-+ index " + str(index))
+                # variableAmplitudesList = []
+                # for counterIndex in range(0, sequence_data.infos.pelines): 
+                #     variableAmplitudesList.append(
+                #                 eval(equationString)*gyromagneticRatio)
                 variableAmplitudeEvent = \
                    stepInfoList[3][variableAmplitudeEventIndex]
-                amplitude = \
-                   stepInfoList[2][variableAmplitudeEventIndex][index]
-                variableAmplitudeEvent.waveform = \
-                   amplitude*(normalizedWaveform)
+                # amplitude = \
+                #    stepInfoList[2][variableAmplitudeEventIndex][index]
+                gyromagneticRatio = 42577 # Hz/T converting mT/m to Hz/m
+                amplitude = eval(equationString)*gyromagneticRatio
+                variableAmplitudeEvent.waveform = amplitude*(normalizedWaveform)
         listToAdd = []
         for blockIndex in range(0, len(blockList)):
             if stepInfoList[0][blockList[blockIndex]].type == "rf" or \
@@ -371,7 +383,6 @@ def organizePulseqBlocks(sequence_data, counterRangeList, system, seq,
                    loopCountersList = loopCountersList,
                    seq = seq)
             if blockStepInfoList[3] != []:
-                ## TO DO make it possible to have different variable amp wf
                 variableAmplitudeEvent = blockStepInfoList[3][0]
                 normalizedWaveform = variableAmplitudeEvent.waveform
             actionList.append([counter, blockStepInfoList, normalizedWaveform])
@@ -406,3 +417,5 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
 ## gz_spoil = pypulseq.make_trapezoid(channel = "z", 
 ##                                    area = 4 / slice_thickness, 
 ##                                    system = system)
+            
+            
