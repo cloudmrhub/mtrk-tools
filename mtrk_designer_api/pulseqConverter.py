@@ -14,12 +14,11 @@ def fillSequence(sequence_data,
                  plot: bool, 
                  write_seq: bool, 
                  seq_filename: str = "sdl_pypulseq.seq"):
-    # ======
-    # SETUP
-    # ======
-    # Create a new sequence object
+    ############################################################################
+    ## Creating new sequence object and system specifications
+    ############################################################################
+
     seq = pypulseq.Sequence()
-    Ny = sequence_data.infos.pelines 
 
     ## TO DO add these info to SDL
     system = pypulseq.Opts(max_grad = 28,
@@ -30,31 +29,121 @@ def fillSequence(sequence_data,
                            rf_dead_time = 100e-6,
                            adc_dead_time = 10e-6)
 
-    # ======
-    # CREATE EVENTS
-    # ======
+    ############################################################################
+    ## Creating sequence structure from the SDL file
+    ############################################################################
 
+    loopCountersList = []
+    mainBlock = sequence_data.instructions["main"]
+    stepInfoList = extractStepInformation(
+                                        sequence_data = sequence_data, 
+                                        currentBlock = mainBlock, 
+                                        system = system,
+                                        loopCountersList = loopCountersList,
+                                        seq = seq)
+
+    counterRangeList, stepInfoList = extractSequenceStructure( 
+                                        sequence_data = sequence_data, 
+                                        stepInfoList = stepInfoList, 
+                                        system = system, 
+                                        loopCountersList = loopCountersList, 
+                                        seq = seq, 
+                                        counterRange = 0, 
+                                        blockName = "main", 
+                                        counterRangeList = [])
+
+    actionList = organizePulseqBlocks(sequence_data = sequence_data, 
+                                      counterRangeList = counterRangeList, 
+                                      system = system, 
+                                      seq = seq, 
+                                      loopCountersList = loopCountersList)
+ 
+    buildPulseqSequence(seq = seq,
+                        actionIndex = 0, 
+                        actionList = actionList, 
+                        stepInfoList = stepInfoList)
+
+    ############################################################################
+    ## Checking timing
+    ############################################################################
+
+    ok, error_report = seq.check_timing()
+    if ok:
+        print("Timing check passed successfully")
+    else:
+        print("Timing check failed. Error listing follows:")
+        [print(e) for e in error_report]
+
+    ############################################################################
+    ## Plotting and reporting
+    ############################################################################
+    if plot:
+        seq.plot()
+
+    seq.calculate_kspace()
+
+    # Very optional slow step, but useful for testing during development e.g. 
+    # for the real TE, TR or for staying within
+    # slew-rate limits
+    # rep = seq.test_report()
+    # print(rep)
+
+    ############################################################################
+    ## Writitng the sequence in Pulseq .seq format
+    ############################################################################
+
+    slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3
+    fov = sequence_data.infos.fov*1e-3
+    if write_seq:
+        # Prepare the sequence output for the scanner
+        seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
+        seq.set_definition(key="Name", value=sequence_data.infos.seqstring)
+
+        seq.write(seq_filename)
+
+################################################################################
+## Functions to convert from SDL to Pulseq
+################################################################################
+
+def extractStepInformation(sequence_data, currentBlock, system, 
+                           loopCountersList, seq):
     eventList = []
-    timingList = []
-    variableEventsList = []
     rfSpoilingList = []
-    rfSpoilingFlag = False
     allVariableAmplitudesList = []
-    sdlBlockName = "block_TR"
-
-    currentBlock = sequence_data.instructions[sdlBlockName]
+    variableEventsList = []
+    timingList = []
+    rfSpoilingInc = 0
+    rfSpoilingFlag = False
     for stepIndex in range(0, len(currentBlock.steps)):
         if "object" in dict(currentBlock.steps[stepIndex]):
             currentObject = sequence_data.objects[
                                            currentBlock.steps[stepIndex].object]
             if "array" in dict(currentObject):
                 currentArray = sequence_data.arrays[currentObject.array]
-
         match currentBlock.steps[stepIndex].action:
+
+            case "loop":
+                loopCounter = currentBlock.steps[stepIndex].counter
+                loopRange = currentBlock.steps[stepIndex].range
+                loopStepInfoList = \
+                        extractStepInformation(
+                                   sequence_data = sequence_data, 
+                                   currentBlock = currentBlock.steps[stepIndex], 
+                                   system = system,
+                                   loopCountersList = loopCountersList,
+                                   seq = seq)
+                loopEvent = ["loop", loopCounter, loopRange, loopStepInfoList]
+                eventList.append(loopEvent)
+
+            case "run_block":
+                blockToRun = str(currentBlock.steps[stepIndex].block)
+                eventList.append(["run_block", blockToRun])
+
             case "calc":
                 if currentBlock.steps[stepIndex].type == "float_rfspoil":
                     rfSpoilingFlag = True 
-                    rf_spoiling_inc = currentBlock.steps[stepIndex].increment   
+                    rfSpoilingInc = currentBlock.steps[stepIndex].increment 
+
             case "rf":
                 rfSignalArray=[]
                 alpha = currentObject.flipangle
@@ -86,15 +175,14 @@ def fillSequence(sequence_data,
                                 use = currentObject.purpose)
                 eventList.append(rfEvent)
                 if rfSpoilingFlag == True and \
-                                          currentObject.purpose == "excitation":
-                    rfSpoilingList.append(rfEvent) 
+                   currentObject.purpose == "excitation":
+                    rfSpoilingList.append(eventList.index(rfEvent))
 
             case "grad":
                 variableAmplitudeFlag = False
                 gradientArray = []
-                ## TO DO verify this conversion
-                conversionmTmToHzm = 42570
-                gradientAmplitude = currentObject.amplitude*conversionmTmToHzm
+                gyromagneticRatio = 42577 # Hz/T converting mT/m to Hz/m
+                gradientAmplitude = currentObject.amplitude*gyromagneticRatio
                 if "amplitude" in dict(currentBlock.steps[stepIndex]):
                     if currentBlock.steps[stepIndex].amplitude == "flip":
                         gradientAmplitude = -gradientAmplitude
@@ -108,13 +196,12 @@ def fillSequence(sequence_data,
                         equationString = equationString.replace("ctr(1)", 
                                                                 "phaseStep")
                         variableAmplitudesList = []
-                        for phaseStep in range(0, Ny): 
+                        for phaseStep in range(0, sequence_data.infos.pelines): 
                             variableAmplitudesList.append(
-                                        eval(equationString)*conversionmTmToHzm)
+                                        eval(equationString)*gyromagneticRatio)
                         gradientAmplitude = 1
                         allVariableAmplitudesList.append(variableAmplitudesList)
                         variableAmplitudeFlag = True
-
                 for value in currentArray.data:
                     gradientArray.append(gradientAmplitude * value)
                 gradientAxis = ""
@@ -137,7 +224,6 @@ def fillSequence(sequence_data,
                     variableEventsList.append(gradientEvent)
 
             case "adc":
-                ## TO DO manage this delay
                 adc_delay = currentBlock.steps[stepIndex].time
                 adcEvent = pypulseq.make_adc(
                                         num_samples = currentObject.samples, 
@@ -146,14 +232,13 @@ def fillSequence(sequence_data,
                                         system = system)
                 eventList.append(adcEvent)
                 if rfSpoilingFlag == True:
-                    rfSpoilingList.append(adcEvent)
-
+                    rfSpoilingList.append(eventList.index(adcEvent))
             case "mark":
                 eventList.append(pypulseq.make_delay(
                                        currentBlock.steps[stepIndex].time*1e-6))
-
+                
         if "object" in dict(currentBlock.steps[stepIndex]) or\
-                                 currentBlock.steps[stepIndex].action == "mark":
+            currentBlock.steps[stepIndex].action == "mark":
             if currentBlock.steps[stepIndex].action == "sync":
                 pass
             elif currentBlock.steps[stepIndex].action == "mark": 
@@ -165,20 +250,22 @@ def fillSequence(sequence_data,
                 endTime = startTime + currentObject.duration
                 timingList.append([startTime, endTime])
 
-    if len(rfSpoilingList) != 2:
+    if len(rfSpoilingList) != 2 and len(rfSpoilingList) != 0:
+        ## TO DO see if there can be other cases
         print("ERROR in Rf Spoiling")
 
     # Creating an event signature list to facilitate block sorting
     eventSignatureList = []
     eventEndTimes = []
     for eventIndex in range(0, len(eventList)):
-        eventStartTime = timingList[eventIndex][0]
-        eventEndTime = timingList[eventIndex][1]
-        if eventList[eventIndex].type != "delay":
-            eventEndTimes.append(eventEndTime)
-        eventSignature = [eventIndex, eventStartTime, eventEndTime]   
-        eventSignatureList.append(eventSignature)      
-            
+        if type(eventList[eventIndex]) != list:
+            eventStartTime = timingList[eventIndex][0]
+            eventEndTime = timingList[eventIndex][1]
+            if eventList[eventIndex].type != "delay":
+                eventEndTimes.append(eventEndTime)
+            eventSignature = [eventIndex, eventStartTime, eventEndTime]   
+            eventSignatureList.append(eventSignature)     
+
     # Sorting all events in blocks according to their overlapping
     eventIndexBlockList = []
     while eventSignatureList != []:
@@ -194,115 +281,128 @@ def fillSequence(sequence_data,
                 if signatureFound[0] == overlappingEventIndex:
                     eventSignatureList.remove(signatureFound)
         eventIndexBlockList.append(overlappingList)
-
-    # # gradient spoiling
-    # # TO DO !!! use these calculations for our spoilers
-    # delta_k = 1 / fov
-    # phase_areas = (np.arange(Ny) - Ny / 2) * delta_k
-    # gx_spoil = pypulseq.make_trapezoid(channel = "x", 
-    #                                    area = 2 * Nx * delta_k, 
-    #                                    system = system)
-    # gz_spoil = pypulseq.make_trapezoid(channel = "z", 
-    #                                    area = 4 / slice_thickness, 
-    #                                    system = system)
-
-    rf_phase = 0
-    rf_inc = 0
-
-    # ======
-    # CONSTRUCT SEQUENCE
-    # ======
-    # Loop over phase encodes and define sequence blocks
-    if variableEventsList != []:
-        variableAmplitudeEvent = variableEventsList[0]
-        normalizedWaveform = variableAmplitudeEvent.waveform
-
+        
     # Modifying delays
-    ## TO DO make this more flexible, without using match/case
     elapsedDurationList = []
     for blockList in eventIndexBlockList:
-        match len(blockList):
-            case 1:
-                elapsedDuration = pypulseq.calc_duration(
-                                                        eventList[blockList[0]])
-            case 2:
-                elapsedDuration = pypulseq.calc_duration(
-                                                        eventList[blockList[0]], 
-                                                        eventList[blockList[1]])
-            case 3:
-                elapsedDuration = pypulseq.calc_duration(
-                                                        eventList[blockList[0]], 
-                                                        eventList[blockList[1]],
-                                                        eventList[blockList[2]])
+        listToAdd = []
+        for blockIndex in range(0, len(blockList)):
+            listToAdd.append(eventList[blockList[blockIndex]])
+        elapsedDuration = pypulseq.calc_duration(*listToAdd)
         elapsedDurationList.append(elapsedDuration)
-
     for blockListIndex in range(1, len(eventIndexBlockList)):
         for eventIndex in eventIndexBlockList[blockListIndex]:
-            eventList[eventIndex].delay -= elapsedDurationList[blockListIndex-1]
+            eventList[eventIndex].delay -= \
+                                       elapsedDurationList[blockListIndex-1]
             if eventList[eventIndex].delay < seq.grad_raster_time:
                 eventList[eventIndex].delay = 0.0
 
-    # Building sequence
-    for i in range(Ny):
-        if rfSpoilingList != []:
-                ## rfSpoilingList = [rf_event, adc_event]
-                rfSpoilingList[0].phase_offset = rf_phase / 180 * np.pi
-                rfSpoilingList[1].phase_offset = rf_phase / 180 * np.pi
-                rf_inc = divmod(rf_inc + rf_spoiling_inc, 360.0)[1]
+    stepInfoList =  [eventList, rfSpoilingList, 
+                     allVariableAmplitudesList, variableEventsList, 
+                     rfSpoilingInc, eventIndexBlockList]
+    return stepInfoList
+
+def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform, 
+                              rf_inc, rf_phase):
+    # stepInfoList =  [eventList, rfSpoilingList, 
+    #                  allVariableAmplitudesList, variableEventsList, 
+    #                  rfSpoilingInc, eventIndexBlockList]
+    for blockList in stepInfoList[5]:
+        if stepInfoList[3] != []:
+            for variableAmplitudeEventIndex in range(0, len(stepInfoList[3])):
+                variableAmplitudeEvent = \
+                   stepInfoList[3][variableAmplitudeEventIndex]
+                amplitude = \
+                   stepInfoList[2][variableAmplitudeEventIndex][index]
+                variableAmplitudeEvent.waveform = \
+                   amplitude*(normalizedWaveform)
+        listToAdd = []
+        for blockIndex in range(0, len(blockList)):
+            if stepInfoList[0][blockList[blockIndex]].type == "rf" or \
+               stepInfoList[0][blockList[blockIndex]].type == "adc":
+                stepInfoList[0][blockList[blockIndex]].phase_offset = \
+                                                          rf_phase / 180 * np.pi
+                rf_inc = divmod(rf_inc + stepInfoList[4], 360.0)[1]
                 rf_phase = divmod(rf_phase + rf_inc, 360.0)[1]
-        ## TO DO make this more flexible, without using match/case
-        for blockList in eventIndexBlockList:
-            if variableEventsList != []:
-                for variableAmplitudeEventIndex in range(0, 
-                                                       len(variableEventsList)):
-                    variableAmplitudeEvent = \
-                       variableEventsList[variableAmplitudeEventIndex]
-                    amplitude = \
-                       allVariableAmplitudesList[variableAmplitudeEventIndex][i]
-                    variableAmplitudeEvent.waveform = \
-                       amplitude*(normalizedWaveform)
-            match len(blockList):
-                case 1:
-                    seq.add_block(eventList[blockList[0]])
-                case 2:
-                    seq.add_block(eventList[blockList[0]], 
-                                  eventList[blockList[1]])
-                case 3:
-                    seq.add_block(eventList[blockList[0]], 
-                                  eventList[blockList[1]], 
-                                  eventList[blockList[2]])
-    
-    # Check whether the timing of the sequence is correct
-    ok, error_report = seq.check_timing()
-    if ok:
-        print("Timing check passed successfully")
+            listToAdd.append(stepInfoList[0][blockList[blockIndex]])
+        seq.add_block(*listToAdd)
+    return stepInfoList, rf_inc, rf_phase
+                    
+def extractSequenceStructure(sequence_data, stepInfoList, system, 
+                             loopCountersList, seq, counterRange, blockName, 
+                             counterRangeList):
+    for event in stepInfoList[0]:
+        if type(event) == list and event[0] == "loop":
+            counterId = event[1]
+            counterRange = event[2]
+            for loopEvent in event[3][0]:
+                if type(loopEvent) == list and loopEvent[0] == "run_block":
+                    blockName = loopEvent[1]
+                    blockStepInfoList = extractStepInformation(
+                       sequence_data = sequence_data, 
+                       currentBlock = sequence_data.instructions[blockName], 
+                       system = system,
+                       loopCountersList = loopCountersList,
+                       seq = seq)
+                    counterRangeList.append([counterId, counterRange, blockName])
+                    counterRangeList, stepInfoList = \
+                        extractSequenceStructure(
+                                          sequence_data = sequence_data, 
+                                          stepInfoList = blockStepInfoList, 
+                                          system = system, 
+                                          loopCountersList = loopCountersList, 
+                                          seq = seq, 
+                                          counterRange = counterRange, 
+                                          blockName = blockName, 
+                                          counterRangeList = counterRangeList)
+    return counterRangeList, stepInfoList
+
+def organizePulseqBlocks(sequence_data, counterRangeList, system, seq, 
+                         loopCountersList):
+    actionList = []
+    for counter in counterRangeList:
+        if sequence_data.instructions[counter[2]].steps[0].action == "loop":
+            actionList.append([counter])
+        else: 
+            blockStepInfoList = extractStepInformation(
+                   sequence_data = sequence_data, 
+                   currentBlock = sequence_data.instructions[counter[2]], 
+                   system = system,
+                   loopCountersList = loopCountersList,
+                   seq = seq)
+            if blockStepInfoList[3] != []:
+                ## TO DO make it possible to have different variable amp wf
+                variableAmplitudeEvent = blockStepInfoList[3][0]
+                normalizedWaveform = variableAmplitudeEvent.waveform
+            actionList.append([counter, blockStepInfoList, normalizedWaveform])
+    return actionList
+
+def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
+    if len(actionList[actionIndex]) != 1:
+        rf_phase = 0
+        rf_inc = 0
+        for index in range(0, actionList[actionIndex][0][1]):
+            stepInfoList, rf_inc, rf_phase = buildPulseqSequenceBlocks(
+                index = index, 
+                seq = seq, 
+                stepInfoList = actionList[actionIndex][1], 
+                normalizedWaveform = actionList[actionIndex][2], 
+                rf_inc = rf_inc, 
+                rf_phase = rf_phase)
     else:
-        print("Timing check failed. Error listing follows:")
-        [print(e) for e in error_report]
+        for index in range(0, actionList[actionIndex][0][1]):
+            buildPulseqSequence(seq = seq, 
+                                actionIndex = actionIndex + 1, 
+                                actionList = actionList, 
+                                stepInfoList = stepInfoList)
 
-
-    # # ======
-    # VISUALIZATION
-    # ======
-    if plot:
-        seq.plot()
-
-    seq.calculate_kspace()
-
-    # Very optional slow step, but useful for testing during development e.g. 
-    # for the real TE, TR or for staying within
-    # slew-rate limits
-    # rep = seq.test_report()
-    # print(rep)
-
-    # =========
-    # WRITE .SEQ
-    # =========
-    slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3
-    fov = sequence_data.infos.fov*1e-3  # Define FOV and resolution
-    if write_seq:
-        # Prepare the sequence output for the scanner
-        seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
-        seq.set_definition(key="Name", value=sequence_data.infos.seqstring)
-
-        seq.write(seq_filename)
+## gradient spoiling
+## TO DO !!! use these calculations for our spoilers
+## delta_k = 1 / fov
+## phase_areas = (np.arange(Ny) - Ny / 2) * delta_k
+## gx_spoil = pypulseq.make_trapezoid(channel = "x", 
+##                                    area = 2 * Nx * delta_k, 
+##                                    system = system)
+## gz_spoil = pypulseq.make_trapezoid(channel = "z", 
+##                                    area = 4 / slice_thickness, 
+##                                    system = system)
