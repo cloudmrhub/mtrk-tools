@@ -21,7 +21,7 @@ from SDL_read_write.pydanticSDLHandler import *
 
 
 ### loading of sequence data
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\miniflash.mtrk') as sdlFile:
+with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
 

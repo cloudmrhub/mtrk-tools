@@ -83,8 +83,7 @@ def fillSequence(sequence_data,
     seq.calculate_kspace()
 
     # Very optional slow step, but useful for testing during development e.g. 
-    # for the real TE, TR or for staying within
-    # slew-rate limits
+    # for the real TE, TR or for staying within slew-rate limits
     # rep = seq.test_report()
     # print(rep)
 
@@ -187,7 +186,6 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     if currentBlock.steps[stepIndex].amplitude == "flip":
                         gradientAmplitude = -gradientAmplitude
                     else: 
-                        ## TO DO generalize if it is not phase
                         ## TO DO support the case of the spoiler
                         equationName = \
                             currentBlock.steps[stepIndex].amplitude.equation
@@ -259,6 +257,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 eventEndTimes.append(eventEndTime)
             eventSignature = [eventIndex, eventStartTime, eventEndTime]   
             eventSignatureList.append(eventSignature)     
+    eventSignatureList = sorted(eventSignatureList, key=lambda x: x[1])
 
     # Sorting all events in blocks according to their overlapping
     eventIndexBlockList = []
@@ -267,7 +266,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
         overlappingList = [signature[0]]
         eventSignatureList.remove(signature)
         for otherSignature in eventSignatureList:
-            if signature[1] < otherSignature[2] and \
+            if signature[1] <= otherSignature[2] and \
                signature[2] > otherSignature[1]:
                 overlappingList.append(otherSignature[0])
         for overlappingEventIndex in overlappingList:
@@ -275,7 +274,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 if signatureFound[0] == overlappingEventIndex:
                     eventSignatureList.remove(signatureFound)
         eventIndexBlockList.append(overlappingList)
-        
+    # print("+-+-+ eventIndexBlockList " + str(eventIndexBlockList))
+
     # Modifying delays
     elapsedDurationList = []
     for blockList in eventIndexBlockList:
@@ -309,33 +309,30 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform,
                 stringCounterIndex = 0
                 while counterNumberFound == False:
                     if "ctr(" + str(stringCounterIndex) + ")" in \
-                                                         equationString:
-                        stringToReplace = str("ctr(" + str(stringCounterIndex) + ")")
+                                                                 equationString:
+                        stringToReplace = \
+                                     str("ctr(" + str(stringCounterIndex) + ")")
                         counterNumberFound = True
                     stringCounterIndex += 1
-                equationString = equationString.replace(
-                                 stringToReplace, 
-                                 "index")
-                print("+-+-+ index " + str(index))
-                # variableAmplitudesList = []
-                # for counterIndex in range(0, sequence_data.infos.pelines): 
-                #     variableAmplitudesList.append(
-                #                 eval(equationString)*gyromagneticRatio)
+                equationString = equationString.replace(stringToReplace,
+                                                        "index")
                 variableAmplitudeEvent = \
                    stepInfoList[3][variableAmplitudeEventIndex]
-                # amplitude = \
-                #    stepInfoList[2][variableAmplitudeEventIndex][index]
                 gyromagneticRatio = 42577 # Hz/T converting mT/m to Hz/m
                 amplitude = eval(equationString)*gyromagneticRatio
                 variableAmplitudeEvent.waveform = amplitude*(normalizedWaveform)
         listToAdd = []
         for blockIndex in range(0, len(blockList)):
-            if stepInfoList[0][blockList[blockIndex]].type == "rf" or \
-               stepInfoList[0][blockList[blockIndex]].type == "adc":
+            if stepInfoList[0][blockList[blockIndex]].type == "rf":
+                rf_inc += stepInfoList[4]
+                rf_phase += rf_inc
+                rf_phase = divmod(rf_phase, 360.0)[1]
+                rf_inc = divmod(rf_inc, 360.0)[1]
                 stepInfoList[0][blockList[blockIndex]].phase_offset = \
-                                                          rf_phase / 180 * np.pi
-                rf_inc = divmod(rf_inc + stepInfoList[4], 360.0)[1]
-                rf_phase = divmod(rf_phase + rf_inc, 360.0)[1]
+                                                        rf_phase / 180 * np.pi
+            elif stepInfoList[0][blockList[blockIndex]].type == "adc":
+                stepInfoList[0][blockList[blockIndex]].phase_offset = \
+                                                       rf_phase / 180 * np.pi
             listToAdd.append(stepInfoList[0][blockList[blockIndex]])
         seq.add_block(*listToAdd)
     return stepInfoList, rf_inc, rf_phase

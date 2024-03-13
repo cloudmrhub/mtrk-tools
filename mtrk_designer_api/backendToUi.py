@@ -16,7 +16,7 @@ from sdlFileCreator import *
 ### Creating SDL file from web-based UI
 #############################################################
 
-def create_sdl_from_ui_inputs(boxes):
+def create_sdl_from_ui_inputs(boxes, configurations):
     # Initialize SDL file
     # TO DO - need to intialize without loading file
     with open('C:/Users/artiga02/mtrk_seq/examples/miniflash.mtrk') as sdlFile:
@@ -24,7 +24,7 @@ def create_sdl_from_ui_inputs(boxes):
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
 
-    updateSDLFile(sequence_data, boxes)
+    updateSDLFile(sequence_data, boxes, configurations)
     
     ### writing of json schema to SDL file with formatting options
     with open('output.mtrk', 'w') as sdlFileOut:
@@ -35,12 +35,13 @@ def create_sdl_from_ui_inputs(boxes):
         sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) 
         #purely aesthetic
 
-def updateSDLFile(sequence_data, boxes):
+def updateSDLFile(sequence_data, boxes, configurations):
     instructionName = "dummy_instruction_name"
     addInstruction(sequence_data, instructionName)
-    instructionInformationList = getInstructionInformation(boxes = boxes,
-                                                           instructionName = \
-                                                                instructionName)
+    instructionInformationList = getInstructionInformation(
+                                                boxes = boxes,
+                                                instructionName = \
+                                                     instructionName)
     completeInstructionInformation(sequence_data = sequence_data, 
                                    instructionInformationList = \
                                                      instructionInformationList)
@@ -153,11 +154,9 @@ def getStepInformation(box):
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
             timeInfo = int(float(box["start_time"]))
-            # TO DO add "rf_added_phase_type" to the dictionnary
-            # addedPhaseTypeInfo = box["rf_added_phase_type"]
+            addedPhaseTypeInfo = box["rf_added_phase_type"]
             addedPhaseTypeInfo = "dummy_phase_type"
-            # TO DO add "rf_added_phase_float" to the dictionnary
-            # addedPhaseFloatInfo = box["rf_added_phase_float"]
+            addedPhaseFloatInfo = box["rf_added_phase_float"]
             addedPhaseFloatInfo = 0.0
             stepInformationList.extend([objectInfo, objectInformationList, \
                                         timeInfo, addedPhaseTypeInfo, \
@@ -174,11 +173,9 @@ def getStepInformation(box):
             # TO DO add "phase" to the dictionnary
             # phaseInfo = box["phase"]
             phaseInfo = 0
-            # TO DO add "adc_added_phase_type" to the dictionnary
-            # addedPhaseTypeInfo = box["adc_added_phase_type"]
+            addedPhaseTypeInfo = box["adc_added_phase_type"]
             addedPhaseTypeInfo = "dummy_phase"
-            # TO DO add "rf_added_phase_float" to the dictionnary
-            # addedPhaseFloatInfo = box["adc_added_phase_float"]
+            addedPhaseFloatInfo = box["adc_added_phase_float"]
             addedPhaseFloatInfo = 0.0
             # TO DO add "header" to the dictionnary
             # mdhInfoList = box["header"]
@@ -206,10 +203,11 @@ def getStepInformation(box):
     return stepInformationList
             
 def getObjectInformation(typeInfo, box):
-    durationInfo = len(box["array_info"]["array"])
+    durationInfo = len(box["array_info"]["array"])*10
     objectInformationList = [typeInfo, durationInfo]
     match typeInfo:
         case "rf":
+            # durationInfo = box["rf_duration"]
             arrayInfo = typeInfo + "_default_array"
             arrayInformationList = getArrayInformation(box = box)
             # TO DO add "init_phase" to the dictionnary

@@ -47,14 +47,14 @@ def addStep(instructionToModify, stepIndex, actionName):
         case "adc":
             instructionToModify.steps.append( Adc(added_phase = AddedPhase(), \
                                                                         mdh={}))
-            mdhOptAnswer = "yes"
-            while(mdhOptAnswer == "yes"):
-                print("Do you want to add a new MDH option? (yes/no)")
-                mdhOptAnswer = input()
-                if(mdhOptAnswer == "yes"):
-                    addMdhOption(instructionToModify.steps, stepIndex)
-                else:
-                    pass
+            # mdhOptAnswer = "yes"
+            # while(mdhOptAnswer == "yes"):
+            #     print("Do you want to add a new MDH option? (yes/no)")
+            #     mdhOptAnswer = input()
+            #     if(mdhOptAnswer == "yes"):
+            #         addMdhOption(instructionToModify.steps, stepIndex)
+            #     else:
+            #         pass
         case "mark":
             instructionToModify.steps.append(Mark())
         case "submit":
