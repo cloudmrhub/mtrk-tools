@@ -10,15 +10,17 @@ import re
 import ast
 from pprint import pprint
 from devtools import debug
+from numpy import add
 from sdlFileCreator import *
 
 #############################################################
 ### Creating SDL file from web-based UI
 #############################################################
 
-def create_sdl_from_ui_inputs(boxes, configurations):
+def create_sdl_from_ui_inputs(boxes, block_structure, configurations, events):
     # Initialize SDL file
     # TO DO - need to intialize without loading file
+    print("+-+-+ block_structure " + str(block_structure))
     with open('C:/Users/artiga02/mtrk_seq/examples/miniflash.mtrk') as sdlFile:
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
@@ -36,20 +38,66 @@ def create_sdl_from_ui_inputs(boxes, configurations):
         #purely aesthetic
 
 def updateSDLFile(sequence_data, boxes, configurations):
-    instructionName = "dummy_instruction_name"
-    addInstruction(sequence_data, instructionName)
-    instructionInformationList = getInstructionInformation(
-                                                boxes = boxes,
+    keys = boxes.keys()
+    for boxKey in keys:
+        boxList = boxes[boxKey]
+        # if boxKey == "Main":
+        #     pass
+        # else:
+        instructionName = boxKey
+        addInstruction(sequence_data, instructionName)
+        instructionInformationList = getInstructionInformation(
+                                                boxes = boxList,
                                                 instructionName = \
                                                      instructionName)
-    completeInstructionInformation(sequence_data = sequence_data, 
-                                   instructionInformationList = \
+        completeInstructionInformation(sequence_data = sequence_data, 
+                                       instructionInformationList = \
                                                      instructionInformationList)
+    fileInformationList = getFileInformation(configurations = configurations)
+    completeFileInformation(sequence_data = sequence_data, 
+                            fileInformationList = fileInformationList)
+    settingsInformationList = getSequenceSettingsInformation(
+                                                configurations = configurations)
+    completeSequenceSettings(sequence_data = sequence_data, 
+                             settingsInformationList = settingsInformationList)
+    sequenceInfoInformationList = getSequenceInfoInformation(
+                                                configurations = configurations)
+    completeSequenceInformation(
+                      sequence_data = sequence_data, 
+                      sequenceInfoInformationList = sequenceInfoInformationList)
 
         
 #############################################################
 ### Functions to get new values from the web-based UI
 #############################################################
+
+def getFileInformation(configurations):
+    formatInfo = configurations["file"]["format"]
+    versionInfo = configurations["file"]["version"]
+    measurementInfo = configurations["file"]["measurement"]
+    systemInfo = configurations["file"]["system"]
+    fileInformationList = [formatInfo, versionInfo, measurementInfo, 
+                           systemInfo]
+    return fileInformationList
+
+def getSequenceSettingsInformation(configurations):
+    readoutOsInfo = configurations["settings"]["readout"]
+    settingsInformationList = [readoutOsInfo]
+    return settingsInformationList    
+
+def getSequenceInfoInformation(configurations):
+    descriptionInfo = configurations["info"]["description"]
+    slicesInfo = configurations["info"]["slices"]
+    fovInfo = configurations["info"]["fov"]
+    ## TO DO complete pe lines from UI
+    # pelinesInfo = configurations["info"]["pe_lines"]
+    pelinesInfo = "42"
+    seqstringInfo = configurations["info"]["seqstring"]
+    reconstructionInfo = configurations["info"]["reconstruction"]
+    sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 
+                                   pelinesInfo, seqstringInfo, 
+                                   reconstructionInfo]
+    return sequenceInfoInformationList
 
 def getInstructionInformation(boxes, instructionName):
     # TO DO add "message" to the dictionnary
@@ -70,6 +118,8 @@ def getStepInformation(box):
     actionName = box["type"]
     stepInformationList = [actionName]
     match actionName:
+        case "Block":
+            pass
         case "run_block":
             # TO DO add "block_name" to the dictionnary
             # allStepInformationLists = box["block_name"]
@@ -98,14 +148,14 @@ def getStepInformation(box):
             
         case "calc":
             # TO DO add "type" to the dictionnary
-            # allStepInformationLists = box["type"]
-            typeInfo = "dummy_type"
+            typeInfo = box["type"]
+            # typeInfo = "dummy_type"
             # TO DO add "float" to the dictionnary
-            # allStepInformationLists = box["float"]
-            floatInfo = 0.0
+            floatInfo = box["float"]
+            # floatInfo = 0.0
             # TO DO add "increment" to the dictionnary
-            # allStepInformationLists = box["increment"]
-            incrementInfo = 0
+            incrementInfo = box["increment"]
+            # incrementInfo = 0
             stepInformationList.extend([typeInfo, floatInfo, incrementInfo]) 
 
         case "init":

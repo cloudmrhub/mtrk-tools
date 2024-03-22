@@ -136,16 +136,24 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
         else:
             print(printCounterOption + 
                   " is not valid. It should be 'on' or 'off'.")
-        for stepIndex in range(0, len(instructionInformationList[3])):
+        print("+-+-+ instructionInformationList[3] " + str(instructionInformationList[3]))
+        print("+-+-+ instructionToModify.steps " + str(instructionToModify.steps))
+        allStepInformationLists = []
+        for instruction in instructionInformationList[3]:
+            if instruction == ['Block']:
+                print("+-+-+ Block passed")
+            else:
+                allStepInformationLists.append(instruction)
+        for stepIndex in range(0, len(allStepInformationLists)):
             ## stepInformationList = [actionName, actionSpecificElements...]
             addStep(instructionToModify = instructionToModify, 
                     stepIndex = stepIndex, 
-                    actionName = instructionInformationList[3][stepIndex][0])
+                    actionName = allStepInformationLists[stepIndex][0])
             stepToModify = instructionToModify.steps[stepIndex]
             completeStepInformation(sequence_data = sequence_data, 
                                     stepToModify = stepToModify, 
                                     stepInformationList = \
-                                       instructionInformationList[3][stepIndex])
+                                       allStepInformationLists[stepIndex])
 
 def completeStepInformation(sequence_data, stepToModify, stepInformationList):
     ## stepInformationList = [actionName, actionSpecificElements...]
