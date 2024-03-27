@@ -5,28 +5,31 @@
 ################################################################################  
 
 import json
+from turtle import pu
 import jsbeautifier
 import re
 import ast
 from pprint import pprint
 from devtools import debug
 from numpy import add
+import pure_eval
 from sdlFileCreator import *
 
 #############################################################
 ### Creating SDL file from web-based UI
 #############################################################
 
-def create_sdl_from_ui_inputs(boxes, block_structure, configurations, events):
+def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_loops, \
+                              block_number_to_block_object, configurations, events):
     # Initialize SDL file
     # TO DO - need to intialize without loading file
-    print("+-+-+ block_structure " + str(block_structure))
     with open('C:/Users/artiga02/mtrk_seq/examples/miniflash.mtrk') as sdlFile:
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
 
-    updateSDLFile(sequence_data, boxes, configurations)
+    updateSDLFile(sequence_data, block_to_box_objects, configurations,
+                  block_number_to_block_object, block_to_loops, events)
     
     ### writing of json schema to SDL file with formatting options
     with open('output.mtrk', 'w') as sdlFileOut:
@@ -37,14 +40,20 @@ def create_sdl_from_ui_inputs(boxes, block_structure, configurations, events):
         sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) 
         #purely aesthetic
 
-def updateSDLFile(sequence_data, boxes, configurations):
+def updateSDLFile(sequence_data, boxes, configurations, 
+                  block_number_to_block_object, block_to_loops, events):
     keys = boxes.keys()
     for boxKey in keys:
         boxList = boxes[boxKey]
-        # if boxKey == "Main":
-        #     pass
-        # else:
-        instructionName = boxKey
+        for box in boxList:
+            if box["type"] == "Block":
+                box["type"] = "loop"
+                box["name"] = block_number_to_block_object[str(box["block"])]["name"]
+                box["loop_number"] = block_to_loops[box["name"]]
+        if boxKey == "Main":
+            instructionName = "main"
+        else:
+            instructionName = boxKey
         addInstruction(sequence_data, instructionName)
         instructionInformationList = getInstructionInformation(
                                                 boxes = boxList,
@@ -89,9 +98,7 @@ def getSequenceInfoInformation(configurations):
     descriptionInfo = configurations["info"]["description"]
     slicesInfo = configurations["info"]["slices"]
     fovInfo = configurations["info"]["fov"]
-    ## TO DO complete pe lines from UI
-    # pelinesInfo = configurations["info"]["pe_lines"]
-    pelinesInfo = "42"
+    pelinesInfo = configurations["info"]["pe_lines"]
     seqstringInfo = configurations["info"]["seqstring"]
     reconstructionInfo = configurations["info"]["reconstruction"]
     sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 
@@ -109,7 +116,10 @@ def getInstructionInformation(boxes, instructionName):
     allStepInformationLists = []
     for box in boxes:
         stepInformationList = getStepInformation(box)
-        allStepInformationLists.append(stepInformationList)
+        if box["type"] == "loop" and stepInformationList in allStepInformationLists:
+            pass
+        else:
+            allStepInformationLists.append(stepInformationList)
     instructionInformationList = [instructionName, printMessageInfo,\
                                   printCounterInfo, allStepInformationLists]
     return instructionInformationList
@@ -118,31 +128,23 @@ def getStepInformation(box):
     actionName = box["type"]
     stepInformationList = [actionName]
     match actionName:
-        case "Block":
-            pass
         case "run_block":
-            # TO DO add "block_name" to the dictionnary
-            # allStepInformationLists = box["block_name"]
-            blockName = "dummy_block_name"
-            blockInformationList = getInstructionInformation(blockName)
-            stepInformationList.extend([blockName, blockInformationList])
+            blockName = box["name"]
+            stepInformationList.extend([blockName])
 
         case "loop":
-            # TO DO add "counter_number" to the dictionnary
-            # allStepInformationLists = box["counter_number"]
-            counterInfo = 1
-            # TO DO add "counter_range" to the dictionnary
-            # allStepInformationLists = box["counter_range"]
-            rangeInfo = 1
+            counterInfo = box["block"]
+            rangeInfo = box["loop_number"]
             # TO DO add "all_step_info_lists" to the dictionnary
             # allStepInformationLists = box["all_step_info_lists"]
             # TO DO We need to decide either giving directly the 
             # all_step_info_lists or giving a list of step information from 
-            # which it is extracted. 
+            # which it is extracted.
+            derivedBox = {'type': 'run_block', 'name': box["name"]} 
             allStepInformationLists = []
-            for stepInformationList in allStepInformationLists:
-                newStepInformationList = getStepInformation()
-                allStepInformationLists.append(newStepInformationList)
+            # for stepInformationList in allStepInformationLists:
+            newStepInformationList = getStepInformation(derivedBox)
+            allStepInformationLists.append(newStepInformationList)
             stepInformationList.extend([counterInfo, rangeInfo, 
                                         allStepInformationLists])  
             
@@ -183,20 +185,16 @@ def getStepInformation(box):
             timeInfo = int(float(box["start_time"]))
             stepInformationList.extend([axisInfo, objectInfo, 
                                         objectInformationList, timeInfo]) 
-            # TO DO add "amplitude_flip" to the dictionnary
-            # if(box["amplitude_flip"]=="true"):
-            #     flipAmplitudeInfo = "flip"
-            #     stepInformationList.extend([flipAmplitudeInfo])
-            if(box["variable_amplitude"]=="true"):
+            if str(box["flip_amplitude"]) == "True":
+                flipAmplitudeInfo = "flip"
+                stepInformationList.extend([flipAmplitudeInfo])
+            if str(box["variable_amplitude"]) == "True":
                 amplitudeTypeInfo = "equation"
-                # TO DO add "equation_name" to the dictionnary
-                # amplitudeEquationNameInfo = box["equation_name"]
-                amplitudeEquationNameInfo = "dummy_eq_name"
+                amplitudeEquationNameInfo = box["equation_info"]["name"]
+                print("+-+-+ amplitudeEquationNameInfo " + str(amplitudeEquationNameInfo))
                 stepInformationList.extend([amplitudeTypeInfo, 
                                             amplitudeEquationNameInfo])
-                # TO DO add "equation_expression" to the dictionnary
-                # equationInfo = box["equation_expression"]
-                equationInfo = "dummy_equation_expression"
+                equationInfo = box["equation_info"]["expression"]
                 stepInformationList.extend([equationInfo])
 
         case "rf":
@@ -205,28 +203,21 @@ def getStepInformation(box):
                                                          box = box)
             timeInfo = int(float(box["start_time"]))
             addedPhaseTypeInfo = box["rf_added_phase_type"]
-            addedPhaseTypeInfo = "dummy_phase_type"
             addedPhaseFloatInfo = box["rf_added_phase_float"]
-            addedPhaseFloatInfo = 0.0
             stepInformationList.extend([objectInfo, objectInformationList, \
                                         timeInfo, addedPhaseTypeInfo, \
                                         addedPhaseFloatInfo])
         
         case "adc":
+            print("+-+-+ box: ", str(box))
             objectInfo = box["name"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
             timeInfo = int(float(box["start_time"]))
-            # TO DO add "frequency" to the dictionnary
-            # frequencyInfo = box["frequency"]
-            frequencyInfo = 0
-            # TO DO add "phase" to the dictionnary
-            # phaseInfo = box["phase"]
-            phaseInfo = 0
+            frequencyInfo = box["frequency"]
+            phaseInfo = box["phase"]
             addedPhaseTypeInfo = box["adc_added_phase_type"]
-            addedPhaseTypeInfo = "dummy_phase"
             addedPhaseFloatInfo = box["adc_added_phase_float"]
-            addedPhaseFloatInfo = 0.0
             # TO DO add "header" to the dictionnary
             # mdhInfoList = box["header"]
             mdhInfoList = []
@@ -257,27 +248,18 @@ def getObjectInformation(typeInfo, box):
     objectInformationList = [typeInfo, durationInfo]
     match typeInfo:
         case "rf":
-            # durationInfo = box["rf_duration"]
-            arrayInfo = typeInfo + "_default_array"
+            arrayInfo = box["array_info"]["name"]
             arrayInformationList = getArrayInformation(box = box)
-            # TO DO add "init_phase" to the dictionnary
-            # initPhaseInfo = box["init_phase"]
-            initPhaseInfo = 0
-            # TO DO add "thickness" to the dictionnary
-            # thicknessInfo = box["thickness"]
-            thicknessInfo = 0
-            # TO DO add "flip_angle" to the dictionnary
-            # flipAngleInfo = box["flip_angle"]
-            flipAngleInfo = 0
-            # TO DO add "purpose" to the dictionnary
-            # purposeInfo = box["purpose"]
-            purposeInfo = "dummy_purpose"
+            initPhaseInfo = box["init_phase"]
+            thicknessInfo = box["thickness"]
+            flipAngleInfo = box["flip_angle"]
+            purposeInfo = box["purpose"]
             objectInformationList.extend([arrayInfo, arrayInformationList, \
                                           initPhaseInfo, thicknessInfo, \
                                           flipAngleInfo, purposeInfo])
             
         case "grad":
-            arrayName = typeInfo + "_default_array"
+            arrayName = box["array_info"]["name"]
             arrayInformationList = getArrayInformation(box = box)
             # TO DO add "tail" to the dictionnary
             # tailInfo = box["tail"]
@@ -287,12 +269,8 @@ def getObjectInformation(typeInfo, box):
                                           tailInfo, amplitudeInfo])
             
         case "adc":
-            # TO DO add "samples" to the dictionnary
-            # samplesInfo = box["samples"]
-            samplesInfo = 0
-            # TO DO add "dwell_time" to the dictionnary
-            # dwelltimeInfo = box["dwell_time"]
-            dwelltimeInfo = 0
+            samplesInfo = box["samples"]
+            dwelltimeInfo = box["dwell_time"]
             objectInformationList.extend([samplesInfo, dwelltimeInfo])
 
         case "sync":

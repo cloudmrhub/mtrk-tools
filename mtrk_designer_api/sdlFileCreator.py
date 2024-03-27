@@ -28,39 +28,42 @@ def addInstruction(sequence_data, instructionName):
 
 
 def addStep(instructionToModify, stepIndex, actionName):
-    match actionName:
-        case "run_block":
-            instructionToModify.steps.append(RunBlock())
-            print("Disclaimer: no actual block created here, it will be created if you provide information for the step.")
-        case "loop":
-            instructionToModify.steps.append(Loop(steps=[]))
-        case "calc":
-            instructionToModify.steps.append(Calc())
-        case "init":
-            instructionToModify.steps.append(Init())
-        case "sync":
-            instructionToModify.steps.append(Sync())
-        case "grad":
-            instructionToModify.steps.append(Grad())
-        case "rf":
-            instructionToModify.steps.append( Rf(added_phase = AddedPhase()))
-        case "adc":
-            instructionToModify.steps.append( Adc(added_phase = AddedPhase(), \
-                                                                        mdh={}))
-            # mdhOptAnswer = "yes"
-            # while(mdhOptAnswer == "yes"):
-            #     print("Do you want to add a new MDH option? (yes/no)")
-            #     mdhOptAnswer = input()
-            #     if(mdhOptAnswer == "yes"):
-            #         addMdhOption(instructionToModify.steps, stepIndex)
-            #     else:
-            #         pass
-        case "mark":
-            instructionToModify.steps.append(Mark())
-        case "submit":
-            instructionToModify.steps.append(Submit())
-        case _: 
-            print(actionName + " is not available")    
+    try:
+        match actionName:
+            case "run_block":
+                instructionToModify.steps.append(RunBlock())
+                print("Disclaimer: no actual block created here, it will be created if you provide information for the step.")
+            case "loop":
+                instructionToModify.steps.append(Loop(steps=[]))
+            case "calc":
+                instructionToModify.steps.append(Calc())
+            case "init":
+                instructionToModify.steps.append(Init())
+            case "sync":
+                instructionToModify.steps.append(Sync())
+            case "grad":
+                instructionToModify.steps.append(Grad())
+            case "rf":
+                instructionToModify.steps.append( Rf(added_phase = AddedPhase()))
+            case "adc":
+                instructionToModify.steps.append( Adc(added_phase = AddedPhase(), \
+                                                                            mdh={}))
+                # mdhOptAnswer = "yes"
+                # while(mdhOptAnswer == "yes"):
+                #     print("Do you want to add a new MDH option? (yes/no)")
+                #     mdhOptAnswer = input()
+                #     if(mdhOptAnswer == "yes"):
+                #         addMdhOption(instructionToModify.steps, stepIndex)
+                #     else:
+                #         pass
+            case "mark":
+                instructionToModify.steps.append(Mark())
+            case "submit":
+                instructionToModify.steps.append(Submit())
+            case _:
+                raise ValueError(actionName + " is not available")
+    except ValueError as e:
+        print(str(e))
 
 
 def addMdhOption(stepToModify, stepIndex):
@@ -70,17 +73,20 @@ def addMdhOption(stepToModify, stepIndex):
 
 
 def addObject(sequence_data, objectName, typeName):
-    match typeName:
-        case "rf":
-           sequence_data.objects[objectName]=RfExcitation() 
-        case "grad":
-            sequence_data.objects[objectName]=GradientObject() 
-        case "adc":
-            sequence_data.objects[objectName]=AdcReadout() 
-        case "sync":
-            sequence_data.objects[objectName]=Ttl() 
-        case _:
-            print(typeName + " is not available")
+    try:
+        match typeName:
+            case "rf":
+                sequence_data.objects[objectName] = RfExcitation()
+            case "grad":
+                sequence_data.objects[objectName] = GradientObject()
+            case "adc":
+                sequence_data.objects[objectName] = AdcReadout()
+            case "sync":
+                sequence_data.objects[objectName] = Ttl()
+            case _:
+                raise ValueError(typeName + " is not available")
+    except ValueError as e:
+        print(str(e))
 
 
 def addArray(sequence_data, arrayName):
@@ -136,8 +142,6 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
         else:
             print(printCounterOption + 
                   " is not valid. It should be 'on' or 'off'.")
-        print("+-+-+ instructionInformationList[3] " + str(instructionInformationList[3]))
-        print("+-+-+ instructionToModify.steps " + str(instructionToModify.steps))
         allStepInformationLists = []
         for instruction in instructionInformationList[3]:
             if instruction == ['Block']:
@@ -161,17 +165,19 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
         actionInfo = stepInformationList[0]
         match actionInfo:
             case "run_block":
+                stepToModify.block = stepInformationList[1]
                 ## stepInformationList = [actionName, blockName, 
                 ##                        blockInformationList]
-                stepToModify.block= stepInformationList[1]
-                addInstruction(sequence_data, stepToModify.block)
-                if(stepInformationList[2]!= []):
-                    completeInstructionInformation(
-                                               sequence_data = sequence_data, 
-                                               instructionInformationList = \
-                                                         stepInformationList[2])
-                else:
-                    print("Default Array information used.")
+                ## NEEDED for console UI
+                # stepToModify.block= stepInformationList[1]
+                # addInstruction(sequence_data, stepToModify.block)
+                # if(stepInformationList[2]!= []):
+                #     completeInstructionInformation(
+                #                                sequence_data = sequence_data, 
+                #                                instructionInformationList = \
+                #                                          stepInformationList[2])
+                # else:
+                #     print("Default Array information used.")
             case "loop":
                 ## stepInformationList = [actionName, counterInfo, rangeInfo, 
                 ##                        allStepInformationLists]
@@ -271,6 +277,7 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 stepToModify.added_phase = AddedPhase()
                 stepToModify.added_phase.type = stepInformationList[4]
                 stepToModify.added_phase.float = stepInformationList[5]
+
             case "adc":
                 ## stepInformationList = [actionName, objectInfo, 
                 ##                        objectInformationList, timeInfo, 
