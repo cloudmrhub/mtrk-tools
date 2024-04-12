@@ -258,6 +258,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
             eventSignature = [eventIndex, eventStartTime, eventEndTime]   
             eventSignatureList.append(eventSignature)     
     eventSignatureList = sorted(eventSignatureList, key=lambda x: x[1])
+    # print("+-+-+ eventSignatureList " + str(eventSignatureList))
 
     # Sorting all events in blocks according to their overlapping
     eventIndexBlockList = []
@@ -275,6 +276,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     eventSignatureList.remove(signatureFound)
         eventIndexBlockList.append(overlappingList)
     # print("+-+-+ eventIndexBlockList " + str(eventIndexBlockList))
+
 
     # Modifying delays
     elapsedDurationList = []

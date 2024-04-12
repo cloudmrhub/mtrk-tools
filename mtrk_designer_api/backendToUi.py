@@ -20,7 +20,7 @@ from sdlFileCreator import *
 #############################################################
 
 def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_loops, \
-                              block_number_to_block_object, configurations, events):
+                              block_to_duration, block_number_to_block_object, configurations):
     # Initialize SDL file
     # TO DO - need to intialize without loading file
     with open('C:/Users/artiga02/mtrk_seq/examples/miniflash.mtrk') as sdlFile:
@@ -29,7 +29,7 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_lo
     sdlInitialize(sequence_data)
 
     updateSDLFile(sequence_data, block_to_box_objects, configurations,
-                  block_number_to_block_object, block_to_loops, events)
+                  block_number_to_block_object, block_to_loops, block_to_duration)
     
     ### writing of json schema to SDL file with formatting options
     with open('output.mtrk', 'w') as sdlFileOut:
@@ -41,19 +41,29 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_lo
         #purely aesthetic
 
 def updateSDLFile(sequence_data, boxes, configurations, 
-                  block_number_to_block_object, block_to_loops, events):
+                  block_number_to_block_object, block_to_loops, block_to_duration):
     keys = boxes.keys()
     for boxKey in keys:
         boxList = boxes[boxKey]
         for box in boxList:
+            ## TO DO tell Aman to intervert the values
+            if box["type"] == "event":
+                box["type"] = box["axis"]
+                box["axis"] = "event"
             if box["type"] == "Block":
                 box["type"] = "loop"
                 box["name"] = block_number_to_block_object[str(box["block"])]["name"]
                 box["loop_number"] = block_to_loops[box["name"]]
+                if {"type": "mark", "start_time": box["start_time"] + block_to_duration[box["name"]]*1e3} in boxes[box["name"]]:
+                    pass
+                else:
+                    boxes[box["name"]].append({"type": "mark", "start_time": box["start_time"] + block_to_duration[box["name"]]*1e3})
+                    boxes[box["name"]].append({"type": "submit"})
         if boxKey == "Main":
             instructionName = "main"
         else:
             instructionName = boxKey
+        
         addInstruction(sequence_data, instructionName)
         instructionInformationList = getInstructionInformation(
                                                 boxes = boxList,
@@ -149,32 +159,27 @@ def getStepInformation(box):
                                         allStepInformationLists])  
             
         case "calc":
-            # TO DO add "type" to the dictionnary
-            typeInfo = box["type"]
-            # typeInfo = "dummy_type"
-            # TO DO add "float" to the dictionnary
-            floatInfo = box["float"]
-            # floatInfo = 0.0
-            # TO DO add "increment" to the dictionnary
-            incrementInfo = box["increment"]
-            # incrementInfo = 0
+            print("+-+-+ calc")
+            typeInfo = box["inputCalcActionType"]
+            floatInfo = box["inputCalcFloat"]
+            incrementInfo = box["inputCalcIncrement"]
             stepInformationList.extend([typeInfo, floatInfo, incrementInfo]) 
 
         case "init":
-            # TO DO add "gradient_mode" to the dictionnary
-            # allStepInformationLists = box["gradient_mode"]
-            gradientInfo = "dummy_gradient_mode"
+            print("+-+-+ init")
+            gradientInfo = box["inputInitActionGradients"]
             stepInformationList.extend([gradientInfo]) 
 
         case "sync":
+            print("+-+-+ sync")
+            # TO DO Ask Aman to add the object name
             # TO DO add "object_name" to the dictionnary
             # allStepInformationLists = box["object_name"]
-            objectInfo = "dummy_object_name"
-            objectInformationList = getObjectInformation(actionName)
-            # TO DO add "time" to the dictionnary
-            # allStepInformationLists = box["time"]
-            timeInfo = 0
-            stepInformationList.extend([objectInfo, objectInformationList, 
+            objectInfo = "dummy_event"
+            objectInformationList = getObjectInformation(typeInfo = actionName, 
+                                                         box = box)
+            timeInfo = box["inputSyncTime"]
+            stepInformationList.extend([objectInfo, objectInformationList,
                                         timeInfo]) 
             
         case "grad":
@@ -191,7 +196,6 @@ def getStepInformation(box):
             if str(box["variable_amplitude"]) == "True":
                 amplitudeTypeInfo = "equation"
                 amplitudeEquationNameInfo = box["equation_info"]["name"]
-                print("+-+-+ amplitudeEquationNameInfo " + str(amplitudeEquationNameInfo))
                 stepInformationList.extend([amplitudeTypeInfo, 
                                             amplitudeEquationNameInfo])
                 equationInfo = box["equation_info"]["expression"]
@@ -209,7 +213,6 @@ def getStepInformation(box):
                                         addedPhaseFloatInfo])
         
         case "adc":
-            print("+-+-+ box: ", str(box))
             objectInfo = box["name"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
@@ -231,9 +234,8 @@ def getStepInformation(box):
                                         mdhInfoList])
             
         case "mark":
-            # TO DO add "time" to the dictionnary
-            # mdhInfoList = box["time"]
-            timeInfo = 0.0
+            print("+-+-+ mark")
+            timeInfo = box["start_time"]
             stepInformationList.extend([timeInfo])
 
         case "submit":
@@ -244,40 +246,51 @@ def getStepInformation(box):
     return stepInformationList
             
 def getObjectInformation(typeInfo, box):
-    durationInfo = len(box["array_info"]["array"])*10
-    objectInformationList = [typeInfo, durationInfo]
+    objectInformationList = [typeInfo]
     match typeInfo:
         case "rf":
+            ## TO DO make the duration step flexible
+            durationInfo = len(box["array_info"]["array"])*20
             arrayInfo = box["array_info"]["name"]
             arrayInformationList = getArrayInformation(box = box)
             initPhaseInfo = box["init_phase"]
             thicknessInfo = box["thickness"]
             flipAngleInfo = box["flip_angle"]
             purposeInfo = box["purpose"]
-            objectInformationList.extend([arrayInfo, arrayInformationList, \
+            objectInformationList.extend([durationInfo, arrayInfo, arrayInformationList, \
                                           initPhaseInfo, thicknessInfo, \
                                           flipAngleInfo, purposeInfo])
             
         case "grad":
+            durationInfo = len(box["array_info"]["array"])*10
             arrayName = box["array_info"]["name"]
             arrayInformationList = getArrayInformation(box = box)
             # TO DO add "tail" to the dictionnary
             # tailInfo = box["tail"]
             tailInfo = 0
             amplitudeInfo = box['amplitude']
-            objectInformationList.extend([arrayName, arrayInformationList, \
+            objectInformationList.extend([durationInfo, arrayName, arrayInformationList, \
                                           tailInfo, amplitudeInfo])
             
         case "adc":
+            durationInfo = box["adc_duration"]*1e3
             samplesInfo = box["samples"]
             dwelltimeInfo = box["dwell_time"]
-            objectInformationList.extend([samplesInfo, dwelltimeInfo])
+            objectInformationList.extend([durationInfo, samplesInfo, dwelltimeInfo])
 
         case "sync":
             # TO DO add "event" to the dictionnary
             # eventInfo = box["event"]
+            # TO DO ask Aman to add duration
+            durationInfo = 10
             eventInfo = "dummy_event"
-            objectInformationList.extend([eventInfo])
+            objectInformationList.extend([durationInfo, eventInfo])
+
+        case "init":
+            pass
+
+        case "calc":
+            pass
 
         case _:
             print("The type " + typeInfo + " could not be identified.")
