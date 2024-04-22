@@ -5,14 +5,11 @@
 ################################################################################  
 
 import json
-#from turtle import pu
 import jsbeautifier
 import re
 import ast
 from pprint import pprint
-#from devtools import debug
 from numpy import add
-#import pure_eval
 from sdlFileCreator import *
 
 #############################################################
@@ -46,7 +43,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
     for boxKey in keys:
         boxList = boxes[boxKey]
         for box in boxList:
-            ## TO DO tell Aman to intervert the values
+            ## TO DO intervert the values
             if box["type"] == "event":
                 box["type"] = box["axis"]
                 box["axis"] = "event"
@@ -59,16 +56,31 @@ def updateSDLFile(sequence_data, boxes, configurations,
                 else:
                     boxes[box["name"]].append({"type": "mark", "start_time": box["start_time"] + block_to_duration[box["name"]]*1e3})
                     boxes[box["name"]].append({"type": "submit"})
-        if boxKey == "Main":
-            instructionName = "main"
-        else:
-            instructionName = boxKey
+            if boxKey == "Main":
+                instructionName = "main"
+                instructionHeader = ["Main loop", "on"]
+                ## TO DO put this information in the right place
+                print("+-+-+ testou " + str(bool(block_number_to_block_object)))
+                savedInstructionHeader = []
+                if bool(block_number_to_block_object):
+                    if block_number_to_block_object[str(box["block"])]["print_counter"] == True:
+                        printCounter = "on"
+                    else:
+                        printCounter = "off"
+                    savedInstructionHeader = [block_number_to_block_object[str(box["block"])]["message"],
+                                              printCounter]
+            else:
+                instructionName = boxKey
+                instructionHeader = savedInstructionHeader
+                
+                
         
         addInstruction(sequence_data, instructionName)
         instructionInformationList = getInstructionInformation(
                                                 boxes = boxList,
                                                 instructionName = \
-                                                     instructionName)
+                                                     instructionName,
+                                                instructionHeader = instructionHeader)
         completeInstructionInformation(sequence_data = sequence_data, 
                                        instructionInformationList = \
                                                      instructionInformationList)
@@ -116,13 +128,9 @@ def getSequenceInfoInformation(configurations):
                                    reconstructionInfo]
     return sequenceInfoInformationList
 
-def getInstructionInformation(boxes, instructionName):
-    # TO DO add "message" to the dictionnary
-    # printMessageInfo = box["message"]
-    printMessageInfo = "dummy_message"
-    # TO DO add "print_counter_on_off" to the dictionnary
-    # printCounterInfo = box["print_counter_on_off"]
-    printCounterInfo = "off"
+def getInstructionInformation(boxes, instructionName, instructionHeader):
+    printMessageInfo = instructionHeader[0]
+    printCounterInfo = instructionHeader[1]
     allStepInformationLists = []
     for box in boxes:
         stepInformationList = getStepInformation(box)
@@ -159,23 +167,17 @@ def getStepInformation(box):
                                         allStepInformationLists])  
             
         case "calc":
-            print("+-+-+ calc")
             typeInfo = box["inputCalcActionType"]
             floatInfo = box["inputCalcFloat"]
             incrementInfo = box["inputCalcIncrement"]
             stepInformationList.extend([typeInfo, floatInfo, incrementInfo]) 
 
         case "init":
-            print("+-+-+ init")
             gradientInfo = box["inputInitActionGradients"]
             stepInformationList.extend([gradientInfo]) 
 
         case "sync":
-            print("+-+-+ sync")
-            # TO DO Ask Aman to add the object name
-            # TO DO add "object_name" to the dictionnary
-            # allStepInformationLists = box["object_name"]
-            objectInfo = "dummy_event"
+            objectInfo = box["inputSyncObject"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
             timeInfo = box["inputSyncTime"]
@@ -234,7 +236,6 @@ def getStepInformation(box):
                                         mdhInfoList])
             
         case "mark":
-            print("+-+-+ mark")
             timeInfo = box["start_time"]
             stepInformationList.extend([timeInfo])
 
@@ -279,11 +280,8 @@ def getObjectInformation(typeInfo, box):
             objectInformationList.extend([durationInfo, samplesInfo, dwelltimeInfo])
 
         case "sync":
-            # TO DO add "event" to the dictionnary
-            # eventInfo = box["event"]
-            # TO DO ask Aman to add duration
-            durationInfo = 10
-            eventInfo = "dummy_event"
+            eventInfo = box["inputSyncEventParam"]
+            durationInfo = box["inputSyncDuration"]
             objectInformationList.extend([durationInfo, eventInfo])
 
         case "init":
