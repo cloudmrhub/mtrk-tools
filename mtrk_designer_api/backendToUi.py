@@ -20,7 +20,7 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_lo
                               block_to_duration, block_number_to_block_object, configurations):
     # Initialize SDL file
     # TO DO - need to intialize without loading file
-    with open('C:/Users/artiga02/mtrk_seq/examples/miniflash.mtrk') as sdlFile:
+    with open('init_data/miniflash.mtrk') as sdlFile:
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
