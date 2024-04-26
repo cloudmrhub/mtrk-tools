@@ -11,6 +11,7 @@ import ast
 from pprint import pprint
 from numpy import add
 from sdlFileCreator import *
+import os
 
 #############################################################
 ### Creating SDL file from web-based UI
@@ -20,7 +21,8 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_lo
                               block_to_duration, block_number_to_block_object, configurations):
     # Initialize SDL file
     # TO DO - need to intialize without loading file
-    with open('init_data/miniflash.mtrk') as sdlFile:
+    file_path = os.path.abspath("mtrk_designer_api/init_data/miniflash.mtrk")
+    with open(file_path) as sdlFile:
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
