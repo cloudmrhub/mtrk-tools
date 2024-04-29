@@ -82,6 +82,7 @@ for index in range(0, 128):
     realPartSum += rfWaveform[index] * np.cos(phaseArray[index])
     imaginaryPartSum += rfWaveform[index] * np.sin(phaseArray[index])
 
+## Work in progress, do not use.
 amplitudeIntegral = np.sqrt(pow(realPartSum,2) + pow(imaginaryPartSum,2))
 print("amplitudeIntegral " + str(amplitudeIntegral))
 

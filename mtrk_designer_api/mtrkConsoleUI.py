@@ -12,6 +12,15 @@ from sdlFileCreator import *
 #############################################################
 
 def mtrkConsoleUI(sequence_data):
+    """
+    This function provides a console-based user interface for configuring a sequence.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object to be modified.
+
+    Returns:
+        SequenceData: The modified sequence data object.
+    """
     sdlInitialize(sequence_data)
 
     ### file section
@@ -71,6 +80,12 @@ def mtrkConsoleUI(sequence_data):
 #############################################################
 
 def getFileInformation():
+    """
+    Prompts the user to enter file information and returns a list containing the entered information.
+
+    Returns:
+        list: A list containing the format, version, measurement, and system information entered by the user.
+    """
     print("format (str)")
     formatInfo = input()
     print("version (int)")
@@ -83,12 +98,30 @@ def getFileInformation():
     return fileInformationList
 
 def getSequenceSettings():
+    """
+    Retrieves the sequence settings from the user.
+
+    Returns:
+        list: A list containing the sequence settings information.
+    """
     print("readout_os (int)")
     readoutOsInfo = input()
     settingsInformationList = [readoutOsInfo]
     return settingsInformationList
 
 def getSequenceInformation():
+    """
+    Prompts the user to enter sequence information and returns a list of the entered information.
+
+    Returns:
+        list: A list containing the following sequence information:
+            - description (str)
+            - slices (int)
+            - fov (int)
+            - pelines (int)
+            - seqstring (str)
+            - reconstruction (str)
+    """
     print("description (str)")
     descriptionInfo = input()
     print("slices (int)")
@@ -107,6 +140,15 @@ def getSequenceInformation():
     return sequenceInfoInformationList
 
 def getInstructionInformation(instructionName):
+    """
+    Retrieves information for a specific instruction.
+
+    Args:
+        instructionName (str): The name of the instruction.
+
+    Returns:
+        list: A list containing the instruction name, print message info, print counter info, and a list of step information lists.
+    """
     print("Message to print (str): ")
     printMessageInfo = input()
     print("Printing counter option (on/off): ")
@@ -132,6 +174,13 @@ def getInstructionInformation(instructionName):
     return instructionInformationList
 
 def getStepInformation():
+    """
+    Prompts the user to provide step information based on the selected action type.
+    Returns a list containing the step information.
+
+    Returns:
+        list: A list containing the step information based on the selected action type.
+    """
     print("Provide step action type: ")
     print("Action (run_block/loop/calc/init/sync/grad/rf/adc/mark/submit): ")
     actionName = input()
@@ -287,6 +336,19 @@ def getStepInformation():
     return stepInformationList
 
 def getObjectInformation(typeInfo):
+    """
+    Get information for an object of the given type.
+
+    Args:
+        typeInfo (str): The type of the object.
+
+    Returns:
+        list: A list containing the object information based on the type.
+
+    Raises:
+        None
+
+    """
     print("Provide information for object of type " + str(typeInfo) + ": ")
     print("duration (int)")
     durationInfo = input()
@@ -340,6 +402,16 @@ def getObjectInformation(typeInfo):
     return objectInformationList
 
 def getArrayInformation():
+    """
+    Prompts the user to enter information about an array and returns the array information as a list.
+
+    Returns:
+        list: A list containing the following information about the array:
+            - encoding (str)
+            - type (str)
+            - size (int)
+            - data (list of floats)
+    """
     print("encoding (str)")
     encodingInfo = input()
     print("type (str)")

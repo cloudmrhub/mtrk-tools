@@ -14,6 +14,15 @@ from struct import pack, unpack
 import io
 
 def camrieConverter(sequence_data):
+    """
+    Converts sequence data to the desired format using the CAMRIE conversion process.
+
+    Args:
+        sequence_data (str): The input sequence data in SDL format.
+
+    Returns:
+        None
+    """
     ### Retrieving useful data from SDL format
     firstRawData = extractDataFromSDL(sequence_data)
     sortedLoopRanges, sortedLoopBlocks = generateLoopStructure(firstRawData)
@@ -34,7 +43,28 @@ def camrieConverter(sequence_data):
     
 
 def extractDataFromSDL(sequence_data, counter = 0):
-    ### Retrieving useful data from SDL format
+    """
+    Extracts useful data from SDL format.
+
+    Args:
+        sequence_data (SequenceData): The SDL sequence data.
+        counter (int, optional): The counter value. Defaults to 0.
+
+    Returns:
+        list: A list containing the extracted data:
+            - loopCounters (list): The loop counters.
+            - loopRanges (list): The loop ranges.
+            - loopBlocks (list): The loop blocks.
+            - repetitionTimes (list): The repetition times.
+            - gradAxis (list): The gradient axes.
+            - gradStartTimes (list): The gradient start times.
+            - gradArrays (list): The gradient arrays.
+            - rfStartTimes (list): The RF start times.
+            - rfMagnArrays (list): The RF magnitude arrays.
+            - rfPhaseArrays (list): The RF phase arrays.
+            - adcStartTimes (list): The ADC start times.
+            - adcArrays (list): The ADC arrays.
+    """
     loopCounters = []
     loopRanges = []
     loopBlocks = []
@@ -115,6 +145,22 @@ def extractDataFromSDL(sequence_data, counter = 0):
             rfPhaseArrays, adcStartTimes, adcArrays]
 
 def formattingTR(rawData):
+    """
+    Formats the raw data into separate axes and applies interpolation to achieve a 10us raster time.
+
+    Args:
+        rawData (list): The raw data to be formatted.
+
+    Returns:
+        tuple: A tuple containing the following formatted data:
+            - repetitionTimes (list): The repetition times.
+            - rfSampledMagnAxisTR (list): The sampled RF magnitude axis with a 10us raster time.
+            - rfSampledPhaseAxisTR (list): The sampled RF phase axis with a 10us raster time.
+            - zAxisTR (list): The z-axis gradients with a 10us raster time.
+            - yAxisTR (list): The y-axis gradients with a 10us raster time.
+            - xAxisTR (list): The x-axis gradients with a 10us raster time.
+            - adcAxisTR (list): The ADC axis with a 10us raster time.
+    """
     loopCounters, loopRanges, loopBlocks, repetitionTimes, gradAxis, \
     gradStartTimes, gradArrays, rfStartTimes, rfMagnArrays, \
     rfPhaseArrays, adcStartTimes, adcArrays = decodeRawData(rawData)
@@ -180,6 +226,15 @@ def formattingTR(rawData):
     return repetitionTimes, rfSampledMagnAxisTR, rfSampledPhaseAxisTR, zAxisTR, yAxisTR, xAxisTR, adcAxisTR
 
 def plotTR(formattedTRData):
+    """
+    Plots the TR (repetition time) data.
+
+    Parameters:
+    - formattedTRData: The formatted TR data.
+
+    Returns:
+    None
+    """
     repetitionTimes, rfSampledMagnAxisTR, rfSampledPhaseAxisTR, zAxisTR, yAxisTR, \
     xAxisTR, adcAxisTR = decodeFormattedTRData(formattedTRData)
     
@@ -199,6 +254,15 @@ def plotTR(formattedTRData):
     plt.show()
 
 def generateLoopStructure(rawData):
+    """
+    Generates the loop structure based on the provided raw data.
+
+    Args:
+        rawData (list): The raw data to be processed.
+
+    Returns:
+        tuple: A tuple containing the sorted loop ranges and sorted loop blocks.
+    """
     loopCounters, loopRanges, loopBlocks, repetitionTimes, gradAxis, \
     gradStartTimes, gradArrays, rfStartTimes, rfMagnArrays, \
     rfPhaseArrays, adcStartTimes, adcArrays = decodeRawData(rawData)
@@ -212,6 +276,24 @@ def generateLoopStructure(rawData):
     return sortedLoopRanges, sortedLoopBlocks
 
 def generateSequenceTiming(sequence_data, sortedLoopRanges, sortedLoopBlocks):
+    """
+    Generate sequence timing based on the given sequence data, sorted loop ranges, and sorted loop blocks.
+
+    Args:
+        sequence_data (list): The sequence data.
+        sortedLoopRanges (list): The sorted loop ranges.
+        sortedLoopBlocks (list): The sorted loop blocks.
+
+    Returns:
+        list: A list containing the following timing data:
+            - rfMagnAxis: The RF magnitude axis.
+            - rfPhaseAxis: The RF phase axis.
+            - xAxis: The X axis.
+            - yAxis: The Y axis.
+            - zAxis: The Z axis.
+            - adcAxis: The ADC axis.
+            - timeAxis: The time axis.
+    """
     rfMagnAxis = []
     rfPhaseAxis = []
     xAxis = []
@@ -258,6 +340,15 @@ def generateSequenceTiming(sequence_data, sortedLoopRanges, sortedLoopBlocks):
     return [rfMagnAxis, rfPhaseAxis, xAxis, yAxis, zAxis, adcAxis, timeAxis]
 
 def plotChronogram(sequenceTiming):
+    """
+    Plots the chronogram for the given sequence timing.
+
+    Parameters:
+    sequenceTiming (list): A list containing the sequence timing information.
+
+    Returns:
+    None
+    """
     rfMagnAxis, rfPhaseAxis, xAxis, yAxis, zAxis, adcAxis, timeAxis = \
     decodeSequenceTiming(sequenceTiming)
 
@@ -277,6 +368,15 @@ def plotChronogram(sequenceTiming):
     plt.show()
 
 def convertToPsudomri(sequenceTiming):
+    """
+    Converts sequence timing data to Psudomri format.
+
+    Args:
+        sequenceTiming (list): List of sequence timing data.
+
+    Returns:
+        None
+    """
     rfMagnAxis, rfPhaseAxis, xAxis, yAxis, zAxis, adcAxis, timeAxis = \
     decodeSequenceTiming(sequenceTiming)
 
@@ -305,15 +405,24 @@ def convertToPsudomri(sequenceTiming):
     yGradient = generateAxisHeader(yAxis)
     zGradient = generateAxisHeader(zAxis)
 
-    dataToDump = [totalNumberOfData, nbOfTransmitCoils, numberOfReceiveCoils, \
-                  len(time), 1, [0.01] * len(time), \
-                  receiverEvents, \
-                  int(len(combinedRf)/3), 1, combinedRf, xGradient, \
+    dataToDump = [totalNumberOfData, nbOfTransmitCoils, numberOfReceiveCoils, 
+                  len(time), 1, [0.01] * len(time), 
+                  receiverEvents, 
+                  int(len(combinedRf)/3), 1, combinedRf, xGradient, 
                   yGradient, zGradient]
     dumpToTextFile(dataToDump)
     dumpToBinaryFile(dataToDump)
 
 def dumpToTextFile(dataToDump):
+    """
+    Dump the given data to a text file.
+
+    Args:
+        dataToDump (list): The data to be dumped.
+
+    Returns:
+        None
+    """
     ### Dumping in text file
     with open('Sequence.txt', 'w') as textSequenceFile:
         for data in dataToDump:
@@ -321,9 +430,18 @@ def dumpToTextFile(dataToDump):
                 textSequenceFile.write(str(data) + '\n')
             else:
                 for value in data:
-                   textSequenceFile.write(str(value) + '\n') 
+                   textSequenceFile.write(str(value) + '\n')
 
 def dumpToBinaryFile(dataToDump):
+    """
+    Dump the given data to a binary PSudoMRI file.
+
+    Args:
+        dataToDump (list): The data to be dumped.
+
+    Returns:
+        None
+    """
     ### Dumping in text file
     # stringToDump = ""
     # for data in dataToDump:
@@ -351,6 +469,15 @@ def dumpToBinaryFile(dataToDump):
            
       
 def generateAxisHeader(axisData):
+    """
+    Generate the axis header data.
+
+    Args:
+        axisData (list): The list of axis data.
+
+    Returns:
+        list: The generated axis header data.
+    """
     nbElementsPerLoop = len(axisData)
     nbOfLoops = 1
     fullData = [nbElementsPerLoop, nbOfLoops] + axisData
@@ -358,10 +485,41 @@ def generateAxisHeader(axisData):
     return fullData
 
 def listToBinary(data, fileName):
+    """
+    Converts a list of data to binary format and saves it to a file.
+
+    Args:
+        data (list): The list of data to be converted.
+        fileName (str): The name of the file to save the binary data to.
+
+    Returns:
+        None
+    """
     listToDump = np.array(data).astype('float32')
     listToDump.tofile(fileName)
 
 def decodeRawData(rawData):
+    """
+    Decodes the raw data and extracts various components.
+
+    Args:
+        rawData (list): A list containing the raw data.
+
+    Returns:
+        tuple: A tuple containing the following components:
+            - loopCounters (int): The loop counters.
+            - loopRanges (int): The loop ranges.
+            - loopBlocks (int): The loop blocks.
+            - repetitionTimes (int): The repetition times.
+            - gradAxis (int): The gradient axis.
+            - gradStartTimes (int): The gradient start times.
+            - gradArrays (int): The gradient arrays.
+            - rfStartTimes (int): The RF start times.
+            - rfMagnArrays (int): The RF magnitude arrays.
+            - rfPhaseArrays (int): The RF phase arrays.
+            - adcStartTimes (int): The ADC start times.
+            - adcArrays (int): The ADC arrays.
+    """
     loopCounters = rawData[0]
     loopRanges = rawData[1]
     loopBlocks = rawData[2]
@@ -380,6 +538,22 @@ def decodeRawData(rawData):
            rfPhaseArrays, adcStartTimes, adcArrays
 
 def decodeFormattedTRData(formattedTRData):
+    """
+    Decode the formatted TR data.
+
+    Args:
+        formattedTRData (list): A list containing the formatted TR data.
+
+    Returns:
+        tuple: A tuple containing the decoded TR data in the following order:
+            - repetitionTimes (int): The repetition times.
+            - rfSampledMagnAxisTR (int): The RF sampled magnitude axis TR.
+            - rfSampledPhaseAxisTR (int): The RF sampled phase axis TR.
+            - zAxisTR (int): The Z-axis TR.
+            - yAxisTR (int): The Y-axis TR.
+            - xAxisTR (int): The X-axis TR.
+            - adcAxisTR (int): The ADC axis TR.
+    """
     repetitionTimes = formattedTRData[0]
     rfSampledMagnAxisTR = formattedTRData[1]
     rfSampledPhaseAxisTR = formattedTRData[2]
@@ -392,6 +566,22 @@ def decodeFormattedTRData(formattedTRData):
         yAxisTR, xAxisTR, adcAxisTR
 
 def decodeSequenceTiming(sequenceTiming):
+    """
+    Decodes the sequence timing information.
+
+    Args:
+        sequenceTiming (list): A list containing the sequence timing information.
+
+    Returns:
+        tuple: A tuple containing the decoded sequence timing information in the following order:
+            - rfMagnAxis (float): RF magnitude axis value.
+            - rfPhaseAxis (float): RF phase axis value.
+            - xAxis (float): X-axis value.
+            - yAxis (float): Y-axis value.
+            - zAxis (float): Z-axis value.
+            - adcAxis (float): ADC axis value.
+            - timeAxis (float): Time axis value.
+    """
     rfMagnAxis = sequenceTiming[0]
     rfPhaseAxis = sequenceTiming[1]
     xAxis = sequenceTiming[2]
@@ -402,6 +592,17 @@ def decodeSequenceTiming(sequenceTiming):
 
     return rfMagnAxis, rfPhaseAxis, xAxis, yAxis, zAxis, adcAxis, timeAxis
 
-# Source: https://stackoverflow.com/questions/16444726/binary-representation-of-float-in-python-bits-not-hex
+import struct
+
 def binary(num):
+    """
+    Source: https://stackoverflow.com/questions/16444726/binary-representation-of-float-in-python-bits-not-hex
+    Converts a floating-point number to its binary representation.
+
+    Args:
+        num (float): The floating-point number to convert.
+
+    Returns:
+        str: The binary representation of the input number.
+    """
     return ''.join('{:0>8b}'.format(c) for c in struct.pack('!f', num))

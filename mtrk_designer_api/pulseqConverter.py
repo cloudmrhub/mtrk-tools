@@ -12,14 +12,36 @@ from types import SimpleNamespace
 import matplotlib.pyplot as plt
 
 def pulseqConverter(sequence_data):
+    """
+    Converts the given sequence data to a Pulseq format.
+
+    Args:
+        sequence_data (dict): The sequence data to be converted.
+
+    Returns:
+        None
+    """
     fillSequence(sequence_data, 
-                 plot = True, 
-                 write_seq = True)
+                 plot=True, 
+                 write_seq=True)
 
 def fillSequence(sequence_data, 
                  plot: bool, 
                  write_seq: bool, 
                  seq_filename: str = "sdl_pypulseq.seq"):
+    """
+    Fills the sequence object with instructions and parameters based on the given sequence data.
+
+    Args:
+        sequence_data: The sequence data containing instructions and parameters.
+        plot: A boolean indicating whether to plot the sequence.
+        write_seq: A boolean indicating whether to write the sequence in Pulseq .seq format.
+        seq_filename: The filename to use when writing the sequence in Pulseq .seq format.
+
+    Returns:
+        None
+    """
+
     ############################################################################
     ## Creating new sequence object and system specifications
     ############################################################################
@@ -112,6 +134,20 @@ def fillSequence(sequence_data,
 
 def extractStepInformation(sequence_data, currentBlock, system, 
                            loopCountersList, seq):
+    """
+    Extracts step information from the given sequence data and current block.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object containing the sequence information.
+        currentBlock (Block): The current block object.
+        system (System): The system object representing the MRI system.
+        loopCountersList (list): The list of loop counters.
+        seq (Sequence): The sequence object.
+
+    Returns:
+        list: A list containing the extracted step information, including event list, RF spoiling list,
+              equations list, variable events list, RF spoiling increment, and event index block list.
+    """
     eventList = []
     rfSpoilingList = []
     allEquationsList = []
@@ -303,6 +339,20 @@ def extractStepInformation(sequence_data, currentBlock, system,
 
 def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform, 
                               rf_inc, rf_phase):
+    """
+    Builds Pulseq sequence blocks based on the given parameters.
+
+    Args:
+        index (int): The index of the sequence block.
+        seq (PulseqSequence): The Pulseq sequence object.
+        stepInfoList (list): A list containing various step information.
+        normalizedWaveform (ndarray): The normalized waveform.
+        rf_inc (float): The RF increment.
+        rf_phase (float): The RF phase.
+
+    Returns:
+        tuple: A tuple containing the updated stepInfoList, rf_inc, and rf_phase.
+    """
     ## stepInfoList =  [eventList, rfSpoilingList, 
     ##                  allEquationsList, variableEventsList, 
     ##                  rfSpoilingInc, eventIndexBlockList]
@@ -345,6 +395,22 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform,
 def extractSequenceStructure(sequence_data, stepInfoList, system, 
                              loopCountersList, seq, counterRange, blockName, 
                              counterRangeList):
+    """
+    Extracts the sequence structure by recursively traversing the stepInfoList.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object.
+        stepInfoList (list): The list of step information.
+        system (System): The system object.
+        loopCountersList (list): The list of loop counters.
+        seq (Sequence): The sequence object.
+        counterRange (int): The counter range.
+        blockName (str): The name of the block.
+        counterRangeList (list): The list of counter ranges.
+
+    Returns:
+        tuple: A tuple containing the counterRangeList and stepInfoList.
+    """
     for event in stepInfoList[0]:
         if type(event) == list and event[0] == "loop":
             counterId = event[1]
@@ -373,6 +439,22 @@ def extractSequenceStructure(sequence_data, stepInfoList, system,
 
 def organizePulseqBlocks(sequence_data, counterRangeList, system, seq, 
                          loopCountersList):
+    """
+    Organizes the Pulseq blocks based on the given sequence data, counter range list,
+    system, sequence, and loop counters list.
+
+    Args:
+        sequence_data (SequenceData): The sequence data containing instructions.
+        counterRangeList (list): A list of counter ranges.
+        system (System): The system information.
+        seq (Sequence): The sequence information.
+        loopCountersList (list): A list of loop counters.
+
+    Returns:
+        list: A list of action lists containing the counters, block step information,
+              and normalized waveform.
+
+    """
     actionList = []
     for counter in counterRangeList:
         if sequence_data.instructions[counter[2]].steps[0].action == "loop":
@@ -391,6 +473,18 @@ def organizePulseqBlocks(sequence_data, counterRangeList, system, seq,
     return actionList
 
 def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
+    """
+    Builds a Pulseq sequence based on the given parameters.
+
+    Args:
+        seq (object): The Pulseq sequence object.
+        actionIndex (int): The index of the current action in the actionList.
+        actionList (list): The list of actions to be performed.
+        stepInfoList (list): The list of step information.
+
+    Returns:
+        None
+    """
     if len(actionList[actionIndex]) != 1:
         rf_phase = 0
         rf_inc = 0

@@ -17,6 +17,40 @@ def miniFlashModifier(mainLoop, PELoop,
                       phaseSpoilingGradient, analogToDigitalConverter, 
                       marking, submit, rfExcitation, gradientList, adcReadout, 
                       ttl, arrayList, equationList):
+    """
+    Modifies the sequence data by replacing specific elements with the provided inputs.
+
+    Args:
+        mainLoop (Loop): The main loop object.
+        PELoop (Loop): The phase encoding loop object.
+        sequence_data (SequenceData): The sequence data object to be modified.
+        fileInit (File): The file initialization object.
+        infoInit (Info): The info initialization object.
+        settingsInit (Settings): The settings initialization object.
+        rfSpoiling (Calc): The RF spoiling object.
+        initialization (Init): The initialization object.
+        synchronization (Sync): The synchronization object.
+        rfPulse (Rf): The RF pulse object.
+        sliceSelectionGradient (Grad): The slice selection gradient object.
+        sliceRefocusingGradient (Grad): The slice refocusing gradient object.
+        readoutDephasingGradient (Grad): The readout dephasing gradient object.
+        phaseEncodingGradient (Grad): The phase encoding gradient object.
+        readoutGradient (Grad): The readout gradient object.
+        sliceSpoilingGradient (GradWithAmplitude): The slice spoiling gradient object.
+        phaseSpoilingGradient (GradWithAmplitude): The phase spoiling gradient object.
+        analogToDigitalConverter (Adc): The analog-to-digital converter object.
+        marking (Mark): The marking object.
+        submit (Submit): The submit object.
+        rfExcitation (Rf): The RF excitation object.
+        gradientList (list): The list of gradient objects.
+        adcReadout (Adc): The ADC readout object.
+        ttl (Sync): The TTL object.
+        arrayList (list): The list of array objects.
+        equationList (list): The list of equation objects.
+
+    Returns:
+        SequenceData: The modified sequence data object.
+    """
     # temporarily relying on classes to discriminate between spoiling and other 
     # gradients
     

@@ -18,8 +18,7 @@ import os
 #############################################################
 """
 Documentation for this module.
- 
-More details.
+
 """
 
 def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, 
@@ -102,7 +101,6 @@ def updateSDLFile(sequence_data, boxes, configurations,
                 instructionName = "main"
                 instructionHeader = ["Main loop", "on"]
                 ## TO DO put this information in the right place
-                print("+-+-+ testou " + str(bool(block_number_to_block_object)))
                 savedInstructionHeader = []
                 if bool(block_number_to_block_object):
                     if block_number_to_block_object[str(box["block"])][\

@@ -14,6 +14,15 @@ from SDL_read_write.pydanticSDLHandler import *
 
 ## SDL file initialization with mandatory sections and default values
 def sdlInitialize(sequence_data):
+    """
+    Initializes the sequence_data object with the necessary attributes.
+
+    Args:
+        sequence_data: The sequence_data object to be initialized.
+
+    Returns:
+        None
+    """
     sequence_data.file = File()
     sequence_data.infos = Info()
     sequence_data.settings = Settings()
@@ -24,10 +33,34 @@ def sdlInitialize(sequence_data):
 
 
 def addInstruction(sequence_data, instructionName):
+    """
+    Adds an instruction to the sequence data.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object.
+        instructionName (str): The name of the instruction.
+
+    Returns:
+        None
+    """
     sequence_data.instructions[instructionName] = Instruction(steps=[])
 
 
 def addStep(instructionToModify, stepIndex, actionName):
+    """
+    Adds a step to the given instruction.
+
+    Args:
+        instructionToModify (Instruction): The instruction object to modify.
+        stepIndex (int): The index of the step to add.
+        actionName (str): The name of the action for the step.
+
+    Raises:
+        ValueError: If the actionName is not available.
+
+    Returns:
+        None
+    """
     try:
         match actionName:
             case "run_block":
@@ -69,12 +102,36 @@ def addStep(instructionToModify, stepIndex, actionName):
 
 
 def addMdhOption(stepToModify, stepIndex):
+    """
+    Adds an MDH option to the specified step.
+
+    Parameters:
+    - stepToModify (list): The list of steps to modify.
+    - stepIndex (int): The index of the step to modify.
+
+    Returns:
+    None
+    """
     print("Provide MDH option information: ")
     print("MDH option type (str): ")
     stepToModify[stepIndex].mdh[input()] = MdhOption()
 
 
 def addObject(sequence_data, objectName, typeName):
+    """
+    Add an object to the sequence_data based on the provided typeName.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object to add the object to.
+        objectName (str): The name of the object to add.
+        typeName (str): The type of the object to add.
+
+    Raises:
+        ValueError: If the typeName is not available.
+
+    Returns:
+        None
+    """
     try:
         match typeName:
             case "rf":
@@ -92,10 +149,30 @@ def addObject(sequence_data, objectName, typeName):
 
 
 def addArray(sequence_data, arrayName):
+    """
+    Adds an array to the sequence data.
+
+    Parameters:
+    - sequence_data: The sequence data object to add the array to.
+    - arrayName: The name of the array to be added.
+
+    Returns:
+    None
+    """
     sequence_data.arrays[arrayName] = GradientTemplate()
 
 
 def addEquation(sequence_data, equationName):
+    """
+    Adds an equation to the sequence data.
+
+    Parameters:
+    - sequence_data (SequenceData): The sequence data object.
+    - equationName (str): The name of the equation.
+
+    Returns:
+    None
+    """
     sequence_data.equations[equationName] = Equation()
 
 
@@ -104,6 +181,17 @@ def addEquation(sequence_data, equationName):
 #############################################################
 
 def completeFileInformation(sequence_data, fileInformationList):
+    """
+    Completes the file information in the sequence_data object using the provided fileInformationList.
+
+    Args:
+        sequence_data (SequenceData): The sequence_data object to update.
+        fileInformationList (list): A list containing the file information in the following order:
+                                    [formatInfo, versionInfo, measurementInfo, systemInfo]
+
+    Returns:
+        None
+    """
     ## fileInformationList = [formatInfo, versionInfo, measurementInfo, 
     ##                        systemInfo]
     if(fileInformationList != []):
@@ -113,12 +201,32 @@ def completeFileInformation(sequence_data, fileInformationList):
                                   system = fileInformationList[3])
 
 def completeSequenceSettings(sequence_data, settingsInformationList):
+    """
+    Complete the sequence settings based on the provided information.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object to update.
+        settingsInformationList (list): A list of settings information.
+
+    Returns:
+        None
+    """
     ## settingsInformationList = [readoutOsInfo]
     if(settingsInformationList != []):
         sequence_data.settings = Settings(readout_os = \
                                                      settingsInformationList[0])
 
 def completeSequenceInformation(sequence_data, sequenceInfoInformationList):
+    """
+    Completes the sequence settings based on the provided information.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object to update.
+        settingsInformationList (list): A list of settings information.
+
+    Returns:
+        None
+    """
     ## sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 
     ##                                pelinesInfo, seqstringInfo, 
     ##                                reconstructionInfo]
@@ -132,6 +240,18 @@ def completeSequenceInformation(sequence_data, sequenceInfoInformationList):
                                reconstruction = sequenceInfoInformationList[5])
 
 def completeInstructionInformation(sequence_data, instructionInformationList):
+    """
+    Updates the instruction information based on the provided list.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object.
+        instructionInformationList (list): A list containing the instruction information.
+            The list should have the following structure:
+            [instructionName, printMessageInfo, printCounterInfo, allStepInformationLists]
+
+    Returns:
+        None
+    """
     ## instructionInformationList = [instructionName, printMessageInfo, 
     ##                               printCounterInfo, allStepInformationLists]
     if(instructionInformationList != []):
@@ -147,7 +267,7 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
         allStepInformationLists = []
         for instruction in instructionInformationList[3]:
             if instruction == ['Block']:
-                print("+-+-+ Block passed")
+                print("Block passed")
             else:
                 allStepInformationLists.append(instruction)
         for stepIndex in range(0, len(allStepInformationLists)):
@@ -162,6 +282,17 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
                                        allStepInformationLists[stepIndex])
 
 def completeStepInformation(sequence_data, stepToModify, stepInformationList):
+    """
+    Completes the step information based on the provided step information list.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object.
+        stepToModify (Step): The step object to modify.
+        stepInformationList (list): The list containing the step information.
+
+    Returns:
+        None
+    """
     ## stepInformationList = [actionName, actionSpecificElements...]
     if(stepInformationList != []):
         actionInfo = stepInformationList[0]
@@ -314,6 +445,17 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
 
 
 def completeObjectInformation(sequence_data, objectName, objectInformationList):
+    """
+    Completes the information for a given object and adds it to the sequence data.
+
+    Args:
+        sequence_data (SequenceData): The sequence data object.
+        objectName (str): The name of the object.
+        objectInformationList (list): A list containing the information for the object.
+
+    Returns:
+        None
+    """
     ## objectInformationList = [typeInfo, durationInfo, objectSpecificInfo...]
     if(objectInformationList != []):
         typeInfo = objectInformationList[0]
@@ -381,6 +523,18 @@ def completeObjectInformation(sequence_data, objectName, objectInformationList):
 
 
 def completeArrayInformation(sequence_data, arrayName, arrayInformationList):
+    """
+    Completes the array information and adds it to the sequence_data object.
+
+    Args:
+        sequence_data (SequenceData): The sequence_data object to which the array information will be added.
+        arrayName (str): The name of the array.
+        arrayInformationList (list): A list containing the array information in the following format:
+            [encodingInfo, typeInfo, sizeInfo, dataInfoList]
+
+    Returns:
+        None
+    """
     ## arrayInformationList = [encodingInfo, typeInfo, sizeInfo, dataInfoList]
     if(arrayInformationList != []):
         encodingInfo = arrayInformationList[0]
