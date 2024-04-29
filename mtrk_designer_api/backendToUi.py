@@ -1,7 +1,7 @@
 ################################################################################
-### mtrk project - Transition from backend to UI                             ###
-### Version 1.0.0                                                            ###
-### Anais Artiges and the mtrk project team at NYU - 01/31/2024              ###
+### mtrk project - Transition from backend to UI.                            ###
+### Version 0.0.0                                                            ###
+### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
 ################################################################################  
 
 import json
@@ -16,17 +16,19 @@ from sdlFileCreator import *
 ### Creating SDL file from web-based UI
 #############################################################
 
-def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_loops, \
-                              block_to_duration, block_number_to_block_object, configurations):
-    # Initialize SDL file
-    # TO DO - need to intialize without loading file
+def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, 
+                              block_to_loops, block_to_duration, 
+                              block_number_to_block_object, configurations):
+    ### Initialize SDL file
+    ## TO DO - need to intialize without loading file
     with open('init_data/miniflash.mtrk') as sdlFile:
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
 
     updateSDLFile(sequence_data, block_to_box_objects, configurations,
-                  block_number_to_block_object, block_to_loops, block_to_duration)
+                  block_number_to_block_object, block_to_loops, 
+                  block_to_duration)
     
     ### writing of json schema to SDL file with formatting options
     with open('output.mtrk', 'w') as sdlFileOut:
@@ -38,7 +40,8 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, block_to_lo
         #purely aesthetic
 
 def updateSDLFile(sequence_data, boxes, configurations, 
-                  block_number_to_block_object, block_to_loops, block_to_duration):
+                  block_number_to_block_object, block_to_loops, 
+                  block_to_duration):
     keys = boxes.keys()
     for boxKey in keys:
         boxList = boxes[boxKey]
@@ -49,12 +52,16 @@ def updateSDLFile(sequence_data, boxes, configurations,
                 box["axis"] = "event"
             if box["type"] == "Block":
                 box["type"] = "loop"
-                box["name"] = block_number_to_block_object[str(box["block"])]["name"]
+                box["name"] = \
+                         block_number_to_block_object[str(box["block"])]["name"]
                 box["loop_number"] = block_to_loops[box["name"]]
-                if {"type": "mark", "start_time": box["start_time"] + block_to_duration[box["name"]]*1e3} in boxes[box["name"]]:
+                if {"type": "mark", "start_time": box["start_time"] + \
+                      block_to_duration[box["name"]]*1e3} in boxes[box["name"]]:
                     pass
                 else:
-                    boxes[box["name"]].append({"type": "mark", "start_time": box["start_time"] + block_to_duration[box["name"]]*1e3})
+                    boxes[box["name"]].append({"type": "mark", "start_time": \
+                                            box["start_time"] + \
+                                            block_to_duration[box["name"]]*1e3})
                     boxes[box["name"]].append({"type": "submit"})
             if boxKey == "Main":
                 instructionName = "main"
@@ -63,12 +70,14 @@ def updateSDLFile(sequence_data, boxes, configurations,
                 print("+-+-+ testou " + str(bool(block_number_to_block_object)))
                 savedInstructionHeader = []
                 if bool(block_number_to_block_object):
-                    if block_number_to_block_object[str(box["block"])]["print_counter"] == True:
+                    if block_number_to_block_object[str(box["block"])][\
+                                                       "print_counter"] == True:
                         printCounter = "on"
                     else:
                         printCounter = "off"
-                    savedInstructionHeader = [block_number_to_block_object[str(box["block"])]["message"],
-                                              printCounter]
+                    savedInstructionHeader = \
+                    [block_number_to_block_object[str(box["block"])]["message"],
+                                                                   printCounter]
             else:
                 instructionName = boxKey
                 instructionHeader = savedInstructionHeader
@@ -77,13 +86,12 @@ def updateSDLFile(sequence_data, boxes, configurations,
         
         addInstruction(sequence_data, instructionName)
         instructionInformationList = getInstructionInformation(
-                                                boxes = boxList,
-                                                instructionName = \
-                                                     instructionName,
-                                                instructionHeader = instructionHeader)
-        completeInstructionInformation(sequence_data = sequence_data, 
-                                       instructionInformationList = \
-                                                     instructionInformationList)
+                                        boxes = boxList,
+                                        instructionName = instructionName,
+                                        instructionHeader = instructionHeader)
+        completeInstructionInformation(
+                        sequence_data = sequence_data, 
+                        instructionInformationList = instructionInformationList)
     fileInformationList = getFileInformation(configurations = configurations)
     completeFileInformation(sequence_data = sequence_data, 
                             fileInformationList = fileInformationList)
@@ -134,11 +142,12 @@ def getInstructionInformation(boxes, instructionName, instructionHeader):
     allStepInformationLists = []
     for box in boxes:
         stepInformationList = getStepInformation(box)
-        if box["type"] == "loop" and stepInformationList in allStepInformationLists:
+        if box["type"] == "loop" and stepInformationList in \
+                                                        allStepInformationLists:
             pass
         else:
             allStepInformationLists.append(stepInformationList)
-    instructionInformationList = [instructionName, printMessageInfo,\
+    instructionInformationList = [instructionName, printMessageInfo,
                                   printCounterInfo, allStepInformationLists]
     return instructionInformationList
             
@@ -153,11 +162,8 @@ def getStepInformation(box):
         case "loop":
             counterInfo = box["block"]
             rangeInfo = box["loop_number"]
-            # TO DO add "all_step_info_lists" to the dictionnary
-            # allStepInformationLists = box["all_step_info_lists"]
-            # TO DO We need to decide either giving directly the 
-            # all_step_info_lists or giving a list of step information from 
-            # which it is extracted.
+            ## TO DO decide either giving directly the all_step_info_lists or
+            ## giving a list of step information from which it is extracted.
             derivedBox = {'type': 'run_block', 'name': box["name"]} 
             allStepInformationLists = []
             # for stepInformationList in allStepInformationLists:
@@ -210,8 +216,8 @@ def getStepInformation(box):
             timeInfo = int(float(box["start_time"]))
             addedPhaseTypeInfo = box["rf_added_phase_type"]
             addedPhaseFloatInfo = box["rf_added_phase_float"]
-            stepInformationList.extend([objectInfo, objectInformationList, \
-                                        timeInfo, addedPhaseTypeInfo, \
+            stepInformationList.extend([objectInfo, objectInformationList, 
+                                        timeInfo, addedPhaseTypeInfo, 
                                         addedPhaseFloatInfo])
         
         case "adc":
@@ -227,12 +233,10 @@ def getStepInformation(box):
             # mdhInfoList = box["header"]
             mdhInfoList = []
             #### TO DO !!! complete mdhInfoList
-            ## WARNING: the above TO DO is true for all codes for now (02/07/24)
             print("passed for now") 
-            ### end: not used for now
-            stepInformationList.extend([objectInfo, objectInformationList, \
-                                        timeInfo, frequencyInfo, phaseInfo,\
-                                        addedPhaseTypeInfo,addedPhaseFloatInfo,\
+            stepInformationList.extend([objectInfo, objectInformationList, 
+                                        timeInfo, frequencyInfo, phaseInfo,
+                                        addedPhaseTypeInfo,addedPhaseFloatInfo,
                                         mdhInfoList])
             
         case "mark":
@@ -258,8 +262,9 @@ def getObjectInformation(typeInfo, box):
             thicknessInfo = box["thickness"]
             flipAngleInfo = box["flip_angle"]
             purposeInfo = box["purpose"]
-            objectInformationList.extend([durationInfo, arrayInfo, arrayInformationList, \
-                                          initPhaseInfo, thicknessInfo, \
+            objectInformationList.extend([durationInfo, arrayInfo, 
+                                          arrayInformationList, 
+                                          initPhaseInfo, thicknessInfo, 
                                           flipAngleInfo, purposeInfo])
             
         case "grad":
@@ -270,14 +275,16 @@ def getObjectInformation(typeInfo, box):
             # tailInfo = box["tail"]
             tailInfo = 0
             amplitudeInfo = box['amplitude']
-            objectInformationList.extend([durationInfo, arrayName, arrayInformationList, \
+            objectInformationList.extend([durationInfo, arrayName, 
+                                          arrayInformationList, 
                                           tailInfo, amplitudeInfo])
             
         case "adc":
             durationInfo = box["adc_duration"]*1e3
             samplesInfo = box["samples"]
             dwelltimeInfo = box["dwell_time"]
-            objectInformationList.extend([durationInfo, samplesInfo, dwelltimeInfo])
+            objectInformationList.extend([durationInfo, samplesInfo, 
+                                          dwelltimeInfo])
 
         case "sync":
             eventInfo = box["inputSyncEventParam"]

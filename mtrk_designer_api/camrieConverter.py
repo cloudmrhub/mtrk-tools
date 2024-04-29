@@ -1,3 +1,9 @@
+################################################################################
+### mtrk project - Conversion tool for PSUdoMRI format in Camrie.            ###
+### Version 0.0.0                                                            ###
+### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
+################################################################################  
+
 from SDL_read_write.pydanticSDLHandler import *
 import numpy as np
 from typing import List
@@ -17,7 +23,8 @@ def camrieConverter(sequence_data):
     plotTR(firstFormattedTRData)
 
     ### Generating the full sequence timing
-    sequenceTiming = generateSequenceTiming(sequence_data, sortedLoopRanges, sortedLoopBlocks)
+    sequenceTiming = generateSequenceTiming(sequence_data, sortedLoopRanges, 
+                                            sortedLoopBlocks)
 
     ### Plotting whole sequence chronogram
     plotChronogram(sequenceTiming)
@@ -43,7 +50,8 @@ def extractDataFromSDL(sequence_data, counter = 0):
     # TO DO handle RF and ADC added phases
     
     for instruction in sequence_data.instructions:
-        for stepIndex in range(0, len(sequence_data.instructions[instruction].steps)):
+        for stepIndex in range(0, 
+        len(sequence_data.instructions[instruction].steps)):
             match sequence_data.instructions[instruction].steps[stepIndex].action:
                 case "loop":
                     loopCounters.append(sequence_data.instructions[instruction].steps[stepIndex].counter)
@@ -102,8 +110,8 @@ def extractDataFromSDL(sequence_data, counter = 0):
                 case _: 
                     pass
     
-    return [loopCounters, loopRanges, loopBlocks, repetitionTimes, gradAxis, \
-            gradStartTimes, gradArrays, rfStartTimes, rfMagnArrays, \
+    return [loopCounters, loopRanges, loopBlocks, repetitionTimes, gradAxis, 
+            gradStartTimes, gradArrays, rfStartTimes, rfMagnArrays, 
             rfPhaseArrays, adcStartTimes, adcArrays]
 
 def formattingTR(rawData):

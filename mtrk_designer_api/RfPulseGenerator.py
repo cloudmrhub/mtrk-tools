@@ -1,3 +1,9 @@
+################################################################################
+### mtrk project - Work in progress, do not use.                             ###
+### Version 0.0.0                                                            ###
+### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
+################################################################################
+
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,7 +28,8 @@ array = np.linspace(-1280,1280,128)
 # for element in array:
 #     # if element == 0:
 #     #     value = amplitude   
-#     value = (amplitude * to) * ((1-alpha) + alpha*math.cos(math.pi * element / (N * to)))*math.sin(math.pi*element/to)/(math.pi*element)
+#     value = (amplitude * to) * ((1-alpha) + alpha*math.cos(math.pi * element /
+#                      (N * to)))*math.sin(math.pi*element/to)/(math.pi*element)
 #     array[index] = abs( value )
 #     index=index+1
 
@@ -56,7 +63,8 @@ centeredBaseArray = baseArray - duration/2
 # print("centBaseArray "+str(centeredBaseArray))
 window = np.cos(2*np.pi*centeredBaseArray/duration)
 window = 1 - apodization + apodization * window
-rfWaveform = window * ( np.sin(bandWidth*centeredBaseArray)/(bandWidth*centeredBaseArray) )
+rfWaveform = window * ( np.sin(bandWidth*centeredBaseArray)/
+                       (bandWidth*centeredBaseArray) )
 flip = np.sum(rfWaveform) * dwellTime * 2 * np.pi
 rfWaveform = rfWaveform * flipAngle / flip
 

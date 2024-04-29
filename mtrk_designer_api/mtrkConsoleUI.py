@@ -1,8 +1,6 @@
 ################################################################################
-### mtrk project - SDL file generator allowing to simply define MRI pulse    ###
-### sequences that can be read by the mtrk project simulator and driver      ###
-### sequence.                                                                ###
-### Version 0.0.1                                                            ###
+### mtrk project - Console interface to create an SDL file.                  ###
+### Version 0.0.0                                                            ###
 ### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
 ################################################################################  
 
@@ -57,8 +55,10 @@ def mtrkConsoleUI(sequence_data):
             if(input() == "yes"):
                 instructionInformationList = \
                                       getInstructionInformation(instructionName)
-                completeInstructionInformation(sequence_data, instructionInformationList)
-                print("instructionToModify = "+str(sequence_data.instructions[instructionName]))
+                completeInstructionInformation(sequence_data, 
+                                               instructionInformationList)
+                print("instructionToModify = "+ \
+                      str(sequence_data.instructions[instructionName]))
             else:
                 print("Default Instruction information used.")
         else:
@@ -101,8 +101,8 @@ def getSequenceInformation():
     seqstringInfo = input()
     print("reconstruction (str)")
     reconstructionInfo = input()
-    sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, \
-                                   pelinesInfo, seqstringInfo, \
+    sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 
+                                   pelinesInfo, seqstringInfo, 
                                    reconstructionInfo]
     return sequenceInfoInformationList
 
@@ -127,7 +127,7 @@ def getInstructionInformation(instructionName):
             stepIndex += 1
         else:
             pass
-    instructionInformationList = [instructionName, printMessageInfo,\
+    instructionInformationList = [instructionName, printMessageInfo,
                                   printCounterInfo, allStepInformationLists]
     return instructionInformationList
 
@@ -172,7 +172,8 @@ def getStepInformation():
                     stepIndexLoop += 1
                 else:
                     pass  
-            stepInformationList.extend([counterInfo, rangeInfo, allStepInformationLists])  
+            stepInformationList.extend([counterInfo, rangeInfo, 
+                                        allStepInformationLists])  
         case "calc":
             print("type (str)")
             typeInfo = input()
@@ -195,7 +196,8 @@ def getStepInformation():
                 print("Default Object information used.")
             print("time (int)")
             timeInfo = input()
-            stepInformationList.extend([objectInfo, objectInformationList, timeInfo]) 
+            stepInformationList.extend([objectInfo, objectInformationList, 
+                                        timeInfo]) 
         case "grad":
             print("axis (slice/read/phase)")
             axisInfo = input()
@@ -208,7 +210,7 @@ def getStepInformation():
                 print("Default Object information used.")
             print("time (int)")
             timeInfo = input() 
-            stepInformationList.extend([axisInfo, objectInfo, \
+            stepInformationList.extend([axisInfo, objectInfo, 
                                         objectInformationList, timeInfo]) 
             print("Do you want to add an amplitude option? (yes/no)")
             if(input()=="yes"):
@@ -221,7 +223,7 @@ def getStepInformation():
                     amplitudeTypeInfo = "equation"
                     print("amplitude equation name (str)")
                     amplitudeEquationNameInfo = input()
-                    stepInformationList.extend([amplitudeTypeInfo, \
+                    stepInformationList.extend([amplitudeTypeInfo, 
                                                 amplitudeEquationNameInfo])
                     print("Do you want to complete equation information? (yes/no)")
                     if(input()=="yes"):
@@ -245,8 +247,8 @@ def getStepInformation():
             addedPhaseTypeInfo = input()
             print("added_phase float (float)")
             addedPhaseFloatInfo = input()
-            stepInformationList.extend([objectInfo, objectInformationList, \
-                                        timeInfo, addedPhaseTypeInfo, \
+            stepInformationList.extend([objectInfo, objectInformationList, 
+                                        timeInfo, addedPhaseTypeInfo, 
                                         addedPhaseFloatInfo])
         case "adc":
             print("object (str)")
@@ -270,9 +272,9 @@ def getStepInformation():
             mdhInfoList = []
             #### TO DO !!! complete mdhInfoList
             print("passed for now") 
-            stepInformationList.extend([objectInfo, objectInformationList, \
-                                        timeInfo, frequencyInfo, phaseInfo,\
-                                        addedPhaseTypeInfo,addedPhaseFloatInfo,\
+            stepInformationList.extend([objectInfo, objectInformationList, 
+                                        timeInfo, frequencyInfo, phaseInfo,
+                                        addedPhaseTypeInfo,addedPhaseFloatInfo,
                                         mdhInfoList])
         case "mark":
             print("time (float)")
@@ -306,8 +308,8 @@ def getObjectInformation(typeInfo):
             flipAngleInfo = input()
             print("purpose (str)")
             purposeInfo = input()
-            objectInformationList.extend([arrayInfo, arrayInformationList, \
-                                          initPhaseInfo, thicknessInfo, \
+            objectInformationList.extend([arrayInfo, arrayInformationList, 
+                                          initPhaseInfo, thicknessInfo, 
                                           flipAngleInfo, purposeInfo])
         case "grad":
             print("array (str)")
@@ -321,7 +323,7 @@ def getObjectInformation(typeInfo):
             tailInfo = input()
             print("amplitude (float)")
             amplitudeInfo = input()
-            objectInformationList.extend([arrayName, arrayInformationList, \
+            objectInformationList.extend([arrayName, arrayInformationList, 
                                           tailInfo, amplitudeInfo])
         case "adc":
             print("samples (int)")
@@ -347,5 +349,4 @@ def getArrayInformation():
     print("data (float, float, ...)")
     dataInfoList = [float(elem) for elem in input().split(", ")]
     arrayInformationList = [encodingInfo, typeInfo, sizeInfo, dataInfoList]
-    print("+-+-+ getArrayInfo " + str(arrayInformationList))
     return arrayInformationList

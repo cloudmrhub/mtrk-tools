@@ -2,22 +2,23 @@
 ### mtrk project - SDL file generator allowing to simply define MRI pulse    ###
 ### sequences that can be read by the mtrk project simulator and driver      ###
 ### sequence.                                                                ###
-### Version 0.0.1                                                            ###
-### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
+### Version 0.0.0                                                            ###
+### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
 ################################################################################  
 
 from SDL_read_write.pydanticSDLHandler import *
 
-def miniFlashModifier(mainLoop, PELoop, \
-                      sequence_data, fileInit, infoInit, settingsInit, \
-                      rfSpoiling, initialization, synchronization, rfPulse, \
-                      sliceSelectionGradient, sliceRefocusingGradient, \
-                      readoutDephasingGradient, phaseEncodingGradient, \
-                      readoutGradient, sliceSpoilingGradient, \
-                      phaseSpoilingGradient, analogToDigitalConverter, \
-                      marking, submit, rfExcitation, gradientList, adcReadout, \
+def miniFlashModifier(mainLoop, PELoop, 
+                      sequence_data, fileInit, infoInit, settingsInit, 
+                      rfSpoiling, initialization, synchronization, rfPulse, 
+                      sliceSelectionGradient, sliceRefocusingGradient, 
+                      readoutDephasingGradient, phaseEncodingGradient, 
+                      readoutGradient, sliceSpoilingGradient, 
+                      phaseSpoilingGradient, analogToDigitalConverter, 
+                      marking, submit, rfExcitation, gradientList, adcReadout, 
                       ttl, arrayList, equationList):
-    # temporarily relying on classes to discriminate between spoiling and other gradients
+    # temporarily relying on classes to discriminate between spoiling and other 
+    # gradients
     
     ### file section
     sequence_data.file = fileInit

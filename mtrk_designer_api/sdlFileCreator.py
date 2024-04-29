@@ -2,8 +2,8 @@
 ### mtrk project - SDL file generator allowing to simply define MRI pulse    ###
 ### sequences that can be read by the mtrk project simulator and driver      ###
 ### sequence.                                                                ###
-### Version 0.0.1                                                            ###
-### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
+### Version 0.0.0                                                            ###
+### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
 ################################################################################  
 
 from SDL_read_write.pydanticSDLHandler import *
@@ -12,7 +12,7 @@ from SDL_read_write.pydanticSDLHandler import *
 ### Functions to create SDL file objects
 #############################################################
 
-### SDL file initialization with mandatory sections and default values
+## SDL file initialization with mandatory sections and default values
 def sdlInitialize(sequence_data):
     sequence_data.file = File()
     sequence_data.infos = Info()
@@ -32,7 +32,8 @@ def addStep(instructionToModify, stepIndex, actionName):
         match actionName:
             case "run_block":
                 instructionToModify.steps.append(RunBlock())
-                print("Disclaimer: no actual block created here, it will be created if you provide information for the step.")
+                print("Disclaimer: no actual block created here, it will be \
+                      created if you provide information for the step.")
             case "loop":
                 instructionToModify.steps.append(Loop(steps=[]))
             case "calc":
@@ -44,10 +45,11 @@ def addStep(instructionToModify, stepIndex, actionName):
             case "grad":
                 instructionToModify.steps.append(Grad())
             case "rf":
-                instructionToModify.steps.append( Rf(added_phase = AddedPhase()))
+                instructionToModify.steps.append( 
+                                                 Rf(added_phase = AddedPhase()))
             case "adc":
-                instructionToModify.steps.append( Adc(added_phase = AddedPhase(), \
-                                                                            mdh={}))
+                instructionToModify.steps.append( 
+                                        Adc(added_phase = AddedPhase(), mdh={}))
                 # mdhOptAnswer = "yes"
                 # while(mdhOptAnswer == "yes"):
                 #     print("Do you want to add a new MDH option? (yes/no)")
@@ -175,7 +177,7 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 #     completeInstructionInformation(
                 #                                sequence_data = sequence_data, 
                 #                                instructionInformationList = \
-                #                                          stepInformationList[2])
+                #                                        stepInformationList[2])
                 # else:
                 #     print("Default Array information used.")
             case "loop":
@@ -187,7 +189,8 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 for stepIndexLoop in range(0, len(stepInformationList[3])):
                     addStep(instructionToModify = savedStepToModify, 
                             stepIndex = stepIndexLoop, 
-                            actionName = stepInformationList[3][stepIndexLoop][0])
+                            actionName = \
+                                       stepInformationList[3][stepIndexLoop][0])
                     completeStepInformation(sequence_data = sequence_data, 
                                             stepToModify = \
                                          savedStepToModify.steps[stepIndexLoop], 

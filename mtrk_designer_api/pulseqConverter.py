@@ -1,3 +1,9 @@
+################################################################################
+### mtrk project - Pypulseq-based conversion tool from SDL to Pulseq.        ###
+### Version 0.0.0                                                            ###
+### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
+################################################################################
+
 import numpy as np
 import sys
 import math 
@@ -154,7 +160,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                         pass
                 rfDwellTime = currentObject.duration / currentArray.size
                 rfBandwidth = 2.7 / currentObject.duration*1e6
-                ## TO DO verify if the bandwidth value is okay, 
+                ## TO DO verify the bandwidth value
                 rfEvent = pypulseq.make_arbitrary_rf(
                                 signal = np.array(rfSignalArray),
                                 flip_angle = alpha * math.pi / 180,
@@ -186,7 +192,6 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     if currentBlock.steps[stepIndex].amplitude == "flip":
                         gradientAmplitude = -gradientAmplitude
                     else: 
-                        ## TO DO support the case of the spoiler
                         equationName = \
                             currentBlock.steps[stepIndex].amplitude.equation
                         equationString = \
@@ -246,7 +251,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
         ## TO DO see if there can be other cases
         print("ERROR in Rf Spoiling")
 
-    # Creating an event signature list to facilitate block sorting
+    ## Creating an event signature list to facilitate block sorting
     eventSignatureList = []
     eventEndTimes = []
     for eventIndex in range(0, len(eventList)):
@@ -258,9 +263,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
             eventSignature = [eventIndex, eventStartTime, eventEndTime]   
             eventSignatureList.append(eventSignature)     
     eventSignatureList = sorted(eventSignatureList, key=lambda x: x[1])
-    # print("+-+-+ eventSignatureList " + str(eventSignatureList))
 
-    # Sorting all events in blocks according to their overlapping
+    ## Sorting all events in blocks according to their overlapping
     eventIndexBlockList = []
     while eventSignatureList != []:
         signature = eventSignatureList[0]
@@ -275,10 +279,9 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 if signatureFound[0] == overlappingEventIndex:
                     eventSignatureList.remove(signatureFound)
         eventIndexBlockList.append(overlappingList)
-    # print("+-+-+ eventIndexBlockList " + str(eventIndexBlockList))
 
 
-    # Modifying delays
+    ## Modifying delays
     elapsedDurationList = []
     for blockList in eventIndexBlockList:
         listToAdd = []
@@ -300,9 +303,9 @@ def extractStepInformation(sequence_data, currentBlock, system,
 
 def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform, 
                               rf_inc, rf_phase):
-    # stepInfoList =  [eventList, rfSpoilingList, 
-    #                  allEquationsList, variableEventsList, 
-    #                  rfSpoilingInc, eventIndexBlockList]
+    ## stepInfoList =  [eventList, rfSpoilingList, 
+    ##                  allEquationsList, variableEventsList, 
+    ##                  rfSpoilingInc, eventIndexBlockList]
     for blockList in stepInfoList[5]:
         if stepInfoList[3] != []:
             for variableAmplitudeEventIndex in range(0, len(stepInfoList[3])):
@@ -405,16 +408,5 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
                                 actionIndex = actionIndex + 1, 
                                 actionList = actionList, 
                                 stepInfoList = stepInfoList)
-
-## gradient spoiling
-## TO DO !!! use these calculations for our spoilers
-## delta_k = 1 / fov
-## phase_areas = (np.arange(Ny) - Ny / 2) * delta_k
-## gx_spoil = pypulseq.make_trapezoid(channel = "x", 
-##                                    area = 2 * Nx * delta_k, 
-##                                    system = system)
-## gz_spoil = pypulseq.make_trapezoid(channel = "z", 
-##                                    area = 4 / slice_thickness, 
-##                                    system = system)
             
             
