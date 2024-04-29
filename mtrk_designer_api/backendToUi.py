@@ -16,10 +16,29 @@ import os
 #############################################################
 ### Creating SDL file from web-based UI
 #############################################################
+"""
+Documentation for this module.
+ 
+More details.
+"""
 
 def create_sdl_from_ui_inputs(block_to_box_objects, block_structure, 
                               block_to_loops, block_to_duration, 
                               block_number_to_block_object, configurations):
+    """
+    Create an SDL file from web-based UI inputs.
+
+    Args:
+        block_to_box_objects (dict): Mapping of block names to box objects.
+        block_structure (dict): Mapping of block names to their structure.
+        block_to_loops (dict): Mapping of block names to the number of loops.
+        block_to_duration (dict): Mapping of block names to their duration.
+        block_number_to_block_object (dict): Mapping of block numbers to block objects.
+        configurations (dict): Configuration settings.
+
+    Returns:
+        None
+    """
     ### Initialize SDL file
     ## TO DO - need to intialize without loading file
     file_path = os.path.abspath("mtrk_designer_api/init_data/miniflash.mtrk")
@@ -27,7 +46,7 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
-
+    
     updateSDLFile(sequence_data, block_to_box_objects, configurations,
                   block_number_to_block_object, block_to_loops, 
                   block_to_duration)
@@ -44,6 +63,20 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
 def updateSDLFile(sequence_data, boxes, configurations, 
                   block_number_to_block_object, block_to_loops, 
                   block_to_duration):
+    """
+    Update the SDL file with new information.
+
+    Args:
+        sequence_data (PulseSequence): The SDL sequence data.
+        boxes (dict): Mapping of box keys to box lists.
+        configurations (dict): Configuration settings.
+        block_number_to_block_object (dict): Mapping of block numbers to block objects.
+        block_to_loops (dict): Mapping of block names to the number of loops.
+        block_to_duration (dict): Mapping of block names to their duration.
+
+    Returns:
+        None
+    """
     keys = boxes.keys()
     for boxKey in keys:
         boxList = boxes[boxKey]
@@ -113,6 +146,15 @@ def updateSDLFile(sequence_data, boxes, configurations,
 #############################################################
 
 def getFileInformation(configurations):
+    """
+    Get file information from the web-based UI.
+
+    Args:
+        configurations (dict): Configuration settings.
+
+    Returns:
+        list: List of file information.
+    """
     formatInfo = configurations["file"]["format"]
     versionInfo = configurations["file"]["version"]
     measurementInfo = configurations["file"]["measurement"]
@@ -122,11 +164,29 @@ def getFileInformation(configurations):
     return fileInformationList
 
 def getSequenceSettingsInformation(configurations):
+    """
+    Get sequence settings information from the web-based UI.
+
+    Args:
+        configurations (dict): Configuration settings.
+
+    Returns:
+        list: List of sequence settings information.
+    """
     readoutOsInfo = configurations["settings"]["readout"]
     settingsInformationList = [readoutOsInfo]
     return settingsInformationList    
 
 def getSequenceInfoInformation(configurations):
+    """
+    Get sequence info information from the web-based UI.
+
+    Args:
+        configurations (dict): Configuration settings.
+
+    Returns:
+        list: List of sequence info information.
+    """
     descriptionInfo = configurations["info"]["description"]
     slicesInfo = configurations["info"]["slices"]
     fovInfo = configurations["info"]["fov"]
@@ -139,6 +199,17 @@ def getSequenceInfoInformation(configurations):
     return sequenceInfoInformationList
 
 def getInstructionInformation(boxes, instructionName, instructionHeader):
+    """
+    Get instruction information from the web-based UI.
+
+    Args:
+        boxes (list): List of box objects.
+        instructionName (str): Name of the instruction.
+        instructionHeader (list): List containing the instruction header information.
+
+    Returns:
+        list: List of instruction information.
+    """
     printMessageInfo = instructionHeader[0]
     printCounterInfo = instructionHeader[1]
     allStepInformationLists = []
@@ -154,6 +225,15 @@ def getInstructionInformation(boxes, instructionName, instructionHeader):
     return instructionInformationList
             
 def getStepInformation(box):
+    """
+    Get step information from the web-based UI.
+
+    Args:
+        box (dict): Box object.
+
+    Returns:
+        list: List of step information.
+    """
     actionName = box["type"]
     stepInformationList = [actionName]
     match actionName:
@@ -253,6 +333,20 @@ def getStepInformation(box):
     return stepInformationList
             
 def getObjectInformation(typeInfo, box):
+    """
+    Get the information of an object based on its type.
+
+    Args:
+        typeInfo (str): The type of the object.
+        box (dict): The box containing the object information.
+
+    Returns:
+        list: A list containing the object information.
+
+    Raises:
+        None
+
+    """
     objectInformationList = [typeInfo]
     match typeInfo:
         case "rf":
@@ -305,6 +399,15 @@ def getObjectInformation(typeInfo, box):
     return objectInformationList
             
 def getArrayInformation(box):
+    """
+    Retrieves information about an array from a given box.
+
+    Args:
+        box (dict): The box containing the array information.
+
+    Returns:
+        list: A list containing the encoding, type, size, and data of the array.
+    """
     # TO DO add "encoding" to the dictionnary
     # encodingInfo = box["encoding"]
     encodingInfo = "text"
