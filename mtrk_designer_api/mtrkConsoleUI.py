@@ -1,6 +1,6 @@
 ################################################################################
 ### mtrk project - Console interface to create an SDL file.                  ###
-### Version 0.0.0                                                            ###
+### Version 0.1.1                                                            ###
 ### Anais Artiges and the mtrk project team at NYU - 09/07/2023              ###
 ################################################################################  
 

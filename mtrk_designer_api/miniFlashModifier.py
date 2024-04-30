@@ -2,7 +2,7 @@
 ### mtrk project - SDL file generator allowing to simply define MRI pulse    ###
 ### sequences that can be read by the mtrk project simulator and driver      ###
 ### sequence.                                                                ###
-### Version 0.0.0                                                            ###
+### Version 0.1.1                                                            ###
 ### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
 ################################################################################  
 

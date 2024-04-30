@@ -25,7 +25,7 @@
 ###                used to properly call miniFlashModifier, mtrkConsoleUI,   ###
 ###                camrieConverter, and pulseqConverter. Can read and write  ###
 ###                SDL files.                                                ###
-### Version 0.0.0                                                            ###
+### Version 0.1.1                                                            ###
 ### Anais Artiges and the mtrk project team at NYU - 04/29/2024              ###
 ################################################################################   
 
