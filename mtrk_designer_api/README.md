@@ -4,7 +4,7 @@ mtrk_designer_api contains the tools to design an MRI pulse sequence, to write i
 # Contents
 This repository contains:
 - SDL_read_write/pydanticSDLHandler: a set of tools to read and write SDL files using Pydantic,
-- miniFlashModifier: a prototype file that reads the existing miniflash.mtrk file (available in init_data) and modifies it,
+- miniFlashModifier (old test tool): a prototype file that reads the existing miniflash.mtrk file (available in init_data) and modifies it,
 - mtrkConsoleUI: a console interface to create an SDL file,
 - backendToUI: tools to connect with the GUI,
 - camrieConverter (WIP): a prototype tool to convert SDL files to PSUdoMRI format used in Camrie,
@@ -15,7 +15,7 @@ This repository contains:
 Additionnaly, requirements.txt helps setting the local environment by intalling the right dependencies, and Doxyfile allows to generate the doxygen documentation. 
 
 # How to run it
-For this first prototype, it is necessary to open SDLGenerator.py and uncomment the selected action (miniFlashModifier, mtrkConsoleUI, camrieConverter, or pulseqConverter, lines 165-483) to run it. Only one action can be uncommented at a time (by default, pulseqConverter is enabled). The local paths need to be adapted for input (line 53), and output (line 187). If no input is needed (creation of a new file), the miniflash.mtrk file should be used as an input for initialization. 
+For this first prototype, it is necessary to open SDLGenerator.py and uncomment the selected action (mtrkConsoleUI, miniFlashModifier, camrieConverter, or pulseqConverter, lines 165-483) to run it. Only one action can be uncommented at a time (by default, pulseqConverter is enabled). The local paths need to be adapted for input (line 53), and output (line 187). If no input is needed (creation of a new file), the miniflash.mtrk file should be used as an input for initialization. 
 
 # Questions?
 You can contact me at anais.artiges@nyulangone.org
