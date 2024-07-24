@@ -50,7 +50,7 @@ More details.
 
 ### loading of sequence data
 ## WARNING - The path needs to be adapted to your local implementation.
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\output.mtrk') as sdlFile:
+with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\miniflash.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
 

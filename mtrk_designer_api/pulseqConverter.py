@@ -28,7 +28,7 @@ def pulseqConverter(sequence_data):
 def fillSequence(sequence_data, 
                  plot: bool, 
                  write_seq: bool, 
-                 seq_filename: str = "sdl_pypulseq.seq"):
+                 seq_filename: str = "sdl_pypulseq_miniflash.seq"):
     """
     Fills the sequence object with instructions and parameters based on the given sequence data.
 
