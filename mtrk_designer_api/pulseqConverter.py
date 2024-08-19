@@ -28,7 +28,7 @@ def pulseqConverter(sequence_data):
 def fillSequence(sequence_data, 
                  plot: bool, 
                  write_seq: bool, 
-                 seq_filename: str = "sdl_pypulseq_miniflash.seq"):
+                 seq_filename: str = "sdl_pypulseq.seq"):
     """
     Fills the sequence object with instructions and parameters based on the given sequence data.
 
@@ -121,10 +121,13 @@ def fillSequence(sequence_data,
 
     slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3
     fov = sequence_data.infos.fov*1e-3
+    print("Raster time check: ", seq.rfRasterTime)
     if write_seq:
         # Prepare the sequence output for the scanner
         seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
         seq.set_definition(key="Name", value=sequence_data.infos.seqstring)
+        # seq.set_definition(key="RadiofrequencyRasterTime", value=seq.rfRasterTime)
+        # seq.set_definition(key="GradientRasterTime", value=1e-5)
 
         seq.write(seq_filename)
 
@@ -194,6 +197,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
                         rfSignalArray.append(currentArray.data[value_counter])
                     else:
                         pass
+                rasterTime = int(currentObject.duration / (10*currentArray.size) )
+                seq.rfRasterTime = 1e-5 * rasterTime
                 rfDwellTime = currentObject.duration / currentArray.size
                 rfBandwidth = 2.7 / currentObject.duration*1e6
                 ## TO DO verify the bandwidth value
@@ -222,8 +227,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
             case "grad":
                 variableAmplitudeFlag = False
                 gradientArray = []
-                gyromagneticRatio = 42577 # Hz/T converting mT/m to Hz/m
-                gradientAmplitude = currentObject.amplitude*gyromagneticRatio
+                gyromagneticRatio = 42.577*1e6 # Hz/T converting mT/m to Hz/m
+                gradientAmplitude = currentObject.amplitude*gyromagneticRatio*1e-3
                 if "amplitude" in dict(currentBlock.steps[stepIndex]):
                     if currentBlock.steps[stepIndex].amplitude == "flip":
                         gradientAmplitude = -gradientAmplitude
@@ -378,13 +383,18 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform,
                 variableAmplitudeEvent.waveform = amplitude*(normalizedWaveform)
         listToAdd = []
         for blockIndex in range(0, len(blockList)):
-            if stepInfoList[0][blockList[blockIndex]].type == "rf":
+            if stepInfoList[0][blockList[blockIndex]].type == "rf" and \
+                stepInfoList[0][blockList[blockIndex]].use == "excitation":
                 rf_inc += stepInfoList[4]
                 rf_phase += rf_inc
                 rf_phase = divmod(rf_phase, 360.0)[1]
                 rf_inc = divmod(rf_inc, 360.0)[1]
                 stepInfoList[0][blockList[blockIndex]].phase_offset = \
                                                         rf_phase / 180 * np.pi
+            elif stepInfoList[0][blockList[blockIndex]].type == "rf" and \
+                stepInfoList[0][blockList[blockIndex]].use == "refocusing":
+                stepInfoList[0][blockList[blockIndex]].phase_offset = \
+                                                       rf_phase / 180 * np.pi
             elif stepInfoList[0][blockList[blockIndex]].type == "adc":
                 stepInfoList[0][blockList[blockIndex]].phase_offset = \
                                                        rf_phase / 180 * np.pi

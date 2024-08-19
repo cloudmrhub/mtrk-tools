@@ -39,6 +39,7 @@ from miniFlashModifier import miniFlashModifier
 from mtrkConsoleUI import mtrkConsoleUI
 from camrieConverter import camrieConverter
 from pulseqConverter import pulseqConverter
+from pulseqToMtrk import pulseqToMtrk
 
 from SDL_read_write.pydanticSDLHandler import *
 
@@ -50,7 +51,7 @@ More details.
 
 ### loading of sequence data
 ## WARNING - The path needs to be adapted to your local implementation.
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\miniflash.mtrk') as sdlFile:
+with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
 
@@ -181,6 +182,9 @@ equationList = [phaseEncodingEquation]
 
 ### converting SDL format to Pulseq format
 pulseqConverter(sequence_data)
+
+### converting Pulseq format to SDL format
+# pulseqToMtrk("sdl_pypulseq.seq")
 
 ### writing of json schema to SDL file with formatting options
 ## WARNING - The path needs to be adapted to your local implementation. 
