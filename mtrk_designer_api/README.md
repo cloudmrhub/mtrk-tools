@@ -1,3 +1,7 @@
+![mtrk](https://github.com/mtrk-dev/mtrk_designer_gui/blob/main/app/static/mtrk_icon.ico)
+
+![GitHub](https://img.shields.io/github/license/mtrk-dev/mtrk_designer_api?color=%23c3ab8b)
+
 # Description
 mtrk_designer_api contains the tools to design an MRI pulse sequence, to write it as an SDL file (Json-based, .mtrk file), to convert this file to Pulseq format, and to connect to mtrk_designer_gui which is a graphical user interface (GUI) for MRI pulse sequence development. 
 
