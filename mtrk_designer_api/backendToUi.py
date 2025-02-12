@@ -45,6 +45,14 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
         sdlData = json.load(sdlFile)
         sequence_data = PulseSequence(**sdlData)
     sdlInitialize(sequence_data)
+
+    sequence_data.file = File()
+    sequence_data.infos = Info()
+    sequence_data.settings = Settings()
+    sequence_data.instructions = {}
+    sequence_data.objects = {}
+    sequence_data.arrays = {}
+    sequence_data.equations = {}
     
     updateSDLFile(sequence_data, block_to_box_objects, configurations,
                   block_number_to_block_object, block_to_loops, 
@@ -77,32 +85,64 @@ def updateSDLFile(sequence_data, boxes, configurations,
         None
     """
     keys = boxes.keys()
+
+    with open('C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/test_backend.txt', 'w') as sdlFileOut:
+        sdlFileOut.write("configurations \n") 
+        sdlFileOut.write(str(configurations)) 
+        sdlFileOut.write("\n\n") 
+        sdlFileOut.write("block_number_to_block_object \n")
+        sdlFileOut.write(str(block_number_to_block_object))
+        sdlFileOut.write("\n\n") 
+        sdlFileOut.write("block_to_loops \n") 
+        sdlFileOut.write(str(block_to_loops))
+        sdlFileOut.write("\n\n") 
+        sdlFileOut.write("block_to_duration \n") 
+        sdlFileOut.write(str(block_to_duration)) 
+        sdlFileOut.write("\n\n") 
+        sdlFileOut.write("boxes \n") 
+        sdlFileOut.write(str(boxes))
+        sdlFileOut.write("\n\n") 
+    print("keys ", keys)
     for boxKey in keys:
         boxList = boxes[boxKey]
+        print("boxList ", len(boxList))
         for box in boxList:
+            print("box[type] ", box["type"])
+            # if box["axis"] == "rf":
+            #     print("Weird")
+            #     print("box[type] ", box["type"])
+            # else:
+            #     print("OK")
             ## TO DO intervert the values
             if box["type"] == "event":
                 box["type"] = box["axis"]
                 box["axis"] = "event"
-            if box["type"] == "Block":
-                box["type"] = "loop"
-                box["name"] = \
-                         block_number_to_block_object[str(box["block"])]["name"]
-                box["loop_number"] = block_to_loops[box["name"]]
-                if {"type": "mark", "start_time": box["start_time"] + \
-                      block_to_duration[box["name"]]*1e3} in boxes[box["name"]]:
-                    pass
-                else:
-                    boxes[box["name"]].append({"type": "mark", "start_time": \
-                                            box["start_time"] + \
-                                            block_to_duration[box["name"]]*1e3})
-                    boxes[box["name"]].append({"type": "submit"})
+            # if box["type"] == "Block":
+                # if box["action"] == "loop":
+                #     print("LOOP")
+                # else:
+                #     print("OTHER")
+                # box["type"] = "loop"
+                # box["name"] = \
+                #          block_number_to_block_object[str(box["block"])]["name"]
+                # print("box[loop_number] ", box["loop_number"])
+                # print("box[name] ", box["name"])
+                # box["loop_number"] = block_to_loops[box["name"]]
+                # if {"type": "mark", "start_time": box["start_time"] + \
+                #       block_to_duration[box["name"]]*1e3} in boxes[box["name"]]:
+                #     pass
+                # else:
+                #     boxes[box["name"]].append({"type": "mark", "start_time": \
+                #                             box["start_time"] + \
+                #                             block_to_duration[box["name"]]*1e3})
+                #     boxes[box["name"]].append({"type": "submit"})
             if boxKey == "Main":
                 instructionName = "main"
                 instructionHeader = ["Main loop", "on"]
                 ## TO DO put this information in the right place
                 savedInstructionHeader = []
                 if bool(block_number_to_block_object):
+                    # print("block_number_to_block_object[str(box[block]) ", block_number_to_block_object[str(box["block"])])
                     if block_number_to_block_object[str(box["block"])][\
                                                        "print_counter"] == True:
                         printCounter = "on"
@@ -111,6 +151,9 @@ def updateSDLFile(sequence_data, boxes, configurations,
                     savedInstructionHeader = \
                     [block_number_to_block_object[str(box["block"])]["message"],
                                                                    printCounter]
+                    print("LOOKING " + str(block_number_to_block_object[str(box["block"])]["name"]))
+                    if block_number_to_block_object[str(box["block"])]["name"] in block_to_loops.keys():
+                        print("FOUNDY " + str(block_number_to_block_object[str(box["block"])]["name"]))
             else:
                 instructionName = boxKey
                 instructionHeader = savedInstructionHeader

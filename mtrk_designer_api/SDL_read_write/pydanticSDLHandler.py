@@ -92,6 +92,7 @@ class HasSteps():
 class Instruction(HasSteps,BaseModel):
     print_counter: Optional[str] = "off"
     print_message: str = "default_print_message"
+    time: Optional[int] = 0
 
     steps: List[SerializeAsAny[Step]]
 

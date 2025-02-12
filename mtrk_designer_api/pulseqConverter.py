@@ -28,7 +28,7 @@ def pulseqConverter(sequence_data):
 def fillSequence(sequence_data, 
                  plot: bool, 
                  write_seq: bool, 
-                 seq_filename: str = "sdl_pypulseq.seq"):
+                 seq_filename: str = "sdl_pypulseq_TE80_TR4000_os2_largeCrush_xSpoil.seq"):
     """
     Fills the sequence object with instructions and parameters based on the given sequence data.
 
@@ -108,7 +108,7 @@ def fillSequence(sequence_data,
     if plot:
         seq.plot()
 
-    seq.calculate_kspace()
+    # seq.calculate_kspace()
 
     # Very optional slow step, but useful for testing during development e.g. 
     # for the real TE, TR or for staying within slew-rate limits
@@ -158,6 +158,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
     timingList = []
     rfSpoilingInc = 0
     rfSpoilingFlag = False
+    os_factor = sequence_data.settings.readout_os
+    print("OS factor: ", os_factor)
     for stepIndex in range(0, len(currentBlock.steps)):
         if "object" in dict(currentBlock.steps[stepIndex]):
             currentObject = sequence_data.objects[
@@ -192,6 +194,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 rfSignalArray=[]
                 alpha = currentObject.flipangle
                 sliceThickness = currentObject.thickness*1e-3
+                phaseOffset = currentObject.initial_phase
                 for value_counter in range(0, len(currentArray.data)):
                     if value_counter%2 == 0:
                         rfSignalArray.append(currentArray.data[value_counter])
@@ -200,7 +203,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 rasterTime = int(currentObject.duration / (10*currentArray.size) )
                 seq.rfRasterTime = 1e-5 * rasterTime
                 rfDwellTime = currentObject.duration / currentArray.size
-                rfBandwidth = 2.7 / currentObject.duration*1e6
+                timeBwProduct = currentObject.time_bandwidth_product
+                rfBandwidth = timeBwProduct / currentObject.duration*1e6
                 ## TO DO verify the bandwidth value
                 rfEvent = pypulseq.make_arbitrary_rf(
                                 signal = np.array(rfSignalArray),
@@ -212,12 +216,12 @@ def extractStepInformation(sequence_data, currentBlock, system,
                                 no_signal_scaling = False,
                                 max_grad = 0,
                                 max_slew = 0,
-                                phase_offset = 0,
+                                phase_offset = phaseOffset,
                                 return_delay = False,
                                 return_gz = False,
                                 slice_thickness = sliceThickness,
                                 system = system,
-                                time_bw_product = 2.7,
+                                time_bw_product = timeBwProduct,
                                 use = currentObject.purpose)
                 eventList.append(rfEvent)
                 if rfSpoilingFlag == True and \
@@ -240,6 +244,17 @@ def extractStepInformation(sequence_data, currentBlock, system,
                         gradientAmplitude = 1
                         allEquationsList.append(equationString)
                         variableAmplitudeFlag = True
+                ## TO DO avoid the name dependency
+                # print("before " + str(len(currentArray.data)))
+                # if currentBlock.steps[stepIndex].object == "grad_read_readout" and os_factor != 1:
+                #     extended_data = []
+                #     for value_index in range(0, len(currentArray.data)-2):
+                #         extended_data.append(currentArray.data[value_index]) 
+                #         extended_data.append((currentArray.data[value_index]+currentArray.data[value_index+1])/2) 
+                #     extended_data.append(currentArray.data[len(currentArray.data)-1]) 
+                #     extended_data.append(currentArray.data[len(currentArray.data)-1]/2) 
+                #     currentArray.data = extended_data
+                #     print("spotted " + str(len(currentArray.data)))
                 for value in currentArray.data:
                     gradientArray.append(gradientAmplitude * value)
                 gradientAxis = ""
@@ -252,10 +267,15 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 else:
                     print(str(currentBlock.steps[stepIndex].axis) + \
                           "is not a valid axis name.")
+                start_time = currentBlock.steps[stepIndex].time*1e-6
+                # print("start time: ", start_time)
+                # if currentBlock.steps[stepIndex].object == "grad_read_readout" and os_factor != 1:
+                #     start_time = start_time - ((len(currentArray.data)*10*1e-6)/2)
+                #     print("start time 2: ", start_time)
                 gradientEvent = pypulseq.make_arbitrary_grad(
                                 channel = gradientAxis,
                                 waveform = np.array(gradientArray),
-                                delay = currentBlock.steps[stepIndex].time*1e-6,
+                                delay = start_time,
                                 system = system)
                 eventList.append(gradientEvent)
                 if variableAmplitudeFlag == True:
@@ -263,8 +283,9 @@ def extractStepInformation(sequence_data, currentBlock, system,
 
             case "adc":
                 adc_delay = currentBlock.steps[stepIndex].time
+                adcSamples = currentObject.samples * os_factor
                 adcEvent = pypulseq.make_adc(
-                                        num_samples = currentObject.samples, 
+                                        num_samples = adcSamples, 
                                         duration = currentObject.duration*1e-6, 
                                         delay = adc_delay*1e-6, 
                                         system = system)

@@ -51,7 +51,7 @@ More details.
 
 ### loading of sequence data
 ## WARNING - The path needs to be adapted to your local implementation.
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d.mtrk') as sdlFile:
+with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d_TE80_TR4000_os2_largeCrush_xSpoil.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
 
@@ -184,7 +184,7 @@ equationList = [phaseEncodingEquation]
 pulseqConverter(sequence_data)
 
 ### converting Pulseq format to SDL format
-# pulseqToMtrk("sdl_pypulseq.seq")
+# pulseqToMtrk("sdl_pypulseq_test.seq")
 
 ### writing of json schema to SDL file with formatting options
 ## WARNING - The path needs to be adapted to your local implementation. 

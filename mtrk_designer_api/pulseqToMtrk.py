@@ -466,9 +466,9 @@ def extractRFevents(seq, periodicEvents, variableEvents, variableIndexes):
                 gamma = 42.58 # MHz/T gyromagnetic ratio
                 rfMagWaveformAmpl = []
                 for value in rfMagWaveform:
-                    rfMagWaveformAmpl.append(value * rfAmplitude)
+                    rfMagWaveformAmpl.append(value * rfAmplitude * 1.35) # TO DO check the 1.35 value, it should be 1.
                 areaUnderCurve = simpson(rfMagWaveformAmpl, dx=seq.rfRasterTime)
-                flipAngle = areaUnderCurve * gamma * 2 * np.pi 
+                flipAngle = int(areaUnderCurve * gamma * 2 * np.pi) 
                 print("flipAngle", flipAngle)
 
                 # Calculating bandwith time product for SinC RF pulse
@@ -477,16 +477,37 @@ def extractRFevents(seq, periodicEvents, variableEvents, variableIndexes):
                 # preciseFftRfWaveformEq = interpolate.InterpolatedUnivariateSpline(rfTimeShape, fftRfWaveform)
                 # preciseFftRfWaveform = list(preciseFftRfWaveformEq(linspace(0, rfTimeShape[-1], 64000)))
                 rfMagWaveform = list(rfMagWaveform)
-
                 diffRfMagWaveform = np.diff(np.sign(np.diff(rfMagWaveform)))
+                # plt.plot(rfMagWaveform)
+                # plt.show()
                 rfMinIndex = []
                 for index in range(0, len(diffRfMagWaveform)):
                     if diffRfMagWaveform[index] > 0:
                         rfMinIndex.append(index)
-                peakHalfWidth = ((rfMinIndex[1] - rfMinIndex[0])  / 2) 
+                rfMaxIndex = []
+                for index in range(0, len(diffRfMagWaveform)):
+                    if diffRfMagWaveform[index] < 0:
+                        rfMaxIndex.append(index)
+                print("rfMinIndex", rfMinIndex)
+                print("rfMaxIndex", rfMaxIndex)
+                centralMaxIndex = int(len(rfMinIndex)/2)
+                print("centralMaxIndex", centralMaxIndex)
+                peakHalfWidth = (rfMaxIndex[centralMaxIndex] - rfMinIndex[centralMaxIndex-1]) * seq.rfRasterTime * 2
+                print("peakHalfWidth", peakHalfWidth)
+                lobeWidthTable =[]
+                for index in range(0, len(rfMaxIndex)):
+                    if index <= centralMaxIndex:
+                        if index == 0:
+                            lobeWidth = rfMinIndex[index] * seq.rfRasterTime * 2
+                        else:
+                            lobeWidth = (rfMinIndex[index] - rfMinIndex[index-1]) * seq.rfRasterTime * 2
+                        lobeWidthTable.append(lobeWidth)
+                print("lobeWidthTable", lobeWidthTable)
+                peakHalfWidth= max(lobeWidthTable)/2
                 # TO DO remove the *2 in bandWith and timeBwProduct when the original file is corrected
-                bandWidth = 1 / (peakHalfWidth * seq.rfRasterTime * 2)
+                bandWidth = 0.65 / (peakHalfWidth) 
                 timeBwProduct = len(rfMagWaveform) * 2 * seq.rfRasterTime * bandWidth
+                print("timeBwProduct", timeBwProduct)
 
                 # Calculating slice thickness
                 gamma = 42.58 # MHz/T gyromagnetic ratio
@@ -496,6 +517,7 @@ def extractRFevents(seq, periodicEvents, variableEvents, variableIndexes):
                     sliceSelectionGradientAmplitude = sliceSelectionGradient[0]
                     correctedAmplitude_mTm = (sliceSelectionGradientAmplitude * 1e-3) / gamma
                     sliceThickness = bandWidth / (gamma * correctedAmplitude_mTm) # in mm
+                print("sliceThickness", sliceThickness)
                 
 
                 # sdlRfEvent = Rf()
