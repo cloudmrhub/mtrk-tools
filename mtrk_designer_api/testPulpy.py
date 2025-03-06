@@ -3,7 +3,8 @@ import json
 import jsbeautifier
 import re
 
-start_time = 0.45 # start time *1e2 ms 
+insertion_block = "block_spinEcho" # block name to insert EPI echo train
+previous_block = "block_refocusing" # previous step name
 # fov = 0.03 # imaging field of view in cmcm
 n = 128 # resolution (# of pixels (square). N = etl*nl, where etl = echo-train-len
         # and nl = # leaves (shots). nl default 1.)
@@ -19,7 +20,7 @@ with open('raw_seq_pulpy.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     base_sequence = PulseSequence(**sdlData)
 
-epi_sequence = add_epi_train(base_sequence, start_time, n, etl, gamp, gslew, offset, dirx, diry)
+epi_sequence = add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, gslew, offset, dirx, diry)
 
 with open('test_pulpy.mtrk', 'w') as sdlFileOut:
     options = jsbeautifier.default_options()

@@ -502,7 +502,7 @@ def spiral_k(fov, N, f_sampling, R, ninterleaves, alpha, gm, sm, gamma=2.678e8):
     return k
 
 
-def mtrk_epi(fov, start_time, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
+def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
     r"""Basic EPI single-shot trajectory designer.
 
     Args:
@@ -530,8 +530,6 @@ def mtrk_epi(fov, start_time, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1
         From Antonis Matakos' contrib to Jeff Fessler's IRT.
     """
     s = gslew * dt * 1000
-
-    # scaley = 20
     scaley = 20
 
 
@@ -646,11 +644,6 @@ def mtrk_epi(fov, start_time, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1
 
     
     # prepare blocks for mtrk
-    block1_startTime = start_time
-    block2_startTime = start_time + max(gxprew.size, gyprew.size) * 10e-5
-    block3_startTime = block2_startTime + 31 * (2 * (gxro.size + gyblip.size)) * 10e-5
-    block4_startTime = block3_startTime + (2 * gxro.size + gyblip.size) * 10e-5
-    
     gxprew_startTime = 0
     gyprew_startTime = 0
     gxro1_startTime = 0
@@ -663,88 +656,84 @@ def mtrk_epi(fov, start_time, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1
     gyrep_startTime = 0
 
     block1 = [1, 
-              block1_startTime,
               [gxprew[0]/max(gxprew[0], key=abs), 
                 gxprew.size,
                 "read", 
                 max(gxprew[0], key=abs), 
-                block1_startTime + gxprew_startTime],
+                gxprew_startTime],
               [gyprew[0]/max(gyprew[0], key=abs), 
                gyprew.size,
                "phase", 
                max(gyprew[0], key=abs), 
-               block1_startTime + gyprew_startTime]]
+               gyprew_startTime]]
     block2 = [etl-1,
-              block2_startTime,
               [gxro[0]/max(gxro[0], key=abs), 
                gxro.size,
                "read", 
                max(gxro[0], key=abs), 
-               block2_startTime + gxro1_startTime],
+               gxro1_startTime],
               [adc[0],
                adc.size, 
                "adc", 
                1,
-               block2_startTime + adc1_startTime],
+               adc1_startTime],
               [gyblip[0]/max(gyblip[0], key=abs), 
                gyblip.size,
                "phase", 
                max(gyblip[0], key=abs), 
-               block2_startTime + gyblip1_startTime],
+               gyblip1_startTime],
               [gxro[0]/max(gxro[0], key=abs), 
                gxro.size,
                "read", 
                -max(gxro[0], key=abs), 
-               block2_startTime + gxro2_startTime],
+               gxro2_startTime],
               [adc[0],
                adc.size,  
                "adc", 
                1,
-               block2_startTime + adc2_startTime],
+               adc2_startTime],
               [gyblip[0]/max(gyblip[0], key=abs), 
                gyblip.size,
                "phase", 
                max(gyblip[0], key=abs), 
-               block2_startTime + gyblip2_startTime]]
+               gyblip2_startTime]]
     block3 = [1,
-              block3_startTime,
               [gxro[0]/max(gxro[0], key=abs), 
                gxro.size,
                "read", 
                max(gxro[0], key=abs), 
-               block3_startTime + gxro1_startTime],
+               gxro1_startTime],
               [adc[0], 
                "adc", 
                adc.size, 
                1,
-               block3_startTime + adc1_startTime],
+               adc1_startTime],
               [gyblip[0]/max(gyblip[0], key=abs), 
                gyblip.size,
                "phase", 
                max(gyblip[0], key=abs), 
-               block3_startTime + gyblip1_startTime],
+               gyblip1_startTime],
               [gxro[0]/max(gxro[0], key=abs), 
                gxro.size,
                "read", 
                -max(gxro[0], key=abs), 
-               block3_startTime + gxro2_startTime],
+               gxro2_startTime],
               [adc[0], 
                adc.size,
                "adc", 
                1,
-               block3_startTime + adc2_startTime]]
+               adc2_startTime]]
     block4 = [1,
-              block4_startTime,
               [gxrep[0]/max(gxrep[0], key=abs), 
                gxrep.size,
                "read", 
                max(gxrep[0], key=abs), 
-               block4_startTime + gxrep_startTime],
+               gxrep_startTime],
               [gyrep[0]/max(gyrep[0], key=abs), 
                gyrep.size,
                "phase", 
                max(gyrep[0], key=abs), 
-               block4_startTime + gyrep_startTime]]
+               gyrep_startTime]]
     
     # returns **blocks** with the following structure: 
     # blocks = [block1, block2, ..., blockN]

@@ -55,7 +55,7 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
     sequence_data.equations = {}
     
     updateSDLFile(sequence_data, block_to_box_objects, configurations,
-                  block_number_to_block_object, block_to_loops, 
+                  block_number_to_block_object, block_to_loops, block_structure,
                   block_to_duration)
     
     ### writing of json schema to SDL file with formatting options
@@ -68,7 +68,7 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
         #purely aesthetic
 
 def updateSDLFile(sequence_data, boxes, configurations, 
-                  block_number_to_block_object, block_to_loops, 
+                  block_number_to_block_object, block_to_loops, block_structure,
                   block_to_duration):
     """
     Update the SDL file with new information.
@@ -96,6 +96,9 @@ def updateSDLFile(sequence_data, boxes, configurations,
         sdlFileOut.write("block_to_loops \n") 
         sdlFileOut.write(str(block_to_loops))
         sdlFileOut.write("\n\n") 
+        sdlFileOut.write("block_structure \n") 
+        sdlFileOut.write(str(block_structure))
+        sdlFileOut.write("\n\n") 
         sdlFileOut.write("block_to_duration \n") 
         sdlFileOut.write(str(block_to_duration)) 
         sdlFileOut.write("\n\n") 
@@ -105,44 +108,15 @@ def updateSDLFile(sequence_data, boxes, configurations,
     print("keys ", keys)
     for boxKey in keys:
         boxList = boxes[boxKey]
-        print("boxList ", len(boxList))
         for box in boxList:
-            print("box[type] ", box["type"])
-            # if box["axis"] == "rf":
-            #     print("Weird")
-            #     print("box[type] ", box["type"])
-            # else:
-            #     print("OK")
-            ## TO DO intervert the values
             if box["type"] == "event":
                 box["type"] = box["axis"]
                 box["axis"] = "event"
-            # if box["type"] == "Block":
-                # if box["action"] == "loop":
-                #     print("LOOP")
-                # else:
-                #     print("OTHER")
-                # box["type"] = "loop"
-                # box["name"] = \
-                #          block_number_to_block_object[str(box["block"])]["name"]
-                # print("box[loop_number] ", box["loop_number"])
-                # print("box[name] ", box["name"])
-                # box["loop_number"] = block_to_loops[box["name"]]
-                # if {"type": "mark", "start_time": box["start_time"] + \
-                #       block_to_duration[box["name"]]*1e3} in boxes[box["name"]]:
-                #     pass
-                # else:
-                #     boxes[box["name"]].append({"type": "mark", "start_time": \
-                #                             box["start_time"] + \
-                #                             block_to_duration[box["name"]]*1e3})
-                #     boxes[box["name"]].append({"type": "submit"})
             if boxKey == "Main":
                 instructionName = "main"
-                instructionHeader = ["Main loop", "on"]
-                ## TO DO put this information in the right place
+                instructionHeader = ["Running main loop", "on"]
                 savedInstructionHeader = []
                 if bool(block_number_to_block_object):
-                    # print("block_number_to_block_object[str(box[block]) ", block_number_to_block_object[str(box["block"])])
                     if block_number_to_block_object[str(box["block"])][\
                                                        "print_counter"] == True:
                         printCounter = "on"
@@ -151,9 +125,6 @@ def updateSDLFile(sequence_data, boxes, configurations,
                     savedInstructionHeader = \
                     [block_number_to_block_object[str(box["block"])]["message"],
                                                                    printCounter]
-                    print("LOOKING " + str(block_number_to_block_object[str(box["block"])]["name"]))
-                    if block_number_to_block_object[str(box["block"])]["name"] in block_to_loops.keys():
-                        print("FOUNDY " + str(block_number_to_block_object[str(box["block"])]["name"]))
             else:
                 instructionName = boxKey
                 instructionHeader = savedInstructionHeader
@@ -168,6 +139,9 @@ def updateSDLFile(sequence_data, boxes, configurations,
         completeInstructionInformation(
                         sequence_data = sequence_data, 
                         instructionInformationList = instructionInformationList)
+
+    makeBlockStructure(sequence_data, block_structure, block_to_loops)    
+    
     fileInformationList = getFileInformation(configurations = configurations)
     completeFileInformation(sequence_data = sequence_data, 
                             fileInformationList = fileInformationList)
@@ -181,7 +155,27 @@ def updateSDLFile(sequence_data, boxes, configurations,
                       sequence_data = sequence_data, 
                       sequenceInfoInformationList = sequenceInfoInformationList)
 
-        
+def makeBlockStructure(sequence_data, block_structure, block_to_loops):
+    for block in block_structure:
+        if block == "Main":
+            mainLoop = Loop(counter = 1, range = block_to_loops["Main"], steps=[])   
+            sequence_data.instructions["main"].steps.append(mainLoop)
+            structureName = sequence_data.instructions["main"].steps[0]
+        else:
+            structureName = sequence_data.instructions[block]
+        for blockName in block_structure[block]:
+            if int(block_to_loops[blockName]) == 1:
+                runBlock = RunBlock(block = blockName)
+                structureName.steps.append(runBlock)
+            else:
+                loopBlock = Loop(counter = 1, range = block_to_loops[blockName], steps=[])
+                structureName.steps.append(loopBlock)
+                runBlock = RunBlock(block = blockName)
+                for step in structureName.steps:
+                    if isinstance(step, Loop):
+                        step.steps.append(runBlock)
+            
+
 #############################################################
 ### Functions to get new values from the web-based UI
 #############################################################
@@ -231,7 +225,7 @@ def getSequenceInfoInformation(configurations):
     descriptionInfo = configurations["info"]["description"]
     slicesInfo = configurations["info"]["slices"]
     fovInfo = configurations["info"]["fov"]
-    pelinesInfo = configurations["info"]["pe_lines"]
+    pelinesInfo = configurations["info"]["pelines"]
     seqstringInfo = configurations["info"]["seqstring"]
     reconstructionInfo = configurations["info"]["reconstruction"]
     sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 

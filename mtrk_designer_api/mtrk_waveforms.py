@@ -13,43 +13,89 @@ from SDL_read_write.pydanticSDLHandler import *
 # dirx (int): x direction of EPI -1 left to right, 1 right to left
 # diry (int): y direction of EPI -1 bottom-top, 1 top-bottom
 
-def add_epi_train(base_sequence, start_time, n, etl, gamp, gslew, offset=0, dirx=-1, diry=1):
-    # base_sequence.instructions = {}
+def add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, gslew, offset=0, dirx=-1, diry=1):
 
     fov = round(base_sequence.infos.fov * 1e-4, 6)  # Is the FOV in the right unit now?
     dt = 1e-5
 
-    ## Creating a main loop
-    epiLoop = Loop(counter = 2, range = 1, 
-                    steps = [])
-    base_sequence.instructions.update({"block_epi" : {}})
-    base_sequence.instructions["block_epi"].update(epiLoop)
+    blocks = mpp.mtrk_epi(fov, n, etl, dt, gamp, gslew, offset, dirx, diry)
+    for instruction in base_sequence.instructions.keys():
+        if instruction == insertion_block:
+            updated_insertion_block = insertion_block
+            break
+        else:
+            updated_insertion_block = "main"
+    if updated_insertion_block == "main":
+        print("block not found: " + insertion_block + ". main block will be used instead.")
+    insertion_block = updated_insertion_block
+    if updated_insertion_block == "main":
+        print("block not found: " + insertion_block + ". main block will be used instead.")
+    insertion_block = updated_insertion_block
 
-    blocks = mpp.mtrk_epi(fov, start_time, n, etl, dt, gamp, gslew, offset, dirx, diry)
+    ## Inserting block_epi after the previous block
+    target_runblock = RunBlock(action='run_block', block=previous_block)
+    previous_block_index = None
+    for i, obj in enumerate(base_sequence.instructions[insertion_block].steps):
+        if isinstance(obj, RunBlock) and obj.block == target_runblock.block:
+            previous_block_index = i
+    base_sequence.instructions[insertion_block].steps.insert(int(previous_block_index) + 1, RunBlock(action = "run_block", block = "block_epi"))
+
+    ## Creating a main loop
+
+    string_instructions = str(base_sequence.instructions)
+
+    ## Counting the number of loops in the instructions to determine next counter
+    start = 0
+    counter_index = 1
+    while True:
+        start = string_instructions.find("Loop(", start)
+        if start == -1:
+            break
+        counter_index += 1
+        start += len("Loop(")  # Move past the last found word
+
+    # epiLoop = Loop(counter = counter_index, range = 1, 
+    #                 steps = [])
+    # counter_index += 1
+    base_sequence.instructions.update({"block_epi" : {}})
+    block = Instruction(print_counter = "on",
+                        print_message = "Running EPI echo train",
+                        steps = [])
+    base_sequence.instructions["block_epi"].update(block)
+    # base_sequence.instructions["block_epi"]["steps"].append(epiLoop)
+    
+    ## Initializing the main block
+    init = Init()
+    base_sequence.instructions["block_epi"]["steps"].append(init)
 
     ## Looping over blocks
     for block_index in range(0, len(blocks)):
         ## Creating loops (only if the iteration number is greater than 1)
         loop_iterations = blocks[block_index][0]
-        block_startTime = int(blocks[block_index][1]*1e5)
         block = Instruction(print_counter = "on",
                             print_message = "Running block " + str(block_index),
-                            time = block_startTime,
                             steps = [])
+        
         base_sequence.instructions.update({"block_" + str(block_index) : {}})
         base_sequence.instructions["block_" + str(block_index)].update(block)
         if loop_iterations > 1:
-            loop = Loop(counter = block_index, 
+            loop = Loop(counter = counter_index, 
                         range = loop_iterations, 
                         steps = [Step(action = "run_block", 
                                       block = "block_" + str(block_index))])
+            counter_index += 1
             base_sequence.instructions["block_epi"]["steps"].append(loop)
         else:
-            base_sequence.instructions["block_epi"]["steps"].append(Step(action = "run_block", 
-                                                                 block = "block_" + str(block_index)))
+            step = Step(action = "run_block", 
+                        block = "block_" + str(block_index))
+            base_sequence.instructions["block_epi"]["steps"].append(step)
+
+        ## Initializing the block
+        init = Init()
+        base_sequence.instructions["block_" + str(block_index)]["steps"].append(init)
 
         ## Looping over block instructions
-        for index in range(2, len(blocks[block_index])):
+        for index in range(1, len(blocks[block_index])):
             ## Combined index to identify instructions, objects and arrays
             combined_index = str(block_index) + "_" + str(index)
 
@@ -114,16 +160,28 @@ def add_epi_train(base_sequence, start_time, n, etl, gamp, gslew, offset=0, dirx
                                                    float = 0.0), 
                           mdh = mdhOptionsDict)
                 base_sequence.instructions["block_" + str(block_index)]["steps"].append(adc)
-    
+        
+        ## Closing the block
+        submit =  Submit()
+        base_sequence.instructions["block_" + str(block_index)]["steps"].append(submit)
+
+    ## Closing the main block
+    submit =  Submit()
+    base_sequence.instructions["block_epi"]["steps"].append(submit)
+
     return base_sequence
 
+def block_duration(base_sequence, block):
+    latest_start_time = 0
+    for step in block.steps:
+        if step.action == "grad":
+            if step.time > latest_start_time:
+                latest_start_time = step.time
 
-    # subplot, axis = plt.subplots(2, sharex=True)
-    # subplot.suptitle("EPI trajectory")
-    # axis[0].set_title("gy")
-    # axis[0].set_ylim(ymin=-20, ymax=20)
-    # axis[0].plot(gy, label='gy')
-    # axis[1].set_title("gx")
-    # axis[1].set_ylim(ymin=-20, ymax=20)
-    # axis[1].plot(gx, label='gx')
-    # plt.show()
+    longest_duration = 0
+    for step in block.steps:
+        if step.action == "grad" and step.time == latest_start_time:
+            if base_sequence.objects[step.object].duration > longest_duration:
+                longest_duration = base_sequence.objects[step.object].duration
+
+    return latest_start_time + longest_duration

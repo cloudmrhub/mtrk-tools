@@ -6,6 +6,9 @@
 
 import numpy as np
 import sys
+sys.path.append(r'C:/Users/artiga02')
+# import pypulseqCustom.pypulseq as pypulseq
+# from pypulseqCustom.pypulseq.Sequence import sequence
 import math 
 import pypulseq
 from types import SimpleNamespace
