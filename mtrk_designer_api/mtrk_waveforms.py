@@ -1,5 +1,6 @@
 import mtrkPulpy as mpp
 import matplotlib.pyplot as plt
+import numpy
 from SDL_read_write.pydanticSDLHandler import *
 
 # fov (float): imaging field of view in cm.
@@ -65,7 +66,7 @@ def add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, 
     # base_sequence.instructions["block_epi"]["steps"].append(epiLoop)
     
     ## Initializing the main block
-    init = Init()
+    init = Init(gradients="logical")
     base_sequence.instructions["block_epi"]["steps"].append(init)
 
     ## Looping over blocks
@@ -91,7 +92,7 @@ def add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, 
             base_sequence.instructions["block_epi"]["steps"].append(step)
 
         ## Initializing the block
-        init = Init()
+        init = Init(gradients="logical")
         base_sequence.instructions["block_" + str(block_index)]["steps"].append(init)
 
         ## Looping over block instructions
@@ -102,10 +103,15 @@ def add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, 
             ## Creating gradient events, along with their respective arrays and objects
             if blocks[block_index][index][2] == "read" or blocks[block_index][index][2] == "slice" or blocks[block_index][index][2] == "phase":
                 ## Creating gradient arrays
+                data = blocks[block_index][index][0]
+                size = blocks[block_index][index][1]
+                if blocks[block_index][index][0][-1] != 0.0:
+                    data = numpy.append(blocks[block_index][index][0], 0.0)
+                    size = blocks[block_index][index][1] + 1
                 grad_array = GradientTemplate(encoding = "text", 
                                               type = "float",
-                                              size = blocks[block_index][index][1],
-                                              data = blocks[block_index][index][0])
+                                              size = size,
+                                              data = data)
                 ## Checking if the array already exists in the arrays section
                 if dict(grad_array) in base_sequence.arrays.values():
                     array_name = [key for key, value in base_sequence.arrays.items() if value == dict(grad_array)][0] 
@@ -135,10 +141,11 @@ def add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, 
 
             ## Creating ADC events, along with their respective objects       
             elif blocks[block_index][index][2] == "adc":
+                print("ADC CREATION")
                 ## Creating ADC objects
                 adc_object = AdcReadout(duration = blocks[block_index][index][1]*10, 
                                         samples = blocks[block_index][index][1], 
-                                        dwelltime = 30000)
+                                        dwelltime = 10000)
 
                 ## Checking if the ADC object already exists in the objects section
                 if dict(adc_object) in base_sequence.objects.values():

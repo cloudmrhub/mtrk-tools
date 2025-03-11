@@ -71,8 +71,6 @@ def addStep(instructionToModify, stepIndex, actionName):
                 instructionToModify.steps.append(Loop(steps=[]))
             case "calc":
                 instructionToModify.steps.append(Calc())
-            case "init":
-                instructionToModify.steps.append(Init())
             case "sync":
                 instructionToModify.steps.append(Sync())
             case "grad":
@@ -247,13 +245,14 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
         sequence_data (SequenceData): The sequence data object.
         instructionInformationList (list): A list containing the instruction information.
             The list should have the following structure:
-            [instructionName, printMessageInfo, printCounterInfo, allStepInformationLists]
+            [instructionName, printMessageInfo, printCounterInfo, instructionEndTime, allStepInformationLists]
 
     Returns:
         None
     """
     ## instructionInformationList = [instructionName, printMessageInfo, 
-    ##                               printCounterInfo, allStepInformationLists]
+    ##                               printCounterInfo, instructionEndTime,
+    ##                               allStepInformationLists, initInfo]
     if(instructionInformationList != []):
         instructionToModify = \
                        sequence_data.instructions[instructionInformationList[0]]
@@ -265,21 +264,30 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
             print(printCounterOption + 
                   " is not valid. It should be 'on' or 'off'.")
         allStepInformationLists = []
-        for instruction in instructionInformationList[3]:
-            if instruction == ['Block']:
-                print("Block passed")
-            else:
+        for instruction in instructionInformationList[4]:
+            if instruction != ['Block']:
                 allStepInformationLists.append(instruction)
+        
+        if instructionInformationList[0] != "main":
+            init_event = Init(gradients = instructionInformationList[5])
+            instructionToModify.steps.append(init_event)
+
+
         for stepIndex in range(0, len(allStepInformationLists)):
             ## stepInformationList = [actionName, actionSpecificElements...]
             addStep(instructionToModify = instructionToModify, 
-                    stepIndex = stepIndex, 
+                    stepIndex = stepIndex + 1, 
                     actionName = allStepInformationLists[stepIndex][0])
-            stepToModify = instructionToModify.steps[stepIndex]
+            stepToModify = instructionToModify.steps[stepIndex + 1]
             completeStepInformation(sequence_data = sequence_data, 
                                     stepToModify = stepToModify, 
                                     stepInformationList = \
                                        allStepInformationLists[stepIndex])
+        if instructionInformationList[0] != "main" and len(instructionToModify.steps) != 1:
+            mark_event = Mark(time = int(instructionInformationList[3]*100)*10)
+            instructionToModify.steps.append(mark_event)
+            submit_event = Submit()
+            instructionToModify.steps.append(submit_event)
 
 def completeStepInformation(sequence_data, stepToModify, stepInformationList):
     """
@@ -334,9 +342,9 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 stepToModify.type = stepInformationList[1]
                 stepToModify.float= stepInformationList[2]
                 stepToModify.increment = stepInformationList[3] 
-            case "init":
-                ## stepInformationList = [actionName, gradientInfo]
-                stepToModify.gradients = stepInformationList[1]
+            # case "init":
+            #     ## stepInformationList = [actionName, gradientInfo]
+            #     stepToModify.gradients = stepInformationList[1]
             case "sync":
                 ## stepInformationList = [actionName, objectInfo, 
                 ##                        objectInformationList, timeInfo]
@@ -392,7 +400,8 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                                 stepToModify.amplitude.equation].equation = \
                                                           stepInformationList[7]
                 else:
-                    print("No amplitude option added.")
+                    # print("No amplitude option added.")
+                    pass
 
             case "rf":
                 ## stepInformationList = [actionName, objectInfo, 
@@ -434,14 +443,15 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 stepToModify.added_phase.type = stepInformationList[6]
                 stepToModify.added_phase.float = stepInformationList[7]
                 ## TO DO !!! mdhInfoList = stepInformationList[8]
-                print("passed for now") 
+                # print("passed for now") 
             case "mark":
                 ## stepInformationList = [actionName, timeInfo]
                 stepToModify.time = stepInformationList[1]
             case "submit":
                 pass
             case _:
-                print("The type " + actionInfo + " could not be identified.")
+                # print("The type " + actionInfo + " could not be identified.")
+                pass
 
 
 def completeObjectInformation(sequence_data, objectName, objectInformationList):
@@ -512,14 +522,15 @@ def completeObjectInformation(sequence_data, objectName, objectInformationList):
                 sequence_data.objects[objectName]=AdcReadout( 
                                                     duration = durationInfo, 
                                                     samples = samplesInfo, 
-                                                    dwelltime = dwelltimeInfo) 
+                                                    dwelltime = dwelltimeInfo*1000) 
             case "sync":
                 ## objectInformationList = [arrayInfo, durationInfo, eventInfo]
                 eventInfo = objectInformationList[2]
                 sequence_data.objects[objectName]=Ttl(duration = durationInfo, 
                                                       event = eventInfo) 
             case _:
-                print("The type " + typeInfo + " could not be identified.")
+                # print("The type " + typeInfo + " could not be identified.")
+                pass
 
 
 def completeArrayInformation(sequence_data, arrayName, arrayInformationList):

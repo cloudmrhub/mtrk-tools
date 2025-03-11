@@ -106,6 +106,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
         sdlFileOut.write(str(boxes))
         sdlFileOut.write("\n\n") 
     print("keys ", keys)
+    instructionHeader = ["Default message", "off"]
     for boxKey in keys:
         boxList = boxes[boxKey]
         for box in boxList:
@@ -114,31 +115,30 @@ def updateSDLFile(sequence_data, boxes, configurations,
                 box["axis"] = "event"
             if boxKey == "Main":
                 instructionName = "main"
-                instructionHeader = ["Running main loop", "on"]
-                savedInstructionHeader = []
-                if bool(block_number_to_block_object):
-                    if block_number_to_block_object[str(box["block"])][\
-                                                       "print_counter"] == True:
-                        printCounter = "on"
-                    else:
-                        printCounter = "off"
-                    savedInstructionHeader = \
-                    [block_number_to_block_object[str(box["block"])]["message"],
-                                                                   printCounter]
+                instructionHeader = ["Running main loop", "off"]
             else:
                 instructionName = boxKey
-                instructionHeader = savedInstructionHeader
-                
+                if box["type"] != "Block":
+                    for value in block_number_to_block_object:
+                        if block_number_to_block_object[value]["name"] == boxKey:
+                            if block_number_to_block_object[value][\
+                                                               "print_counter"] == True:
+                                printCounter = "on"
+                            else:
+                                printCounter = "off"
+                            instructionHeader = [block_number_to_block_object[value]["message"],
+                                                 printCounter]
                 
         
-        addInstruction(sequence_data, instructionName)
-        instructionInformationList = getInstructionInformation(
-                                        boxes = boxList,
-                                        instructionName = instructionName,
-                                        instructionHeader = instructionHeader)
-        completeInstructionInformation(
-                        sequence_data = sequence_data, 
-                        instructionInformationList = instructionInformationList)
+            addInstruction(sequence_data, instructionName)
+            instructionInformationList = getInstructionInformation(
+                                            boxes = boxList,
+                                            instructionName = instructionName,
+                                            instructionHeader = instructionHeader,
+                                            instructionEndTime = block_to_duration[boxKey])
+            completeInstructionInformation(
+                            sequence_data = sequence_data, 
+                            instructionInformationList = instructionInformationList)
 
     makeBlockStructure(sequence_data, block_structure, block_to_loops)    
     
@@ -156,9 +156,11 @@ def updateSDLFile(sequence_data, boxes, configurations,
                       sequenceInfoInformationList = sequenceInfoInformationList)
 
 def makeBlockStructure(sequence_data, block_structure, block_to_loops):
+    counterIndex = 1 
     for block in block_structure:
         if block == "Main":
-            mainLoop = Loop(counter = 1, range = block_to_loops["Main"], steps=[])   
+            mainLoop = Loop(counter = counterIndex, range = 1, steps=[])   
+            counterIndex += 1
             sequence_data.instructions["main"].steps.append(mainLoop)
             structureName = sequence_data.instructions["main"].steps[0]
         else:
@@ -168,12 +170,16 @@ def makeBlockStructure(sequence_data, block_structure, block_to_loops):
                 runBlock = RunBlock(block = blockName)
                 structureName.steps.append(runBlock)
             else:
-                loopBlock = Loop(counter = 1, range = block_to_loops[blockName], steps=[])
+                loopBlock = Loop(counter = counterIndex, range = block_to_loops[blockName], steps=[])
+                counterIndex += 1
                 structureName.steps.append(loopBlock)
                 runBlock = RunBlock(block = blockName)
                 for step in structureName.steps:
                     if isinstance(step, Loop):
                         step.steps.append(runBlock)
+        if block != "Main":
+            submit_event = Submit()
+            structureName.steps.append(submit_event)
             
 
 #############################################################
@@ -233,7 +239,7 @@ def getSequenceInfoInformation(configurations):
                                    reconstructionInfo]
     return sequenceInfoInformationList
 
-def getInstructionInformation(boxes, instructionName, instructionHeader):
+def getInstructionInformation(boxes, instructionName, instructionHeader, instructionEndTime):
     """
     Get instruction information from the web-based UI.
 
@@ -248,15 +254,19 @@ def getInstructionInformation(boxes, instructionName, instructionHeader):
     printMessageInfo = instructionHeader[0]
     printCounterInfo = instructionHeader[1]
     allStepInformationLists = []
+    initInfo = ""
     for box in boxes:
         stepInformationList = getStepInformation(box)
         if box["type"] == "loop" and stepInformationList in \
                                                         allStepInformationLists:
             pass
+        elif box["type"] == "init":
+            initInfo = box["inputInitActionGradients"]
         else:
             allStepInformationLists.append(stepInformationList)
     instructionInformationList = [instructionName, printMessageInfo,
-                                  printCounterInfo, allStepInformationLists]
+                                  printCounterInfo, instructionEndTime,
+                                  allStepInformationLists, initInfo]
     return instructionInformationList
             
 def getStepInformation(box):
@@ -296,14 +306,13 @@ def getStepInformation(box):
             stepInformationList.extend([typeInfo, floatInfo, incrementInfo]) 
 
         case "init":
-            gradientInfo = box["inputInitActionGradients"]
-            stepInformationList.extend([gradientInfo]) 
+            pass
 
         case "sync":
             objectInfo = box["inputSyncObject"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
-            timeInfo = box["inputSyncTime"]
+            timeInfo = int(float(box["inputSyncTime"]))
             stepInformationList.extend([objectInfo, objectInformationList,
                                         timeInfo]) 
             
@@ -350,21 +359,22 @@ def getStepInformation(box):
             # mdhInfoList = box["header"]
             mdhInfoList = []
             #### TO DO !!! complete mdhInfoList
-            print("passed for now") 
+            # print("passed for now") 
             stepInformationList.extend([objectInfo, objectInformationList, 
                                         timeInfo, frequencyInfo, phaseInfo,
                                         addedPhaseTypeInfo,addedPhaseFloatInfo,
                                         mdhInfoList])
             
         case "mark":
-            timeInfo = box["start_time"]
+            timeInfo = int(float(box["start_time"]))
             stepInformationList.extend([timeInfo])
 
         case "submit":
             pass
         
         case _:
-            print("The type " + actionName + " could not be identified.")
+            # print("The type " + actionName + " could not be identified.")
+            pass
     return stepInformationList
             
 def getObjectInformation(typeInfo, box):
@@ -429,7 +439,8 @@ def getObjectInformation(typeInfo, box):
             pass
 
         case _:
-            print("The type " + typeInfo + " could not be identified.")
+            # print("The type " + typeInfo + " could not be identified.")
+            pass
 
     return objectInformationList
             
@@ -448,9 +459,20 @@ def getArrayInformation(box):
     encodingInfo = "text"
     # TO DO add "type" to the dictionnary
     # typeInfo = box["type"]
-    typeInfo = "float"
-    array = box["array_info"]["array"]
-    sizeInfo = len(array)
+    if box["type"] == "rf":
+        typeInfo = "complex_float"
+        magn_array = box["array_info"]["array"]
+        phase_array = box["phase_array_info"]["array"]
+        array = []
+        for index in range(0,len(magn_array)):
+            array.append(magn_array[index])
+            array.append(phase_array[index]) 
+        sizeInfo = len(array)/2
+    else:
+        typeInfo = "float"
+        array = box["array_info"]["array"]
+        sizeInfo = len(array)
     dataInfoList = array
+
     arrayInformationList = [encodingInfo, typeInfo, sizeInfo, dataInfoList]
     return arrayInformationList
