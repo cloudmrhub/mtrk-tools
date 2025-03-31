@@ -32,8 +32,6 @@
 import json
 import jsbeautifier
 import re
-from pprint import pprint
-from devtools import debug
 
 from miniFlashModifier import miniFlashModifier
 from mtrkConsoleUI import mtrkConsoleUI
@@ -51,7 +49,7 @@ More details.
 
 ### loading of sequence data
 ## WARNING - The path needs to be adapted to your local implementation.
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d_TE80_TR4000_os2_largeCrush_xSpoil.mtrk') as sdlFile:
+with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d_TE10_TR500_os2_largeCrush_xSpoil.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
 

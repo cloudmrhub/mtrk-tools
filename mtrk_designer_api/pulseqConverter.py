@@ -31,7 +31,7 @@ def pulseqConverter(sequence_data):
 def fillSequence(sequence_data, 
                  plot: bool, 
                  write_seq: bool, 
-                 seq_filename: str = "sdl_pypulseq_TE80_TR4000_os2_largeCrush_xSpoil.seq"):
+                 seq_filename: str = "sdl_pypulseq_se2d_TE10_TR500_os2_largeCrush_xSpoil.seq"):
     """
     Fills the sequence object with instructions and parameters based on the given sequence data.
 
@@ -220,7 +220,6 @@ def extractStepInformation(sequence_data, currentBlock, system,
                                 max_grad = 0,
                                 max_slew = 0,
                                 phase_offset = phaseOffset,
-                                return_delay = False,
                                 return_gz = False,
                                 slice_thickness = sliceThickness,
                                 system = system,

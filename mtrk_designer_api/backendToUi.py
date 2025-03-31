@@ -261,7 +261,7 @@ def getInstructionInformation(boxes, instructionName, instructionHeader, instruc
                                                         allStepInformationLists:
             pass
         elif box["type"] == "init":
-            initInfo = box["inputInitActionGradients"]
+            pass
         else:
             allStepInformationLists.append(stepInformationList)
     instructionInformationList = [instructionName, printMessageInfo,
