@@ -86,7 +86,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
     """
     keys = boxes.keys()
 
-    with open('C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/test_backend.txt', 'w') as sdlFileOut:
+    with open('test_backend.txt', 'w') as sdlFileOut:
         sdlFileOut.write("configurations \n") 
         sdlFileOut.write(str(configurations)) 
         sdlFileOut.write("\n\n") 
