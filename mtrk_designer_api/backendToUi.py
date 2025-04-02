@@ -261,7 +261,7 @@ def getInstructionInformation(boxes, instructionName, instructionHeader, instruc
                                                         allStepInformationLists:
             pass
         elif box["type"] == "init":
-            pass
+            initInfo = box["inputInitActionGradients"]
         else:
             allStepInformationLists.append(stepInformationList)
     instructionInformationList = [instructionName, printMessageInfo,
@@ -355,11 +355,8 @@ def getStepInformation(box):
             phaseInfo = box["phase"]
             addedPhaseTypeInfo = box["adc_added_phase_type"]
             addedPhaseFloatInfo = box["adc_added_phase_float"]
-            # TO DO add "header" to the dictionnary
-            # mdhInfoList = box["header"]
-            mdhInfoList = []
-            #### TO DO !!! complete mdhInfoList
-            # print("passed for now") 
+            mdhInfoList = json.loads(box["mdh"])
+            print("mdhInfoList ", mdhInfoList)
             stepInformationList.extend([objectInfo, objectInformationList, 
                                         timeInfo, frequencyInfo, phaseInfo,
                                         addedPhaseTypeInfo,addedPhaseFloatInfo,

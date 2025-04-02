@@ -442,7 +442,7 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 stepToModify.added_phase = AddedPhase()
                 stepToModify.added_phase.type = stepInformationList[6]
                 stepToModify.added_phase.float = stepInformationList[7]
-                ## TO DO !!! mdhInfoList = stepInformationList[8]
+                stepToModify.mdh = stepInformationList[8]
                 # print("passed for now") 
             case "mark":
                 ## stepInformationList = [actionName, timeInfo]
