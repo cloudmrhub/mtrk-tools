@@ -36,7 +36,7 @@ import re
 from miniFlashModifier import miniFlashModifier
 from mtrkConsoleUI import mtrkConsoleUI
 from camrieConverter import camrieConverter
-from pulseqConverter import pulseqConverter
+from mtrkToPulseqConverter import mtrkToPulseqConverter
 from pulseqToMtrk import pulseqToMtrk
 
 from SDL_read_write.pydanticSDLHandler import *
@@ -49,7 +49,7 @@ More details.
 
 ### loading of sequence data
 ## WARNING - The path needs to be adapted to your local implementation.
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\se2d_TE10_TR500_os2_largeCrush_xSpoil.mtrk') as sdlFile:
+with open('gre2d.mtrk') as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
 
@@ -179,14 +179,14 @@ equationList = [phaseEncodingEquation]
 # camrieConverter(sequence_data)
 
 ### converting SDL format to Pulseq format
-pulseqConverter(sequence_data)
+mtrkToPulseqConverter(sequence_data)
 
 ### converting Pulseq format to SDL format
 # pulseqToMtrk("sdl_pypulseq_test.seq")
 
 ### writing of json schema to SDL file with formatting options
 ## WARNING - The path needs to be adapted to your local implementation. 
-with open('C:\\Users\\artiga02\\mtrk_seq\\examples\\test.mtrk', 'w') as sdlFileOut:
+with open('test.mtrk', 'w') as sdlFileOut:
     options = jsbeautifier.default_options()
     options.indent_size = 4
     data_to_print = jsbeautifier.beautify(json.dumps(sequence_data.model_dump(mode="json")), options)

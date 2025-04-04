@@ -5,16 +5,16 @@
 ################################################################################
 
 import numpy as np
-import sys
-sys.path.append(r'C:/Users/artiga02')
-# import pypulseqCustom.pypulseq as pypulseq
-# from pypulseqCustom.pypulseq.Sequence import sequence
 import math 
 import pypulseq
-from types import SimpleNamespace
-import matplotlib.pyplot as plt
+import json
+from SDL_read_write.pydanticSDLHandler import *
 
-def pulseqConverter(sequence_data):
+## Name of the file to convert from mtrk to Pulseq format
+fileToConvert = 'testData\output_sdl_file.mtrk'
+outputFile = 'testData\output_sdl_file.seq'
+
+def mtrkToPulseqConverter(sequence_data, outputFile = "test.seq"):
     """
     Converts the given sequence data to a Pulseq format.
 
@@ -26,12 +26,13 @@ def pulseqConverter(sequence_data):
     """
     fillSequence(sequence_data, 
                  plot=True, 
-                 write_seq=True)
+                 write_seq=True,
+                 seq_filename=outputFile)
 
 def fillSequence(sequence_data, 
                  plot: bool, 
                  write_seq: bool, 
-                 seq_filename: str = "sdl_pypulseq_se2d_TE10_TR500_os2_largeCrush_xSpoil.seq"):
+                 seq_filename: str = "test.seq"):
     """
     Fills the sequence object with instructions and parameters based on the given sequence data.
 
@@ -124,7 +125,6 @@ def fillSequence(sequence_data,
 
     slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3
     fov = sequence_data.infos.fov*1e-3
-    print("Raster time check: ", seq.rfRasterTime)
     if write_seq:
         # Prepare the sequence output for the scanner
         seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
@@ -162,7 +162,6 @@ def extractStepInformation(sequence_data, currentBlock, system,
     rfSpoilingInc = 0
     rfSpoilingFlag = False
     os_factor = sequence_data.settings.readout_os
-    print("OS factor: ", os_factor)
     for stepIndex in range(0, len(currentBlock.steps)):
         if "object" in dict(currentBlock.steps[stepIndex]):
             currentObject = sequence_data.objects[
@@ -206,7 +205,9 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 rasterTime = int(currentObject.duration / (10*currentArray.size) )
                 seq.rfRasterTime = 1e-5 * rasterTime
                 rfDwellTime = currentObject.duration / currentArray.size
-                timeBwProduct = currentObject.time_bandwidth_product
+                ## TO DO make the time bandwidth product flexible
+                timeBwProduct = 2.7
+                # timeBwProduct = currentObject.time_bandwidth_product
                 rfBandwidth = timeBwProduct / currentObject.duration*1e6
                 ## TO DO verify the bandwidth value
                 rfEvent = pypulseq.make_arbitrary_rf(
@@ -247,16 +248,6 @@ def extractStepInformation(sequence_data, currentBlock, system,
                         allEquationsList.append(equationString)
                         variableAmplitudeFlag = True
                 ## TO DO avoid the name dependency
-                # print("before " + str(len(currentArray.data)))
-                # if currentBlock.steps[stepIndex].object == "grad_read_readout" and os_factor != 1:
-                #     extended_data = []
-                #     for value_index in range(0, len(currentArray.data)-2):
-                #         extended_data.append(currentArray.data[value_index]) 
-                #         extended_data.append((currentArray.data[value_index]+currentArray.data[value_index+1])/2) 
-                #     extended_data.append(currentArray.data[len(currentArray.data)-1]) 
-                #     extended_data.append(currentArray.data[len(currentArray.data)-1]/2) 
-                #     currentArray.data = extended_data
-                #     print("spotted " + str(len(currentArray.data)))
                 for value in currentArray.data:
                     gradientArray.append(gradientAmplitude * value)
                 gradientAxis = ""
@@ -270,10 +261,6 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     print(str(currentBlock.steps[stepIndex].axis) + \
                           "is not a valid axis name.")
                 start_time = currentBlock.steps[stepIndex].time*1e-6
-                # print("start time: ", start_time)
-                # if currentBlock.steps[stepIndex].object == "grad_read_readout" and os_factor != 1:
-                #     start_time = start_time - ((len(currentArray.data)*10*1e-6)/2)
-                #     print("start time 2: ", start_time)
                 gradientEvent = pypulseq.make_arbitrary_grad(
                                 channel = gradientAxis,
                                 waveform = np.array(gradientArray),
@@ -490,7 +477,12 @@ def organizePulseqBlocks(sequence_data, counterRangeList, system, seq,
     """
     actionList = []
     for counter in counterRangeList:
-        if sequence_data.instructions[counter[2]].steps[0].action == "loop":
+        print("counter[2] ", counter[2])
+        print("action ", sequence_data.instructions[counter[2]].steps[0].action)
+        selected_action_index = 0
+        if sequence_data.instructions[counter[2]].steps[selected_action_index].action == "init":
+            selected_action_index = 1
+        if sequence_data.instructions[counter[2]].steps[selected_action_index].action == "loop":
             actionList.append([counter])
         else: 
             blockStepInfoList = extractStepInformation(
@@ -518,6 +510,8 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
     Returns:
         None
     """
+    print("actionIndex ", actionIndex)
+    print("actionList ", actionList)
     if len(actionList[actionIndex]) != 1:
         rf_phase = 0
         rf_inc = 0
@@ -536,4 +530,7 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
                                 actionList = actionList, 
                                 stepInfoList = stepInfoList)
             
-            
+with open(fileToConvert) as sdlFile:
+    sdlData = json.load(sdlFile)
+    sequence_data = PulseSequence(**sdlData)
+    mtrkToPulseqConverter(sequence_data, outputFile)
