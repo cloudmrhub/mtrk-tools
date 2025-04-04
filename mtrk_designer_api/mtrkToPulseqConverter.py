@@ -530,7 +530,9 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
                                 actionList = actionList, 
                                 stepInfoList = stepInfoList)
             
-
+################################################################################
+## Converting the file from mtrk to Pulseq format using command line for input
+################################################################################
 print("Converting mtrk to Pulseq format")
 print("mtrk file to convert: ")
 fileToConvert = input()

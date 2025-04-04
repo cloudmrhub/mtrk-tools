@@ -32,3 +32,6 @@ se2d_epi.mtrk
 test1.mtrk
 test2.mtrk
 test_pulpy_driverSeq.mtrk
+miniflash.mtrk
+miniflash.seq
+sdl_pypulseq_se2d_TE10_TR500_os2_largeCrush_xSpoil.seq
