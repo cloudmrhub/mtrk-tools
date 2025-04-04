@@ -32,10 +32,10 @@
         },
         "block_phaseEncoding": {
             "print_counter": "off",
-            "print_message": "Running main loop",
+            "print_message": "Looping over lines",
             "steps": [{
                 "action": "init",
-                "gradients": ""
+                "gradients": "logical"
             },
             {
                 "action": "loop",
@@ -55,7 +55,7 @@
             "print_message": "Running TR Loop",
             "steps": [{
                 "action": "init",
-                "gradients": ""
+                "gradients": "logical"
             },
             {
                 "action": "rf",
@@ -91,7 +91,8 @@
                 "action": "grad",
                 "axis": "slice",
                 "object": "grad_slice_refocus",
-                "time": 13330
+                "time": 13330,
+                "amplitude": "flip"
             },
             {
                 "action": "grad",
