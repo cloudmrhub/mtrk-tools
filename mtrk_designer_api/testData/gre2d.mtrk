@@ -143,11 +143,6 @@
                             "counter": 1,
                             "target": 0
                         },
-                        "first_scan_slice": {
-                            "type": "counter",
-                            "counter": 1,
-                            "target": 0
-                        },
                         "last_scan_slice": {
                             "type": "counter",
                             "counter": 1,

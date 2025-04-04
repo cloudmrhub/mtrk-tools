@@ -530,6 +530,12 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
                                 actionList = actionList, 
                                 stepInfoList = stepInfoList)
             
+
+print("Converting mtrk to Pulseq format")
+print("mtrk file to convert: ")
+fileToConvert = input()
+print("Pulseq file to create: ")
+outputFile = input()
 with open(fileToConvert) as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)
