@@ -278,9 +278,8 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
             addStep(instructionToModify = instructionToModify, 
                     stepIndex = stepIndex + 1, 
                     actionName = allStepInformationLists[stepIndex][0])
-            print("instructionToModify steps ", instructionToModify.steps)
             if instructionToModify.steps[0].action != "init":
-                stepToModify = instructionToModify.steps[0]
+                stepToModify = instructionToModify.steps[stepIndex]
             else:
                 stepToModify = instructionToModify.steps[stepIndex + 1]
             completeStepInformation(sequence_data = sequence_data, 
@@ -447,7 +446,6 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                 stepToModify.added_phase.type = stepInformationList[6]
                 stepToModify.added_phase.float = stepInformationList[7]
                 stepToModify.mdh = stepInformationList[8]
-                # print("passed for now") 
             case "mark":
                 ## stepInformationList = [actionName, timeInfo]
                 stepToModify.time = stepInformationList[1]

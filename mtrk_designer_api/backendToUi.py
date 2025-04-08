@@ -12,6 +12,7 @@ from pprint import pprint
 from numpy import add
 from sdlFileCreator import *
 import os
+import copy
 
 #############################################################
 ### Creating SDL file from web-based UI
@@ -54,6 +55,18 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
     sequence_data.arrays = {}
     sequence_data.equations = {}
     
+    ### Special initialization for very simple sequences with no block structure
+    if not block_to_loops:
+        block_to_loops.update({"simple_main_block": 1})
+        block_structure.update({"Main": ["simple_main_block"]})
+        block_to_box_objects.update({"simple_main_block": copy.deepcopy(block_to_box_objects["Main"])})
+        block_to_duration.update({"simple_main_block": 0})
+        for index in range(len(block_to_box_objects["Main"])):
+            block_to_box_objects["Main"][index]["type"] = "Block"
+            block_to_box_objects["Main"][index]["start_time"] = 0
+            block_to_box_objects["Main"][index]["block"] = 1
+            block_to_box_objects["Main"][index]["name"] = "simple_main_block"
+
     updateSDLFile(sequence_data, block_to_box_objects, configurations,
                   block_number_to_block_object, block_to_loops, block_structure,
                   block_to_duration)
@@ -105,7 +118,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
         sdlFileOut.write("boxes \n") 
         sdlFileOut.write(str(boxes))
         sdlFileOut.write("\n\n") 
-    print("keys ", keys)
+    
     instructionHeader = ["Default message", "off"]
     for boxKey in keys:
         boxList = boxes[boxKey]
@@ -129,7 +142,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
                             instructionHeader = [block_number_to_block_object[value]["message"],
                                                  printCounter]
                 
-        
+
             addInstruction(sequence_data, instructionName)
             instructionInformationList = getInstructionInformation(
                                             boxes = boxList,
@@ -356,7 +369,7 @@ def getStepInformation(box):
             addedPhaseTypeInfo = box["adc_added_phase_type"]
             addedPhaseFloatInfo = box["adc_added_phase_float"]
             mdhInfoList = json.loads(box["mdh"])
-            print("mdhInfoList ", mdhInfoList)
+            # print("mdhInfoList ", mdhInfoList)
             stepInformationList.extend([objectInfo, objectInformationList, 
                                         timeInfo, frequencyInfo, phaseInfo,
                                         addedPhaseTypeInfo,addedPhaseFloatInfo,
