@@ -461,9 +461,10 @@ def getArrayInformation(box):
         magn_array = box["array_info"]["array"]
         phase_array = box["phase_array_info"]["array"]
         array = []
-        for index in range(0,len(magn_array)):
-            array.append(magn_array[index])
-            array.append(phase_array[index]) 
+        if len(magn_array) == len(phase_array):
+            for index in range(0,len(magn_array)):
+                array.append(magn_array[index])
+                array.append(phase_array[index]) 
         sizeInfo = len(array)/2
     else:
         typeInfo = "float"

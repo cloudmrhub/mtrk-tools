@@ -278,7 +278,11 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
             addStep(instructionToModify = instructionToModify, 
                     stepIndex = stepIndex + 1, 
                     actionName = allStepInformationLists[stepIndex][0])
-            stepToModify = instructionToModify.steps[stepIndex + 1]
+            print("instructionToModify steps ", instructionToModify.steps)
+            if instructionToModify.steps[0].action != "init":
+                stepToModify = instructionToModify.steps[0]
+            else:
+                stepToModify = instructionToModify.steps[stepIndex + 1]
             completeStepInformation(sequence_data = sequence_data, 
                                     stepToModify = stepToModify, 
                                     stepInformationList = \
