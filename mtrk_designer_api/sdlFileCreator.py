@@ -524,7 +524,7 @@ def completeObjectInformation(sequence_data, objectName, objectInformationList):
                 sequence_data.objects[objectName]=AdcReadout( 
                                                     duration = durationInfo, 
                                                     samples = samplesInfo, 
-                                                    dwelltime = dwelltimeInfo*1000) 
+                                                    dwelltime = int(dwelltimeInfo)*1000) 
             case "sync":
                 ## objectInformationList = [arrayInfo, durationInfo, eventInfo]
                 eventInfo = objectInformationList[2]

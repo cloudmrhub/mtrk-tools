@@ -99,6 +99,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
     """
     keys = boxes.keys()
 
+    print("+-+-+ TEST")
     with open('test_backend.txt', 'w') as sdlFileOut:
         sdlFileOut.write("configurations \n") 
         sdlFileOut.write(str(configurations)) 
@@ -403,6 +404,7 @@ def getObjectInformation(typeInfo, box):
 
     """
     objectInformationList = [typeInfo]
+    print("+-+-+ TEST")
     match typeInfo:
         case "rf":
             ## TO DO make the duration step flexible
@@ -433,7 +435,7 @@ def getObjectInformation(typeInfo, box):
         case "adc":
             durationInfo = box["adc_duration"]*1e3
             samplesInfo = box["samples"]
-            dwelltimeInfo = box["dwell_time"]
+            dwelltimeInfo = int(box["dwell_time"])
             objectInformationList.extend([durationInfo, samplesInfo, 
                                           dwelltimeInfo])
 
