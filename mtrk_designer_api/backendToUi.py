@@ -56,7 +56,8 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
     sequence_data.equations = {}
     
     ### Special initialization for very simple sequences with no block structure
-    if not block_to_loops:
+    print("+-+-+ block_to_loops ", block_to_loops)
+    if not block_to_loops or block_to_loops == {'Main': 1}:
         block_to_loops.update({"simple_main_block": 1})
         block_structure.update({"Main": ["simple_main_block"]})
         block_to_box_objects.update({"simple_main_block": copy.deepcopy(block_to_box_objects["Main"])})
@@ -98,8 +99,6 @@ def updateSDLFile(sequence_data, boxes, configurations,
         None
     """
     keys = boxes.keys()
-
-    print("+-+-+ TEST")
     with open('test_backend.txt', 'w') as sdlFileOut:
         sdlFileOut.write("configurations \n") 
         sdlFileOut.write(str(configurations)) 
@@ -404,7 +403,6 @@ def getObjectInformation(typeInfo, box):
 
     """
     objectInformationList = [typeInfo]
-    print("+-+-+ TEST")
     match typeInfo:
         case "rf":
             ## TO DO make the duration step flexible
