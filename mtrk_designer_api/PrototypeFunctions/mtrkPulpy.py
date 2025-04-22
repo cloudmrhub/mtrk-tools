@@ -7,7 +7,7 @@ __all__ = [
     "spiral_varden",
     "spiral_arch",
     "spiral_k",
-    "epi",
+    "mtrk_epi",
     "rosette",
     "spokes_grad",
     "stack_of",
@@ -99,6 +99,8 @@ def trap_grad(area, gmax, dgdt, dt, *args):
             else:
                 # trapezoid pulse
                 nflat = int(np.ceil((area - triareamax) / gmax / dt / 2) * 2)
+                # print("nflat", nflat)
+                # nflat = np.abs(nflat) # this is a test
                 ramp_up = np.linspace(0, ramppts, num=ramppts + 1) / ramppts
                 ramp_dn = np.linspace(ramppts, 0, num=ramppts + 1) / ramppts
                 pulse = np.concatenate((ramp_up, np.ones(nflat), ramp_dn))
@@ -530,7 +532,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
         From Antonis Matakos' contrib to Jeff Fessler's IRT.
     """
     s = gslew * dt * 1000
-    scaley = 20
+    scaley = 20 # original value 20
 
 
     # make the various gradient waveforms
@@ -630,6 +632,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
     gx = np.concatenate((gx, gxrep), axis=1)
 
     areagy = np.sum(gy) * dt  # units = G/cm*s
+    print("areagy ", areagy)
     gyrep = trap_grad(-areagy, gamp, gslew / scaley * 1000, dt)[0]
     gy = np.concatenate((gy, gyrep), axis=1)
 
@@ -761,6 +764,9 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
     kx = np.cumsum(gx, axis=1) * gamma * dt * 1000
     ky = np.cumsum(gy, axis=1) * gamma * dt * 1000
     k = np.concatenate((kx, ky), axis=0)
+    print("k.shape ", k.shape)
+    print("k[0] ", k[0])
+    print("k[1] ", k[1])
 
     t = np.linspace(0, kx.size, kx.size) * dt
 
@@ -823,6 +829,58 @@ def rosette(kmax, w1, w2, dt, dur, gamp=None, gslew=None):
 
 
 def spokes_grad(k, tbw, sl_thick, gmax, dgdtmax, gts):
+    r"""Radial trajectory gradient designer.
+
+    Args:
+        k (array): spokes locations, [Nspokes, 2]
+        tbw (int): time bandwidth product.
+        sl_thick (float): slice thickness (mm).
+        gmax (float): max gradient amplitude (g/cm).
+        dgdtmax (float): max gradient slew (g/cm/s).
+        gts (float): hardware sampling dwell time (s).
+
+    Returns:
+        g (array): gz, gy, and gz waveforms  in g/cm [3, Nt]
+
+    References:
+          Pypulseq (examples/scripts.write_radial_gre) 
+    """
+    fov = 260e-3
+    Nx = 64  # Define FOV and resolution
+    alpha = 10  # Flip angle
+    slice_thickness = 3e-3  # Slice thickness
+    TE = 8e-3  # Echo time
+    TR = 20e-3  # Repetition time
+    Nr = 60  # Number of radial spokes
+    N_dummy = 20  # Number of dummy scans
+    delta = np.pi / Nr  # Angular increment
+    plot = False
+    write_seq = False
+    seq_filename = "radial_gre.seq"
+    rf_spoiling_inc = 117  # RF spoiling increment
+
+    ## System limits
+    max_grad=28,
+    grad_unit='mT/m',
+    max_slew=120,
+    slew_unit='T/m/s',
+    rf_ringdown_time=20e-6,
+    rf_dead_time=100e-6,
+    adc_dead_time=10e-6
+    gradient_raster_time=10e-6
+
+    ## Define gradients and ADC events
+    deltak = 1 / fov
+
+    gx_area = Nx * deltak
+
+    gx = min_trap_grad(gx_area, max_grad, max_slew, gradient_raster_time)
+
+
+    # return g
+
+
+def spokes_grad(k, tbw, sl_thick, gmax, dgdtmax, gts):
     r"""Spokes gradient designer. Given some chosen spoke locations k, return
     the gradients required to move between those spoke locations.
 
@@ -845,22 +903,26 @@ def spokes_grad(k, tbw, sl_thick, gmax, dgdtmax, gts):
 
     """
     n_spokes = k.shape[0]
+    print("k.shape ", k.shape)
 
     area = tbw / (sl_thick / 10) / 4257  # thick * kwid = twb, kwid = gam*area
     [subgz, nramp] = min_trap_grad(area, gmax, dgdtmax, gts)
 
     # calc gradient, add extra 0 location at end for return to (0, 0)
+    # print("k[:, 0], k[:, 1] ", k[:, 0], k[:, 1])
     gxarea = np.diff(np.concatenate((k[:, 0], np.zeros(1)))) / 4257
     gyarea = np.diff(np.concatenate((k[:, 1], np.zeros(1)))) / 4257
 
     gx, gy, gz = [], [], []
     gz_sign = -1
     for ii in range(n_spokes):
+        # print("spoke ", ii + 1, " of ", n_spokes)
         gz_sign *= -1
         gz.extend(np.squeeze(gz_sign * subgz).tolist())  # alt sign of gz
 
         gx.extend([0] * np.size(subgz))  # zeros for gz duration
         if np.absolute(gxarea[ii]) > 0:
+            # print("gxarea[ii] ", gxarea[ii])
             [gblip, _] = trap_grad(abs(gxarea[ii]), gmax, dgdtmax, gts)
             gxblip = int(np.sign(gxarea[ii])) * gblip
             gx = gx[: len(gx) - len(gxblip.T)]
@@ -868,6 +930,7 @@ def spokes_grad(k, tbw, sl_thick, gmax, dgdtmax, gts):
 
         gy.extend([0] * np.size(subgz))
         if np.absolute(gyarea[ii]) > 0:
+            # print("gyarea[ii] ", gyarea[ii])
             [gblip, _] = trap_grad(abs(gyarea[ii]), gmax, dgdtmax, gts)
             gyblip = int(np.sign(gyarea[ii])) * gblip
             gy = gy[: len(gy) - len(gyblip.T)]
@@ -881,7 +944,7 @@ def spokes_grad(k, tbw, sl_thick, gmax, dgdtmax, gts):
 
     # combine gradient waveforms
     gx = np.array(gx)
-    g = np.vstack((np.array(gx), np.array(gy), np.array(gz)))
+    g = np.vstack((np.array(gx), np.array(gy), np.array(gz)))    
 
     return g
 

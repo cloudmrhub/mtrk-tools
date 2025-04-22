@@ -35,3 +35,6 @@ test_pulpy_driverSeq.mtrk
 miniflash.mtrk
 miniflash.seq
 sdl_pypulseq_se2d_TE10_TR500_os2_largeCrush_xSpoil.seq
+PrototypeFunctions/__pycache__/
+test_pulpy_epi.mtrk
+test_backend.txt

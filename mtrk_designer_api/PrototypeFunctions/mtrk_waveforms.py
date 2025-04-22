@@ -1,7 +1,122 @@
 import mtrkPulpy as mpp
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
+import sys
+import os
+sys.path.append("C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api")
 from SDL_read_write.pydanticSDLHandler import *
+
+def add_spiral_readout():
+    fov = 0.55    # imaging field of view [m]
+    gts = 6.4e-6  # hardware dwell time [s]
+    gslew = 190   # max. slew rate [mT/m/ms]
+    gamp = 40     # max. amplitude [mT/m]
+    R = 1         # degree of undersampling
+    dx = 0.025    # resolution
+
+    spiral_sequence, k, t, s = mpp.spiral_arch(fov / R, dx, gts, gslew, gamp)
+    # print("spiral_sequence ", spiral_sequence)  
+    spiral_sequence = np.transpose(spiral_sequence)  # Transpose to get the correct shape
+    print("spiral_sequence shape ", spiral_sequence.shape)  # Shape should be (3, num_points)
+
+    ## Plot gradients
+    subplot, axis = plt.subplots(2, sharex=True)
+    subplot.suptitle("radial trajectory")
+    axis[0].set_title("gy")
+    axis[0].plot(spiral_sequence[0])
+    axis[1].set_title("gx")
+    axis[1].plot(spiral_sequence[1])
+    # axis[2].set_title("gz")
+    # axis[2].plot(spiral_sequence[2])
+    plt.show()
+
+    return spiral_sequence
+
+
+def add_spokes_readout():
+    ## TO DO add readout gradients and ADCs
+    tbw = 2.7
+    sl_thick = 5e-3
+    gmax = 20.0
+    dgdtmax = 200.0
+    gts = 1e-5
+    num_spokes = 32  # Number of radial lines
+
+    ## Generate the trajectory
+    k_lines = radial_trajectory(1, 32)
+    # print("k_lines ", k_lines)  # Shape should be (num_spokes, num_points, 2)
+    # print("k_lines shape ", np.shape(np.array(k_lines)))  # Shape should be (num_spokes, num_points, 2)
+    # k_array = []
+    # for spoke in k_lines:
+    #     readoutPoints = []
+    #     phasePoints = []
+    #     for point in spoke:
+    #         readoutPoints.append(point[0])
+    #         phasePoints.append(point[1])
+    #     k_array.append([readoutPoints, phasePoints])
+    # k= np.array(k_array)  # Convert to numpy array
+    k= np.array(k_lines)  # Convert to numpy array
+    print("shape ", k.shape)  # Shape should be (num_spokes, num_points, 2)
+    spokes_array = k[0,:,:] #[:,:,0]
+    min_vals = np.min(spokes_array, axis=0)
+    max_vals = np.max(spokes_array, axis=0)
+    normalized_spokes = (spokes_array - min_vals) / (max_vals - min_vals)
+    # print("normalized_spokes ", normalized_spokes)
+
+    ## Plot the trajectory
+    plt.figure(figsize=(6, 6))
+    for i, k in enumerate(k_lines):
+        plt.scatter(k[:, 0], k[:, 1], label=f"Line {i+1}", s=10)  # Scatter plot for each line
+    plt.xlabel("kx")
+    plt.ylabel("ky")
+    plt.title("Radial k-Space Trajectory (Scatter Plot)")
+    plt.axis("equal")
+    plt.grid(True)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')  # Place legend outside the plot
+    plt.tight_layout()
+    plt.show()
+
+    # A = 32.0e3  # or whatever amplitude you want
+    # scaled_spokes = normalized_spokes * A
+
+    spokes = mpp.spokes_grad(normalized_spokes, tbw, sl_thick, gmax, dgdtmax, gts)
+
+    ## Plot gradients
+    subplot, axis = plt.subplots(3, sharex=True)
+    subplot.suptitle("radial trajectory")
+    axis[0].set_title("gy")
+    axis[0].plot(spokes[0])
+    axis[1].set_title("gx")
+    axis[1].plot(spokes[1])
+    axis[2].set_title("gz")
+    axis[2].plot(spokes[2])
+    plt.show()
+
+    return spokes
+
+def radial_trajectory(num_lines, num_points):
+    """
+    Generate a radial trajectory with specified number of lines and points per line.
+
+    Args:
+        num_lines (int): Number of radial lines.
+        num_points (int): Number of points per line.
+
+    Returns:
+        k (array): Radial trajectory in k-space, shape [num_lines * num_points, 2].
+    """
+    angles = np.linspace(0, 2 * np.pi, num_lines, endpoint=False)  # Angles for radial lines
+    k = []
+
+    for angle in angles:
+        # Generate points along the radial line
+        r = np.linspace(-0.5, 0.5, num_points)  # Radius values (normalized)
+        kx = r * np.cos(angle)  # x-coordinates
+        ky = r * np.sin(angle)  # y-coordinates
+        k.append(np.stack((kx, ky), axis=1))  # Combine x and y into 2D points
+
+    return k
+
 
 # fov (float): imaging field of view in cm.
 # n (int): # of pixels (square). N = etl*nl, where etl = echo-train-len
@@ -106,7 +221,7 @@ def add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, 
                 data = blocks[block_index][index][0]
                 size = blocks[block_index][index][1]
                 if blocks[block_index][index][0][-1] != 0.0:
-                    data = numpy.append(blocks[block_index][index][0], 0.0)
+                    data = np.append(blocks[block_index][index][0], 0.0)
                     size = blocks[block_index][index][1] + 1
                 grad_array = GradientTemplate(encoding = "text", 
                                               type = "float",
