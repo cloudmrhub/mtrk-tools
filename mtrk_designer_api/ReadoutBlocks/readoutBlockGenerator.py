@@ -74,17 +74,17 @@ def manualReadoutBlockGenerator(readoutType = readoutType, inputFilename = input
 
 ## Testing functions
 
-# ## Defining parameters for the test
-# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/raw_seq_pulpy.mtrk'
-# readoutList = ["cartesian", "radial", "spiral", "epi"]
-# readoutType = readoutList[0] # type of readout to add
-# outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
-# insertion_block = "block_spinEcho" # block name to insert 
-# previous_block = "block_refocusing" # previous step name
+## Defining parameters for the test
+inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/raw_seq_pulpy.mtrk'
+readoutList = ["cartesian", "radial", "spiral", "epi"]
+readoutType = readoutList[1] # type of readout to add
+outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
+insertion_block = "block_spinEcho" # block name to insert 
+previous_block = "block_refocusing" # previous step name
 
-# ## Testing the automatic readout block generator
-# automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = inputFilename,
-#                          insertion_block = insertion_block, previous_block = previous_block)
+## Testing the automatic readout block generator
+automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = inputFilename,
+                         insertion_block = insertion_block, previous_block = previous_block)
 
 # ## Defining extra parameters for the test
 # fov = 260 # imaging field of view

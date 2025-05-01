@@ -11,8 +11,8 @@ import json
 from SDL_read_write.pydanticSDLHandler import *
 
 ## Name of the file to convert from mtrk to Pulseq format
-fileToConvert = 'C:/Users/artiga02/Downloads/se2d_cartesian.mtrk'
-outputFile = 'C:/Users/artiga02/Downloads/se2d_cartesian.seq'
+fileToConvert = 'C:/Users/artiga02/Downloads/se2d_radial.mtrk'
+outputFile = 'C:/Users/artiga02/Downloads/se2d_radial.seq'
 
 def mtrkToPulseqConverter(sequence_data, outputFile = "test.seq"):
     """
@@ -422,6 +422,10 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveforms,
                     stringCounterIndex += 1
                 equationString = equationString.replace(stringToReplace,
                                                         "index")
+                equationString = equationString.replace("cos",
+                                                        "np.cos")
+                equationString = equationString.replace("sin",
+                                                        "np.sin")
                 variableAmplitudeEvent = \
                    stepInfoList[3][variableAmplitudeEventIndex]
                 gyromagneticRatio = 42577 # Hz/T converting mT/m to Hz/m

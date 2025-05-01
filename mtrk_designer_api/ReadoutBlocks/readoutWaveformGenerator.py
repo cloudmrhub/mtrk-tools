@@ -559,13 +559,13 @@ def radial(fov, n_spokes, theta, dt, gamp, gslew):
     if areapd<0:
         sign = -1
     ro_max_ampl = max(abs(ro[0]))
-    gxro_equation = str(sign) + "*" + str(ro_max_ampl) + "*np.cos(counter*" + str(theta) +")"
-    gyro_equation = str(sign) + "*" + str(ro_max_ampl) + "*np.sin(counter*" + str(theta) +")"
+    gxro_equation = str(sign) + "*" + str(ro_max_ampl) + "*cos(counter*" + str(theta) +")"
+    gyro_equation = str(sign) + "*" + str(ro_max_ampl) + "*sin(counter*" + str(theta) +")"
 
 
     prew_max_ampl = max(abs(prew[0]))
-    gxprew_equation = str(-sign) + "*" + str(prew_max_ampl) + "*np.cos(counter*" + str(theta) +")"
-    gyprew_equation = str(-sign) + "*" + str(prew_max_ampl) + "*np.sin(counter*" + str(theta) +")"
+    gxprew_equation = str(-sign) + "*" + str(prew_max_ampl) + "*cos(counter*" + str(theta) +")"
+    gyprew_equation = str(-sign) + "*" + str(prew_max_ampl) + "*sin(counter*" + str(theta) +")"
     
     # prepare blocks for mtrk
     gxprew_startTime = 0
