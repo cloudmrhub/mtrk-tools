@@ -56,7 +56,6 @@ def create_sdl_from_ui_inputs(block_to_box_objects, block_structure,
     sequence_data.equations = {}
     
     ### Special initialization for very simple sequences with no block structure
-    print("+-+-+ block_to_loops ", block_to_loops)
     if not block_to_loops or block_to_loops == {'Main': 1}:
         block_to_loops.update({"simple_main_block": 1})
         block_structure.update({"Main": ["simple_main_block"]})

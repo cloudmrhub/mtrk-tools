@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+## Adapted and extended from the Pulpy library by J.B. Martin (https://github.com/jonbmartin/pulpy/tree/master)
+
+
 __all__ = [
     "min_trap_grad",
     "trap_grad",

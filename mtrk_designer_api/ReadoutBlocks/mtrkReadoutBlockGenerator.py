@@ -1,4 +1,4 @@
-import mtrkPulpy as mpp
+import readoutWaveformGenerator as rwg
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -23,7 +23,7 @@ def add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, r
     diry = -1 # y direction of EPI -1 bottom-top, 1 top-bottom
 
     ## Generating cartesian trajectory
-    blocks, time_before_center = mpp.cartesian(fov, resolution, dt, gamp, gslew, dirx, diry)
+    blocks, time_before_center = rwg.cartesian(fov, resolution, dt, gamp, gslew, dirx, diry)
     
     ## Ensuring TE is properly set
     print("time_before_center ", time_before_center)
@@ -173,7 +173,7 @@ def add_radial_readout(base_sequence, insertion_block, previous_block, fov, reso
     # print("theta ", theta)  # right unit?
 
     ## Generating radial trajectory
-    blocks, time_before_center = mpp.radial(fov, n_spokes, theta, dt, gamp, gslew)
+    blocks, time_before_center = rwg.radial(fov, n_spokes, theta, dt, gamp, gslew)
 
     ## Ensuring TE is properly set
     print("time_before_center ", time_before_center) 
@@ -320,7 +320,7 @@ def add_spiral_readout(base_sequence, insertion_block, previous_block, fov, reso
     gslew = 140 # max slew rate in mT/m/ms
 
     ## Generating spiral trajectory
-    blocks, time_before_center, spiral_array, k, t, s = mpp.spiral_arch(fov, resolution, gts, gslew, gamp)
+    blocks, time_before_center, spiral_array, k, t, s = rwg.spiral_arch(fov, resolution, gts, gslew, gamp)
     spiral_array = np.transpose(spiral_array)  # Transpose to get the correct shape
     
     ## Ensuring TE is properly set
@@ -473,7 +473,7 @@ def add_epi_readout(base_sequence, insertion_block, previous_block, fov, resolut
     dt = 1e-5
 
     ## Generating EPI trajectory
-    blocks, time_before_center = mpp.mtrk_epi(fov, n, etl, dt, gamp, gslew, offset, dirx, diry)
+    blocks, time_before_center = rwg.mtrk_epi(fov, n, etl, dt, gamp, gslew, offset, dirx, diry)
 
     ## Ensuring TE is properly set
     print("time_before_center ", time_before_center)
