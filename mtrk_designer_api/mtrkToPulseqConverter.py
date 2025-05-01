@@ -11,8 +11,8 @@ import json
 from SDL_read_write.pydanticSDLHandler import *
 
 ## Name of the file to convert from mtrk to Pulseq format
-# fileToConvert = 'C:/Users/artiga02/Downloads/se2d_epi.mtrk'
-# outputFile = 'C:/Users/artiga02/Downloads/se2d_epi.seq'
+fileToConvert = 'C:/Users/artiga02/Downloads/se2d_cartesian.mtrk'
+outputFile = 'C:/Users/artiga02/Downloads/se2d_cartesian.seq'
 
 def mtrkToPulseqConverter(sequence_data, outputFile = "test.seq"):
     """
@@ -58,7 +58,7 @@ def fillSequence(sequence_data,
     ## TO DO add these info to SDL
     system = pypulseq.Opts(max_grad = 28,
                            grad_unit = "mT/m",
-                           max_slew = 150,
+                           max_slew = 200000,
                            slew_unit = "T/m/s",
                            rf_ringdown_time = 20e-6,
                            rf_dead_time = 100e-6,
@@ -70,39 +70,30 @@ def fillSequence(sequence_data,
 
     loopCountersList = []
     mainBlock = sequence_data.instructions["main"]
+
+    
     stepInfoList = extractStepInformation(
                                         sequence_data = sequence_data, 
                                         currentBlock = mainBlock, 
                                         system = system,
                                         loopCountersList = loopCountersList,
                                         seq = seq)
-    # print("stepInfoList: ", stepInfoList)
     
     ## TO DO stabilize the code for the case a block contains only blocks/loops
-    counterRangeList, stepInfoList = extractSequenceStructure( 
-                                        sequence_data = sequence_data, 
+    counterRangeList = extractSequenceStructure(  
                                         stepInfoList = stepInfoList, 
-                                        system = system, 
-                                        loopCountersList = loopCountersList, 
-                                        seq = seq, 
                                         counterRange = 0, 
                                         blockName = "main", 
                                         counterRangeList = [])
-    print("counterRangeList: ", counterRangeList)
-    testList = [[[999, 1, 'block_excitation']], [[999,1,'block_refocusing']], [[999,1, 'block_0']], [[2, 31, 'block_1']], [[999,1,'block_2']], [[999,1,'block_3']], [[999,1,'block_delay']]]
-
-    for counterRange in counterRangeList:
-        actionList = organizePulseqBlocks(sequence_data = sequence_data, 
-                                          counterRangeList = counterRange, 
-                                          system = system, 
-                                          seq = seq, 
-                                          loopCountersList = loopCountersList)
- 
-        buildPulseqSequence(seq = seq,
-                            actionIndex = 0, 
-                            actionList = actionList, 
-                            stepInfoList = stepInfoList)
-
+    
+    executeLoopingStructure(counterRangeList, 
+                            0, 
+                            seq, 
+                            system, 
+                            loopCountersList, 
+                            stepInfoList, 
+                            sequence_data)
+    
     ############################################################################
     ## Checking timing
     ############################################################################
@@ -113,13 +104,13 @@ def fillSequence(sequence_data,
     else:
         print("Timing check failed. Error listing follows:")
         [print(e) for e in error_report]
-
+    
     ############################################################################
     ## Plotting and reporting
     ############################################################################
     if plot:
         seq.plot()
-
+   
     # seq.calculate_kspace()
 
     # Very optional slow step, but useful for testing during development e.g. 
@@ -137,14 +128,40 @@ def fillSequence(sequence_data,
         # Prepare the sequence output for the scanner
         seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
         seq.set_definition(key="Name", value=sequence_data.infos.seqstring)
+        seq.set_definition(key="EPI", value=1)
         # seq.set_definition(key="RadiofrequencyRasterTime", value=seq.rfRasterTime)
         # seq.set_definition(key="GradientRasterTime", value=1e-5)
+        # seq.set_definition(key="GradientRasterTime", value=seq.grad_raster_time)
+        # seq.set_definition(key="AdcRasterTime", value=seq.adc_raster_time)
 
         seq.write(seq_filename)
 
 ################################################################################
 ## Functions to convert from SDL to Pulseq
 ################################################################################
+
+def executeLoopingStructure(counterRangeList, index, seq, system, loopCountersList, stepInfoList, sequence_data):
+    if type(counterRangeList[0]) == int: 
+        counterID = counterRangeList[0]
+        counterRange = counterRangeList[1]
+        newCounterRangeList = counterRangeList[2]
+        for index in range(0, counterRange):
+            executeLoopingStructure(newCounterRangeList, index, seq, system, loopCountersList, stepInfoList, sequence_data)
+    else:
+        for counterRange in counterRangeList:
+            ctrID = counterRange[0]
+            ctrRange = counterRange[1]
+            for index2 in range(0, ctrRange):
+                actionList = organizePulseqBlocks(sequence_data = sequence_data, 
+                                              counterRangeList = [counterRange], 
+                                              system = system, 
+                                              seq = seq, 
+                                              loopCountersList = loopCountersList)
+                buildPulseqSequence(seq = seq,
+                                actionIndex = index, 
+                                actionList = actionList, 
+                                stepInfoList = stepInfoList)
+
 
 def extractStepInformation(sequence_data, currentBlock, system, 
                            loopCountersList, seq):
@@ -278,6 +295,8 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     print(str(currentBlock.steps[stepIndex].axis) + \
                           "is not a valid axis name.")
                 start_time = currentBlock.steps[stepIndex].time*1e-6
+                # print("max slew rate: ", system.max_slew)
+                # print("    slew rate: ", max(abs(np.squeeze(np.subtract(gradientArray[1:], gradientArray[:-1]) / system.grad_raster_time))))
                 gradientEvent = pypulseq.make_arbitrary_grad(
                                 channel = gradientAxis,
                                 waveform = np.array(gradientArray),
@@ -369,7 +388,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                      rfSpoilingInc, eventIndexBlockList]
     return stepInfoList
 
-def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform, 
+def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveforms, 
                               rf_inc, rf_phase):
     """
     Builds Pulseq sequence blocks based on the given parameters.
@@ -378,7 +397,7 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform,
         index (int): The index of the sequence block.
         seq (PulseqSequence): The Pulseq sequence object.
         stepInfoList (list): A list containing various step information.
-        normalizedWaveform (ndarray): The normalized waveform.
+        normalizedWaveforms (ndarray): The normalized waveforms of variable events.
         rf_inc (float): The RF increment.
         rf_phase (float): The RF phase.
 
@@ -407,7 +426,7 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform,
                    stepInfoList[3][variableAmplitudeEventIndex]
                 gyromagneticRatio = 42577 # Hz/T converting mT/m to Hz/m
                 amplitude = eval(equationString)*gyromagneticRatio
-                variableAmplitudeEvent.waveform = amplitude*(normalizedWaveform)
+                variableAmplitudeEvent.waveform = amplitude*(normalizedWaveforms[variableAmplitudeEventIndex])
         listToAdd = []
         for blockIndex in range(0, len(blockList)):
             if stepInfoList[0][blockList[blockIndex]].type == "rf" and \
@@ -425,13 +444,14 @@ def buildPulseqSequenceBlocks(index, seq, stepInfoList, normalizedWaveform,
             elif stepInfoList[0][blockList[blockIndex]].type == "adc":
                 stepInfoList[0][blockList[blockIndex]].phase_offset = \
                                                        rf_phase / 180 * np.pi
+            ## Doing this only for spiral??
+            elif stepInfoList[0][blockList[blockIndex]].type == "grad":
+                seq.system.max_slew = seq.system.max_slew * 1e3
             listToAdd.append(stepInfoList[0][blockList[blockIndex]])
         seq.add_block(*listToAdd)
     return stepInfoList, rf_inc, rf_phase
                     
-def extractSequenceStructure(sequence_data, stepInfoList, system, 
-                             loopCountersList, seq, counterRange, blockName, 
-                             counterRangeList):
+def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRangeList):
     """
     Extracts the sequence structure by recursively traversing the stepInfoList.
 
@@ -448,57 +468,60 @@ def extractSequenceStructure(sequence_data, stepInfoList, system,
     Returns:
         tuple: A tuple containing the counterRangeList and stepInfoList.
     """
-    for event in stepInfoList[0]:
-        if type(event) == list and event[0] == "run_block":
-            blockName = event[1]
-            blockStepInfoList = extractStepInformation(
-               sequence_data = sequence_data, 
-               currentBlock = sequence_data.instructions[blockName], 
-               system = system,
-               loopCountersList = loopCountersList,
-               seq = seq)
-            counterRange = 1
-            counterRangeList, stepInfoList = \
-                        extractSequenceStructure(
-                                          sequence_data = sequence_data, 
-                                          stepInfoList = blockStepInfoList, 
-                                          system = system, 
-                                          loopCountersList = loopCountersList, 
-                                          seq = seq, 
-                                          counterRange = counterRange, 
-                                          blockName = blockName, 
-                                          counterRangeList = counterRangeList)
-            ## TO DO find a more proper way to handle the exceptions
-            action = sequence_data.instructions[blockName].steps[1].action
-            if action != "loop" and action != "run_block":
-                counterRangeList.append([[999, counterRange, blockName]])
-        if type(event) == list and event[0] == "loop":
-            counterId = event[1]
-            counterRange = event[2]
-            for loopEvent in event[3][0]:
-                if type(loopEvent) == list and loopEvent[0] == "run_block":
-                    blockName = loopEvent[1]
-                    blockStepInfoList = extractStepInformation(
-                       sequence_data = sequence_data, 
-                       currentBlock = sequence_data.instructions[blockName], 
-                       system = system,
-                       loopCountersList = loopCountersList,
-                       seq = seq)
-                    action = sequence_data.instructions[blockName].steps[1].action
-                    if action != "loop" and action != "run_block":
-                        counterRangeList.append([[counterId, counterRange, blockName]])
-                    counterRangeList, stepInfoList = \
-                            extractSequenceStructure(
-                                              sequence_data = sequence_data, 
-                                              stepInfoList = blockStepInfoList, 
-                                              system = system, 
-                                              loopCountersList = loopCountersList, 
-                                              seq = seq, 
-                                              counterRange = counterRange, 
-                                              blockName = blockName, 
-                                              counterRangeList = counterRangeList)
-    
-    return counterRangeList, stepInfoList
+    infoList = stepInfoList[0][0]
+    previousInfoList = infoList
+    structureList = []
+    while type(infoList) == list:
+        ## Next loop
+        if infoList[0] == "loop":
+            previousInfoList = infoList 
+            counterID = infoList[1]
+            counterRange = infoList[2]
+            infoList = infoList[3][0][0]
+            # blockName = infoList[1]
+            if counterRangeList == []:
+                structureList.append([counterID, counterRange, []])
+            else: 
+                structureList.append([counterID, counterRange, []])
+
+        # Next block
+        elif infoList[0] == "run_block":
+            ## Ignore block with no events
+            if type(infoList[2][0][0]) == list:
+                previousInfoList = infoList
+                infoList = infoList[2][0][0]
+            ## Use block with events
+            else: 
+                subList = []
+                for infoIndex in range(0, len(infoList[2][0])):
+                    blockInfoList = previousInfoList[2][0][infoIndex]
+                    blockName = blockInfoList[1]
+                    if type(blockInfoList[2][0][0]) == list:
+                        subBlockList = []
+                        for infoIndex in range(0, len(blockInfoList[2][0])):
+                            subBlockInfoList = blockInfoList[2][0][infoIndex]
+                            subBlockName = subBlockInfoList[1]
+                            if type(subBlockInfoList[1]) == int:
+                                subList.append([subBlockInfoList[1], subBlockInfoList[2], subBlockInfoList[3][0][0][1]])
+                            else:    
+                                subList.append([999, 1, subBlockName])
+                        blockName = subBlockList
+                    else: 
+                        subList.append([999, 1, blockName])
+                structureList.append(subList)
+                previousInfoList = infoList
+                infoList = infoList[2][0][0]
+
+    ## Reorganize events in a nested list structure
+    ## TO DO generalize if more than one end leaf???
+    loopings = structureList[:-1]
+    endBlocks = structureList[-1]
+    counterRangeList = endBlocks
+    for looping in reversed(loopings):
+        a, b, _ = looping
+        counterRangeList = [a, b, counterRangeList]
+
+    return counterRangeList
 
 def organizePulseqBlocks(sequence_data, counterRangeList, system, seq, 
                          loopCountersList):
@@ -534,11 +557,11 @@ def organizePulseqBlocks(sequence_data, counterRangeList, system, seq,
                    system = system,
                    loopCountersList = loopCountersList,
                    seq = seq)
-            normalizedWaveform = [] ## ???
+            normalizedWaveforms = [] ## ???
             if blockStepInfoList[3] != []:
-                variableAmplitudeEvent = blockStepInfoList[3][0]
-                normalizedWaveform = variableAmplitudeEvent.waveform
-            actionList.append([counter, blockStepInfoList, normalizedWaveform])
+                for variableAmplitudeEvent in blockStepInfoList[3]:
+                    normalizedWaveforms.append(variableAmplitudeEvent.waveform)
+            actionList.append([counter, blockStepInfoList, normalizedWaveforms])
 
     return actionList
 
@@ -555,32 +578,25 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
     Returns:
         None
     """
-    if len(actionList[actionIndex]) != 1:
+    if len(actionList[0]) != 1:
         rf_phase = 0
         rf_inc = 0
-        for index in range(0, actionList[actionIndex][0][1]):
-            stepInfoList, rf_inc, rf_phase = buildPulseqSequenceBlocks(
-                index = index, 
-                seq = seq, 
-                stepInfoList = actionList[actionIndex][1], 
-                normalizedWaveform = actionList[actionIndex][2], 
-                rf_inc = rf_inc, 
-                rf_phase = rf_phase)
-    else:
-        for index in range(0, actionList[actionIndex][0][1]):
-            buildPulseqSequence(seq = seq, 
-                                actionIndex = actionIndex + 1, 
-                                actionList = actionList, 
-                                stepInfoList = stepInfoList)
+        stepInfoList, rf_inc, rf_phase = buildPulseqSequenceBlocks(
+            index = actionIndex, #index, 
+            seq = seq, 
+            stepInfoList = actionList[0][1], 
+            normalizedWaveforms = actionList[0][2], 
+            rf_inc = rf_inc, 
+            rf_phase = rf_phase)
             
 ################################################################################
 ## Converting the file from mtrk to Pulseq format using command line for input
 ################################################################################
-print("Converting mtrk to Pulseq format")
-print("mtrk file to convert: ")
-fileToConvert = input()
-print("Pulseq file to create: ")
-outputFile = input()
+# print("Converting mtrk to Pulseq format")
+# print("mtrk file to convert: ")
+# fileToConvert = input()
+# print("Pulseq file to create: ")
+# outputFile = input()
 with open(fileToConvert) as sdlFile:
     sdlData = json.load(sdlFile)
     sequence_data = PulseSequence(**sdlData)

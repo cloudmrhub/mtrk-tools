@@ -2,47 +2,38 @@ from mtrk_waveforms import *
 import json
 import jsbeautifier
 import re
-import matplotlib.pyplot as plt
 
-import numpy as np
-import matplotlib.pyplot as plt
 
-## Spiral sequence generation
-# spiral_sequence = add_spiral_readout()
+inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/raw_seq_pulpy.mtrk'
 
-## Radial sequence generation
-# radial_sequence = add_spokes_readout()
+readoutList = ["cartesian", "radial", "spiral", "epi"]
+readoutType = readoutList[0] # type of readout to add
+outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
 
-## EPI sequence generation
-insertion_block = "block_spinEcho" # block name to insert EPI echo train
-previous_block = "block_refocusing" # previous step name
-# fov = 0.03 # imaging field of view in cmcm
-n = 128 # resolution (# of pixels (square). N = etl*nl, where etl = echo-train-len
-        # and nl = # leaves (shots). nl default 1.)
-etl = 32 # echo train length
-# dt = 1e-5 # sample time in s
-gamp = 20 # max gradient amplitude in mT/m
-gslew = 140 # max slew rate in mT/m/ms
-offset = 0 # used for multi-shot EPI goes from 0 to #shots-1
-dirx = -1 # x direction of EPI -1 left to right, 1 right to left
-diry = -1 # y direction of EPI -1 bottom-top, 1 top-bottom
-
-with open('C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/raw_seq_pulpy.mtrk') as sdlFile:
+# Cartesian sequence generation
+with open(inputFilename) as sdlFile:
     sdlData = json.load(sdlFile)
     base_sequence = PulseSequence(**sdlData)
 
-epi_sequence = add_epi_train(base_sequence, insertion_block, previous_block, n, etl, gamp, gslew, offset, dirx, diry)
+insertion_block = "block_spinEcho" # block name to insert 
+previous_block = "block_refocusing" # previous step name
+fov = base_sequence.infos.fov * 1e-2 # imaging field of view
+resolution = base_sequence.infos.pelines # resolution
 
-with open('C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/se2d_epi_2.mtrk', 'w') as sdlFileOut:
+if readoutType == "cartesian":
+    output_sequence = add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, resolution)
+elif readoutType == "radial":
+    output_sequence = add_radial_readout(base_sequence, insertion_block, previous_block, fov, resolution)
+elif readoutType == "spiral":
+    output_sequence = add_spiral_readout(base_sequence, insertion_block, previous_block, fov, resolution)
+elif readoutType == "epi":
+    output_sequence = add_epi_readout(base_sequence, insertion_block, previous_block, fov, resolution)
+
+with open(outputFilename, 'w') as sdlFileOut:
     options = jsbeautifier.default_options()
     options.indent_size = 4
-    data_to_print = jsbeautifier.beautify(json.dumps(epi_sequence.model_dump(mode="json")), options)
+    data_to_print = jsbeautifier.beautify(json.dumps(output_sequence.model_dump(mode="json")), options)
     sdlFileOut.write(re.sub(r'}, {', '},\n            {', data_to_print)) #purely aesthetic 
-
-
-
-
-
 
 
 
