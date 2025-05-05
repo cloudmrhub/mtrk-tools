@@ -169,7 +169,8 @@ def add_radial_readout(base_sequence, insertion_block, previous_block, fov, reso
     gamp = 20 # max gradient amplitude in mT/m
     gslew = 140 # max slew rate in mT/m/ms
     n_spokes = resolution # Is that okay?
-    theta = 2*np.pi/n_spokes # angle between spokes (use golden angle?)
+    theta = 111.25 * np.pi / 180 # golden angle in radians
+    # theta = 2*np.pi/n_spokes # angle between spokes (use golden angle?)
     # print("theta ", theta)  # right unit?
 
     ## Generating radial trajectory
@@ -445,18 +446,18 @@ def add_spiral_readout(base_sequence, insertion_block, previous_block, fov, reso
     base_sequence.instructions["block_spiral"]["steps"].append(submit)
 
 
-    ## Plot gradients
-    t = t*1e2
-    subplot, axis = plt.subplots(2, sharex=True)
-    subplot.suptitle("spiral trajectory")
-    axis[0].set_title("gy")
-    axis[0].plot(spiral_array[0])
-    axis[1].set_title("gx")
-    axis[1].plot(spiral_array[1])
-    # axis[2].set_title("gz")
-    # axis[2].plot(spiral_sequence[2])
-    # plt.plot(k[:, 0], k[:, 1], label='Spiral Trajectory')
-    plt.show()
+    # ## Plot gradients
+    # t = t*1e2
+    # subplot, axis = plt.subplots(2, sharex=True)
+    # subplot.suptitle("spiral trajectory")
+    # axis[0].set_title("gy")
+    # axis[0].plot(spiral_array[0])
+    # axis[1].set_title("gx")
+    # axis[1].plot(spiral_array[1])
+    # # axis[2].set_title("gz")
+    # # axis[2].plot(spiral_sequence[2])
+    # # plt.plot(k[:, 0], k[:, 1], label='Spiral Trajectory')
+    # plt.show()
 
     return base_sequence
 

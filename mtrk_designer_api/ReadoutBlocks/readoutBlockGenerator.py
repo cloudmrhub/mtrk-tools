@@ -3,7 +3,7 @@ import json
 import jsbeautifier
 import re
 
-inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/raw_seq_pulpy.mtrk'
+inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/mtrk_designer_api.mtrk'
 readoutList = ["cartesian", "radial", "spiral", "epi"]
 readoutType = readoutList[0] # type of readout to add
 outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
@@ -22,6 +22,7 @@ def automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = in
     ## Setting the fov and resolution according to the base sequence object
     fov = base_sequence.infos.fov * 1e-2 # imaging field of view
     resolution = base_sequence.infos.pelines # resolution
+    
 
     ## Adding the readout block to the base sequence
     if readoutType == "cartesian":
@@ -75,18 +76,30 @@ def manualReadoutBlockGenerator(readoutType = readoutType, inputFilename = input
 ## Testing functions
 
 ## Defining parameters for the test
-inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/raw_seq_pulpy.mtrk'
-readoutList = ["cartesian", "radial", "spiral", "epi"]
-readoutType = readoutList[1] # type of readout to add
-outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
-insertion_block = "block_spinEcho" # block name to insert 
-previous_block = "block_refocusing" # previous step name
+## Res 128 TE200 TR4000 single line
+# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_singleLine_TE200_TR4000_res128.mtrk'
+## Res 128 TE60 TR4000 single line
+# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_singleLine_TE60_TR4000_res128.mtrk'
+## Res 64 TE60 TR4000 single line
+# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_singleLine_TE60_TR4000_res64.mtrk'
+## Res 128 TE200 TR4000 multi lines
+# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_multiLines_TE200_TR4000_res128.mtrk'
+## Res 128 TE60 TR4000 multi lines
+# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_multiLines_TE60_TR4000_res128.mtrk'
+## Res 64 TE60 TR4000 multi lines
+# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_multiLines_TE60_TR4000_res64.mtrk'
 
-## Testing the automatic readout block generator
-automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = inputFilename,
-                         insertion_block = insertion_block, previous_block = previous_block)
+# readoutList = ["cartesian", "radial", "spiral", "epi"]
+# readoutType = readoutList[3] # type of readout to add
+# outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '_longTR.mtrk'
+# insertion_block = "block_spinEcho" # block name to insert 
+# previous_block = "block_refocusing" # previous step name
 
-# ## Defining extra parameters for the test
+# ## Testing the automatic readout block generator
+# automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = inputFilename,
+#                          insertion_block = insertion_block, previous_block = previous_block)
+
+## Defining extra parameters for the test
 # fov = 260 # imaging field of view
 # resolution = 128 # resolution (warning, this is not changing the iteration number for now)
 

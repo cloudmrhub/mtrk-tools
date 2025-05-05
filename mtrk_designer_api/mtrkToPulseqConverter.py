@@ -11,8 +11,8 @@ import json
 from SDL_read_write.pydanticSDLHandler import *
 
 ## Name of the file to convert from mtrk to Pulseq format
-fileToConvert = 'C:/Users/artiga02/Downloads/se2d_radial.mtrk'
-outputFile = 'C:/Users/artiga02/Downloads/se2d_radial.seq'
+fileToConvert = 'C:/Users/artiga02/Downloads/se2d_radial_longTR.mtrk'
+outputFile = 'C:/Users/artiga02/Downloads/se2d_radial_longTR.seq'
 
 def mtrkToPulseqConverter(sequence_data, outputFile = "test.seq"):
     """
@@ -85,7 +85,7 @@ def fillSequence(sequence_data,
                                         counterRange = 0, 
                                         blockName = "main", 
                                         counterRangeList = [])
-    
+
     executeLoopingStructure(counterRangeList, 
                             0, 
                             seq, 
@@ -145,13 +145,13 @@ def executeLoopingStructure(counterRangeList, index, seq, system, loopCountersLi
         counterID = counterRangeList[0]
         counterRange = counterRangeList[1]
         newCounterRangeList = counterRangeList[2]
-        for index in range(0, counterRange):
-            executeLoopingStructure(newCounterRangeList, index, seq, system, loopCountersList, stepInfoList, sequence_data)
+        for index2 in range(0, counterRange):
+            executeLoopingStructure(newCounterRangeList, index2, seq, system, loopCountersList, stepInfoList, sequence_data)
     else:
         for counterRange in counterRangeList:
             ctrID = counterRange[0]
             ctrRange = counterRange[1]
-            for index2 in range(0, ctrRange):
+            for index3 in range(0, ctrRange):
                 actionList = organizePulseqBlocks(sequence_data = sequence_data, 
                                               counterRangeList = [counterRange], 
                                               system = system, 
@@ -472,6 +472,10 @@ def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRange
     Returns:
         tuple: A tuple containing the counterRangeList and stepInfoList.
     """
+    ## stepInfoList =  [eventList, rfSpoilingList, 
+    ##                  allEquationsList, variableEventsList, 
+    ##                  rfSpoilingInc, eventIndexBlockList]
+
     infoList = stepInfoList[0][0]
     previousInfoList = infoList
     structureList = []
@@ -497,7 +501,7 @@ def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRange
             ## Use block with events
             else: 
                 subList = []
-                for infoIndex in range(0, len(infoList[2][0])):
+                for infoIndex in range(0, len(previousInfoList[2][0])):
                     blockInfoList = previousInfoList[2][0][infoIndex]
                     blockName = blockInfoList[1]
                     if type(blockInfoList[2][0][0]) == list:

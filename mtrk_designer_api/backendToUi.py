@@ -243,7 +243,8 @@ def getSequenceInfoInformation(configurations):
     descriptionInfo = configurations["info"]["description"]
     slicesInfo = configurations["info"]["slices"]
     fovInfo = configurations["info"]["fov"]
-    pelinesInfo = configurations["info"]["pelines"]
+    # pelinesInfo = configurations["info"]["pelines"]
+    pelinesInfo = configurations["info"]["resolution"]
     seqstringInfo = configurations["info"]["seqstring"]
     reconstructionInfo = configurations["info"]["reconstruction"]
     sequenceInfoInformationList = [descriptionInfo, slicesInfo, fovInfo, 

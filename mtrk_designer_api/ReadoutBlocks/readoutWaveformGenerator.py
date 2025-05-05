@@ -733,7 +733,8 @@ def spiral_arch(fov, resolution, gts, gslew, gamp):
     # duration = gx.size * gts * 1e3 # different from epi, error?
     # print("Duration: ", duration, "ms")
 
-    time_before_center = (gx.size/2) * gts * 1e3
+    # time_before_center = (gx.size/2) * gts * 1e3
+    time_before_center = 0.0
 
     return blocks, time_before_center, g, k, t, s
 
