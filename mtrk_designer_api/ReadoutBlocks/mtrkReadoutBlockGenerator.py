@@ -146,9 +146,10 @@ def add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, r
                 base_sequence.objects.update({object_name: {}})
                 base_sequence.objects[object_name].update(adc_object)    
             ## Creating ADC instructions
+            ## Warning, the mdh is not properly set for now.
             mdhOptionsDict = { "line": MdhOption(type = "counter", counter = block_index), 
                                "first_scan_slice": MdhOption(type = "counter", counter = block_index, target = 0),
-                               "last_scan_slice": MdhOption(type = "counter", counter = block_index, target = loop_iterations-1)}
+                               "last_scan_slice": MdhOption(type = "counter", counter = block_index, target = resolution)}
             adc = Adc(object = object_name, 
                       time = int(blocks[block_index][index][4]*1e5), 
                       frequency = 0, 

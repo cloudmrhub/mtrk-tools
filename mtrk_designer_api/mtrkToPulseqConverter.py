@@ -11,10 +11,10 @@ import json
 from SDL_read_write.pydanticSDLHandler import *
 
 ## Name of the file to convert from mtrk to Pulseq format
-fileToConvert = 'C:/Users/artiga02/Downloads/se2d_radial_longTR.mtrk'
-outputFile = 'C:/Users/artiga02/Downloads/se2d_radial_longTR.seq'
+fileToConvert = 'C:/Users/artiga02/Downloads/output_sdl_file_radial.mtrk'
+outputFile = 'C:/Users/artiga02/Downloads/output_sdl_file_radial.seq'
 
-def mtrkToPulseqConverter(sequence_data, outputFile = "test.seq"):
+def mtrkToPulseqConverter(fileToConvert = "test.mtrk", outputFile = "test.seq"):
     """
     Converts the given sequence data to a Pulseq format.
 
@@ -27,6 +27,11 @@ def mtrkToPulseqConverter(sequence_data, outputFile = "test.seq"):
     print("Converting mtrk to Pulseq format")
     print("mtrk file to convert: ", fileToConvert)
     print("Pulseq file to create: ", outputFile)
+
+    with open(fileToConvert) as sdlFile:
+        sdlData = json.load(sdlFile)
+        sequence_data = PulseSequence(**sdlData)
+
     fillSequence(sequence_data, 
                  plot=True, 
                  write_seq=True,
@@ -605,7 +610,5 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
 # fileToConvert = input()
 # print("Pulseq file to create: ")
 # outputFile = input()
-with open(fileToConvert) as sdlFile:
-    sdlData = json.load(sdlFile)
-    sequence_data = PulseSequence(**sdlData)
-    mtrkToPulseqConverter(sequence_data, outputFile)
+
+mtrkToPulseqConverter(fileToConvert, outputFile)

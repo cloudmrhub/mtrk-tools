@@ -6,7 +6,8 @@ import re
 inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/mtrk_designer_api.mtrk'
 readoutList = ["cartesian", "radial", "spiral", "epi"]
 readoutType = readoutList[0] # type of readout to add
-outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
+# outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '.mtrk'
+outputFilename = 'updated_sdl.mtrk'
 insertion_block = "block_spinEcho" # block name to insert 
 previous_block = "block_refocusing" # previous step name
 
