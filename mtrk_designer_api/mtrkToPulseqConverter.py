@@ -33,7 +33,7 @@ def mtrkToPulseqConverter(fileToConvert = "test.mtrk", outputFile = "test.seq"):
         sequence_data = PulseSequence(**sdlData)
 
     fillSequence(sequence_data, 
-                 plot=True, 
+                 plot=False, 
                  write_seq=True,
                  seq_filename=outputFile)
 
@@ -611,4 +611,4 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
 # print("Pulseq file to create: ")
 # outputFile = input()
 
-mtrkToPulseqConverter(fileToConvert, outputFile)
+# mtrkToPulseqConverter(fileToConvert, outputFile)

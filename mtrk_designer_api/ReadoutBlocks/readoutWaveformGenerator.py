@@ -570,11 +570,11 @@ def radial(fov, n_spokes, theta, dt, gamp, gslew):
     # prepare blocks for mtrk
     gxprew_startTime = 0
     gyprew_startTime = 0
-    gxro_startTime = prew.size * 10e-5
-    gyro_startTime = prew.size * 10e-5
+    gxro_startTime = (prew.size+1) * 10e-5
+    gyro_startTime = (prew.size+1) * 10e-5
     adc1_startTime = gxro_startTime + (ramp.size + 1) * 10e-5 # 
-    gxrew_startTime = gyro_startTime + ro.size * 10e-5
-    gyrew_startTime = gyro_startTime + ro.size * 10e-5
+    gxrew_startTime = gyro_startTime + (ro.size+1) * 10e-5
+    gyrew_startTime = gyro_startTime + (ro.size+1) * 10e-5
     # gxrep_startTime = gxro_startTime + ( gxro.size * 10e-5 ) 
 
     block1 = [1, 
