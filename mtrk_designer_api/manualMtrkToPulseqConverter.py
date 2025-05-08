@@ -14,7 +14,7 @@ from SDL_read_write.pydanticSDLHandler import *
 fileToConvert = 'C:/Users/artiga02/Downloads/output_sdl_file_radial.mtrk'
 outputFile = 'C:/Users/artiga02/Downloads/output_sdl_file_radial.seq'
 
-def mtrkToPulseqConverter(fileToConvert = "test.mtrk", outputFile = "test.seq"):
+def manualMtrkToPulseqConverter(fileToConvert = "test.mtrk", outputFile = "test.seq"):
     """
     Converts the given sequence data to a Pulseq format.
 
@@ -33,7 +33,7 @@ def mtrkToPulseqConverter(fileToConvert = "test.mtrk", outputFile = "test.seq"):
         sequence_data = PulseSequence(**sdlData)
 
     fillSequence(sequence_data, 
-                 plot=False, 
+                 plot=True, 
                  write_seq=True,
                  seq_filename=outputFile)
 
@@ -605,10 +605,10 @@ def buildPulseqSequence(seq, actionIndex, actionList, stepInfoList):
 ################################################################################
 ## Converting the file from mtrk to Pulseq format using command line for input
 ################################################################################
-# print("Converting mtrk to Pulseq format")
-# print("mtrk file to convert: ")
-# fileToConvert = input()
-# print("Pulseq file to create: ")
-# outputFile = input()
+print("Converting mtrk to Pulseq format")
+print("mtrk file to convert: ")
+fileToConvert = input()
+print("Pulseq file to create: ")
+outputFile = input()
 
-# mtrkToPulseqConverter(fileToConvert, outputFile)
+manualMtrkToPulseqConverter(fileToConvert, outputFile)
