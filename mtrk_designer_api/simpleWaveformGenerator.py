@@ -16,9 +16,7 @@ def trap_grad(ramp_up, ramp_down, plateau, dt):
     Returns:
         2-element tuple containing
 
-        - **trap** (*array*): gradient waveform in g/cm.
-        - **ramp_up_pts** (*int*): number of points in ramp up.
-        - **ramp_down_pts** (*int*): number of points in ramp down.
+        - **trap** (*array*): gradient waveform normalized between 0 an 1.
 
     """
 
@@ -34,25 +32,26 @@ def trap_grad(ramp_up, ramp_down, plateau, dt):
 
     trap = np.concatenate((ramp_up, np.squeeze(flat), ramp_down))
 
-    return np.expand_dims(trap, axis=0), ramp_up_pts, ramp_down_pts
+    return np.expand_dims(trap, axis=0)
 
 def min_trap_grad(area, gmax, slew, dt):
     r"""Minimal duration trapezoidal gradient designer. Design for target area
     under the flat portion (for non-ramp-sampled pulses)
 
     Args:
-        area (float): pulse area in (g*sec)/cm
-        gmax (float): maximum gradient in g/cm
-        slew (float): max slew rate in g/cm/sec
+        area (float): pulse area in mT/m/s
+        gmax (float): maximum gradient in mT/m
+        slew (float): max slew rate in T/m/s
         dt (float): sample time in sec
 
     Returns:
         2-element tuple containing
 
-        - **trap** (*array*): gradient waveform in g/cm.
-        - **ramppts** (*int*): number of points in ramps.
+        - **normalized_trap** (*array*): normalize gradient waveform between 0 an 1.
+        - **amplitude** (*int*): gradient amplitude in mT/m.
 
     """
+    slew = slew * 1e3  # convert slew rate to mT/m/s
 
     if np.abs(area) > 0:
         # we get the solution for plateau amp by setting derivative of
@@ -79,7 +78,10 @@ def min_trap_grad(area, gmax, slew, dt):
         # negative-area trap requested?
         trap, ramppts = 0, 0
 
-    return np.expand_dims(trap, axis=0), ramppts
+    amplitude = np.max(np.abs(trap))
+    normalized_trap = trap / amplitude
+
+    return np.expand_dims(normalized_trap, axis=0), amplitude
 
 
 def ramp_sampled_trap_grad(area, gmax, slew, dt, *args):
@@ -87,18 +89,20 @@ def ramp_sampled_trap_grad(area, gmax, slew, dt, *args):
     (for rewinders)
 
     Args:
-        area (float): pulse area in (g*sec)/cm
-        gmax (float): maximum gradient in g/cm
-        slew (float): max slew rate in g/cm/sec
+        area (float): pulse area in mT/m/s
+        gmax (float): maximum gradient in mT/m
+        slew (float): max slew rate in T/m/s
         dt (float): sample time in sec
 
     Returns:
         2-element tuple containing
 
-        - **trap** (*array*): gradient waveform in g/cm.
-        - **ramppts** (*int*): number of points in ramps.
+        - **normalized_trap** (*array*): normalize gradient waveform between 0 an 1.
+        - **amplitude** (*int*): gradient amplitude in mT/m.
 
     """
+
+    slew = slew * 1e3  # convert slew rate to mT/m/s
 
     if len(args) < 5:
         # in case we are making a rewinder
@@ -145,31 +149,34 @@ def ramp_sampled_trap_grad(area, gmax, slew, dt, *args):
     else:
         trap, ramppts = 0, 0
 
-    return np.expand_dims(trap, axis=0), ramppts
+    amplitude = np.max(np.abs(trap))
+    normalized_trap = trap / amplitude
+
+    return np.expand_dims(normalized_trap, axis=0), amplitude
 
 print("Tests for simpleWaveformGenerator.py")
 def test_trap_grad():
-    trap, ramp_up_pts, ramp_down_pts = trap_grad(30e-5, 60e-5, 200e-5, 1e-5)
+    trap = trap_grad(30e-5, 60e-5, 200e-5, 1e-5)
     plt.plot(trap[0])
     plt.title("Trapezoidal Gradient Waveform")
-    plt.xlabel("Time (ms)")
-    plt.ylabel("Gradient (g/cm)")
+    plt.xlabel("Time (us)")
+    plt.ylabel("Gradient (mT/m)")
     plt.show()
 
 def test_min_trap_grad():   
-    trap, ramppts = min_trap_grad(200e-5, 20, 200, 1e-5)
-    plt.plot(trap[0])
+    morm_trap, ampl = min_trap_grad(200e-5, 20, 200, 1e-5)
+    plt.plot(morm_trap[0]*ampl)
     plt.title("Minimal Duration Trapezoidal Gradient Waveform")
-    plt.xlabel("Time (ms)")
-    plt.ylabel("Gradient (g/cm)")
+    plt.xlabel("Time (us)")
+    plt.ylabel("Gradient (mT/m)")
     plt.show()
 
 def test_ramp_sampled_trap_grad():      
-    trap, ramppts = ramp_sampled_trap_grad(200e-5, 20, 200, 1e-5)
-    plt.plot(trap[0])
+    morm_trap, ampl = ramp_sampled_trap_grad(200e-5, 20, 200, 1e-5)
+    plt.plot(morm_trap[0]*ampl)
     plt.title("Ramp Sampled Trapezoidal Gradient Waveform")
-    plt.xlabel("Time (ms)")
-    plt.ylabel("Gradient (g/cm)")
+    plt.xlabel("Time (us)")
+    plt.ylabel("Gradient (mT/m)")
     plt.show()
 
 # Run tests
