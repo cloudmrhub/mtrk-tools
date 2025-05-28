@@ -173,6 +173,6 @@ def test_ramp_sampled_trap_grad():
     plt.show()
 
 # Run tests
-test_trap_grad()
-test_min_trap_grad()
-test_ramp_sampled_trap_grad()
+# test_trap_grad()
+# test_min_trap_grad()
+# test_ramp_sampled_trap_grad()
