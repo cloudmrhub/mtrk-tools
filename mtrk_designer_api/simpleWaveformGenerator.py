@@ -157,7 +157,7 @@ def test_trap_grad():
     plt.show()
 
 def test_min_trap_grad():   
-    trap, ramppts = min_trap_grad(200e-5, 20, 20000, 1e-5)
+    trap, ramppts = min_trap_grad(200e-5, 20, 200, 1e-5)
     plt.plot(trap[0])
     plt.title("Minimal Duration Trapezoidal Gradient Waveform")
     plt.xlabel("Time (ms)")
@@ -165,7 +165,7 @@ def test_min_trap_grad():
     plt.show()
 
 def test_ramp_sampled_trap_grad():      
-    trap, ramppts = ramp_sampled_trap_grad(200e-5, 20, 20000, 1e-5)
+    trap, ramppts = ramp_sampled_trap_grad(200e-5, 20, 200, 1e-5)
     plt.plot(trap[0])
     plt.title("Ramp Sampled Trapezoidal Gradient Waveform")
     plt.xlabel("Time (ms)")
