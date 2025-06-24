@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pulpy.rf as pp
 
 ## Adapted and extended from the Pulpy library by J.B. Martin (https://github.com/jonbmartin/pulpy/tree/master)
+
+## Gradient waveform designers
 
 def trap_grad(ramp_up, ramp_down, plateau, dt):
     r"""Trapezoidal gradient designer. Design for specific ramp up, ramp down and 
@@ -209,3 +212,96 @@ def test_ramp_sampled_trap_grad():
 # test_trap_grad()
 # test_min_trap_grad()
 # test_ramp_sampled_trap_grad()
+
+
+
+## RF pulse designers
+
+def pulse_designer(pulse_type, args):
+    r"""General RF pulse designer. This function is a placeholder for future
+    implementations of various RF pulse designs.
+
+    Args:
+        pulse_type (str): type of RF pulse to design: available options include 'slr', 'sinc', 'adiabatic', etc.
+        args (list): additional arguments for the specific pulse design.
+
+    Returns:
+        None: This function currently does not return any value.
+    """
+    print(f"Designing {pulse_type} RF pulse with arguments: {args}")
+    match pulse_type:
+        case 'slr':
+            tb = args[0]        # RF pulse time-bandwidth product
+            N =  args[1]        # number of samples
+            d1 =  args[2]       # magnetization passband ripple level
+            d2 =  args[3]       # magnetization stopband ripple level
+            p_type =  args[4]   # RF pulse type: 
+                                # 'st' (small-tip excitation),
+                                # 'ex' (pi/2excitation pulse), 
+                                # 'se' (spin-echo pulse), 
+                                # 'inv' (inversion), 
+                                # or 'sat' (pi/2 saturation pulse).
+            f_type =  args[5]   # filter type:
+                                # 'ms' (sinc), 
+                                # 'pm'(Parks-McClellan equal-ripple), 
+                                # 'min' (minphase using factored pm),
+                                # 'max' (maxphase using factored pm), 
+                                # 'ls' (least squares).
+            pulse = pp.slr.dzrf(N, tb, p_type, f_type, d1, d2, True)
+            magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
+            phase = np.zeros(len(pulse))  # Phase is zero 
+        case 'sinc':
+            n = args[0]  # number of samples  
+            m = args[1]  # number of side lobes
+            pulse = pp.slr.msinc(n, m)
+            magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
+            phase = np.zeros(len(pulse))  # Phase is zero 
+        case 'adiabatic':
+            type = args[0]  # adiabatic pulse type: 'bir4', 'wurst', 'hyperbolic'
+            n = args[1]  # number of samples  (should be a multiple of 4)
+            match type:
+                case 'bir4':
+                    beta = args[2]  # AM waveform parameter.
+                    kappa = args[3]  # FM waveform parameter.
+                    theta = args[4]  # flip angle in radians.
+                    dw0 = args[5]  # FM waveform scaling (radians/s).
+                    pulse, freq_mod = pp.adiabatic.bir4(n, beta, kappa, theta, dw0)
+                case 'wurst':
+                    n_fac = args[2]  # power to exponentiate to within AM term. 
+                                     # ~20 or greater istypical.
+                    bw = args[3]  # bandwidth
+                    dur = args[4]  # duration in seconds
+                    pulse, freq_mod = pp.adiabatic.wurst(n, n_fac, bw, dur)
+                case 'hyperbolic':
+                    beta = args[2]  # AM waveform parameter.
+                    mu = args[3]  # a constant, determines amplitude of frequency sweep.
+                    dur = args[4]  # duration in seconds
+                    pulse, freq_mod = pp.adiabatic.hypsec(n, beta, mu, dur)
+            
+            dt = 1e-5
+            cumulative_phase = np.cumsum(freq_mod) * dt 
+            wrapped_phase = (cumulative_phase + np.pi) % (2 * np.pi) - np.pi
+            magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
+            phase = wrapped_phase  # Use the wrapped phase as the phase of the pulse
+        
+    return magnitude, phase
+
+## Running the tests
+# rfType = "SLR"
+# magnitude, phase = pulse_designer("slr", [8, 512, 0.01, 0.01, 'ex', 'ls'])
+# rfType = "Sinc"
+# magnitude, phase = pulse_designer("sinc", [64, 2])
+# rfType = "adiabatic wurst"
+# magnitude, phase = pulse_designer("adiabatic", ['wurst', 512, 40, 40e3, 2e-3])
+# rfType = "adiabatic bir4"
+# magnitude, phase = pulse_designer("adiabatic", ['bir4', 512, 10, np.arctan(20), np.pi/4, 100*np.pi/1e-5/512])
+# rfType = "adiabatic hyperbolic"
+# magnitude, phase = pulse_designer("adiabatic", ['hyperbolic', 512, 800, 4.9, 0.012])
+# fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+# ax1.plot(magnitude, label='Magnitude')
+# ax1.legend()
+# ax1.set_title("RF Waveform " + rfType)
+# ax2.plot(phase, color='orange', label='Phase')
+# ax2.legend()
+# plt.tight_layout()
+# plt.show()
