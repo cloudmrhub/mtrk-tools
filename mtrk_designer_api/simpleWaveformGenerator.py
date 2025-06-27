@@ -289,8 +289,8 @@ def pulse_designer(pulse_type, args):
     return magnitude, phase
 
 ## Running the tests
-rfType = "SLR"
-magnitude, phase = pulse_designer("slr", [8, 512, 0.01, 0.01, 'ex', 'ls'])
+# rfType = "SLR"
+# magnitude, phase = pulse_designer("slr", [8, 512, 0.01, 0.01, 'ex', 'ls'])
 # rfType = "Sinc"
 # magnitude, phase = pulse_designer("sinc", [64, 2])
 # rfType = "adiabatic wurst"
@@ -299,11 +299,11 @@ magnitude, phase = pulse_designer("slr", [8, 512, 0.01, 0.01, 'ex', 'ls'])
 # # magnitude, phase = pulse_designer("adiabatic", ['bir4', 512, 10, np.arctan(20), np.pi/4, 100*np.pi/1e-5/512])
 # rfType = "adiabatic hyperbolic"
 # magnitude, phase = pulse_designer("adiabatic", ['hyperbolic', 512, 800, 4.9, 0.012])
-fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
-ax1.plot(magnitude, label='Magnitude')
-ax1.legend()
-ax1.set_title("RF Waveform " + rfType)
-ax2.plot(phase, color='orange', label='Phase')
-ax2.legend()
-plt.tight_layout()
-plt.show()
+# fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+# ax1.plot(magnitude, label='Magnitude')
+# ax1.legend()
+# ax1.set_title("RF Waveform " + rfType)
+# ax2.plot(phase, color='orange', label='Phase')
+# ax2.legend()
+# plt.tight_layout()
+# plt.show()
