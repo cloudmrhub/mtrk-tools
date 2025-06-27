@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from External.pulpy.rf import adiabatic, slr 
+import pulpy.rf as pp
 
 ## Adapted and extended from the Pulpy library by J.B. Martin (https://github.com/jonbmartin/pulpy/tree/master)
 
@@ -247,13 +247,13 @@ def pulse_designer(pulse_type, args):
                                 # 'min' (minphase using factored pm),
                                 # 'max' (maxphase using factored pm), 
                                 # 'ls' (least squares).
-            pulse = slr.dzrf(N, tb, p_type, f_type, d1, d2, True)
+            pulse = pp.slr.dzrf(N, tb, p_type, f_type, d1, d2, True)
             magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
             phase = np.zeros(len(pulse))  # Phase is zero 
         case 'sinc':
             n = args[0]  # number of samples  
             m = args[1]  # number of side lobes
-            pulse = slr.msinc(n, m)
+            pulse = pp.slr.msinc(n, m)
             magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
             phase = np.zeros(len(pulse))  # Phase is zero 
         case 'adiabatic':
@@ -265,18 +265,18 @@ def pulse_designer(pulse_type, args):
                     kappa = args[3]  # FM waveform parameter.
                     theta = args[4]  # flip angle in radians.
                     dw0 = args[5]  # FM waveform scaling (radians/s).
-                    pulse, freq_mod = adiabatic.bir4(n, beta, kappa, theta, dw0)
+                    pulse, freq_mod = pp.adiabatic.bir4(n, beta, kappa, theta, dw0)
                 case 'wurst':
                     n_fac = args[2]  # power to exponentiate to within AM term. 
                                      # ~20 or greater istypical.
                     bw = args[3]  # bandwidth
                     dur = args[4]  # duration in seconds
-                    pulse, freq_mod = adiabatic.wurst(n, n_fac, bw, dur)
+                    pulse, freq_mod = pp.adiabatic.wurst(n, n_fac, bw, dur)
                 case 'hyperbolic':
                     beta = args[2]  # AM waveform parameter.
                     mu = args[3]  # a constant, determines amplitude of frequency sweep.
                     dur = args[4]  # duration in seconds
-                    pulse, freq_mod = adiabatic.hypsec(n, beta, mu, dur)
+                    pulse, freq_mod = pp.adiabatic.hypsec(n, beta, mu, dur)
             
             dt = 1e-5
             cumulative_phase = np.cumsum(freq_mod) * dt 
@@ -295,13 +295,13 @@ def pulse_designer(pulse_type, args):
 # magnitude, phase = pulse_designer("adiabatic", ['wurst', 512, 40, 40e3, 2e-3])
 # rfType = "adiabatic bir4"
 # magnitude, phase = pulse_designer("adiabatic", ['bir4', 512, 10, np.arctan(20), np.pi/4, 100*np.pi/1e-5/512])
-rfType = "adiabatic hyperbolic"
-magnitude, phase = pulse_designer("adiabatic", ['hyperbolic', 512, 800, 4.9, 0.012])
-fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
-ax1.plot(magnitude, label='Magnitude')
-ax1.legend()
-ax1.set_title("RF Waveform " + rfType)
-ax2.plot(phase, color='orange', label='Phase')
-ax2.legend()
-plt.tight_layout()
-plt.show()
+# rfType = "adiabatic hyperbolic"
+# magnitude, phase = pulse_designer("adiabatic", ['hyperbolic', 512, 800, 4.9, 0.012])
+# fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+# ax1.plot(magnitude, label='Magnitude')
+# ax1.legend()
+# ax1.set_title("RF Waveform " + rfType)
+# ax2.plot(phase, color='orange', label='Phase')
+# ax2.legend()
+# plt.tight_layout()
+# plt.show()
