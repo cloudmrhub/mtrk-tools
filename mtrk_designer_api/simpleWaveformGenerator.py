@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sympy import rf
 from External import adiabatic
 from External import slr 
 # print(slr.__file__)
@@ -49,7 +50,7 @@ def trap_grad(ramp_up, ramp_down, plateau, dt):
 
     return np.expand_dims(trap, axis=0), amplitude, int(ramp_up_time), int(ramp_down_time), int(plateau_time)
 
-def min_trap_grad(area, gmax, slew, dt):
+def min_trap_grad(area, gmax, slew, dt): 
     r"""Minimal duration trapezoidal gradient designer. Design for target area
     under the flat portion (for non-ramp-sampled pulses)
 
@@ -69,12 +70,14 @@ def min_trap_grad(area, gmax, slew, dt):
         - **plateau_time** (*float*): plateau time in us.
 
     """
-    slew = slew * 1e3  # convert slew rate to mT/m/s
+    slew = slew * 1e-3  # convert slew rate to mT/m/s
 
     if np.abs(area) > 0:
         # we get the solution for plateau amp by setting derivative of
         # duration as a function of amplitude to zero and solving
         a = np.sqrt(slew * area / 2)
+        print("area ", area)
+        print("area / a / dt ", area / a / dt)
 
         # finish design with discretization
         # make a flat portion of magnitude a and enough area for the swath
@@ -98,6 +101,10 @@ def min_trap_grad(area, gmax, slew, dt):
 
     amplitude = np.max(np.abs(trap))
     normalized_trap = trap / amplitude
+
+    print("ramp points", ramppts)
+    print("plateau points", (len(normalized_trap) - 2 * ramppts))
+    print("amplitude", amplitude)
 
     ramp_up_time = ramppts * dt * 1e6  # convert to us
     ramp_down_time = ramppts * dt * 1e6  # convert to us
@@ -184,7 +191,7 @@ def ramp_sampled_trap_grad(area, gmax, slew, dt, *args):
     return np.expand_dims(normalized_trap, axis=0), amplitude, int(ramp_up_time), int(ramp_down_time), int(plateau_time)
 
 def test_trap_grad():
-    trap, ampl, ramp_up_time, ramp_down_time, plateau_duration = trap_grad(30e-6, 60e-6, 200e-6, 1e-5)
+    trap, ampl, ramp_up_time, ramp_down_time, plateau_duration = trap_grad(200, 200, 2560, 1e-5)
     print(f"Ramp Up Time: {ramp_up_time} us, Ramp Down Time: {ramp_down_time} us, Plateau Time: {plateau_duration} us")
     plt.plot(trap[0]*ampl)
     plt.title("Trapezoidal Gradient Waveform")
@@ -250,14 +257,20 @@ def pulse_designer(pulse_type, args):
                                 # 'max' (maxphase using factored pm), 
                                 # 'ls' (least squares).
             pulse = slr.dzrf(N, tb, p_type, f_type, d1, d2, True)
-            magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
-            phase = np.zeros(len(pulse))  # Phase is zero 
+            envelope = pulse / np.max(np.abs(pulse))
+            phase_value = 0
+            rf = envelope * np.exp(1j * phase_value)
+            magnitude = np.abs(rf)
+            phase = np.angle(rf)
         case 'sinc':
             n = args[0]  # number of samples  
             m = args[1]  # number of side lobes
             pulse = slr.msinc(n, m)
-            magnitude = np.abs(pulse) / np.max(np.abs(pulse))  # Normalize the pulse
-            phase = np.zeros(len(pulse))  # Phase is zero 
+            envelope = pulse / np.max(np.abs(pulse))
+            phase_value = 0
+            rf = envelope * np.exp(1j * phase_value)
+            magnitude = np.abs(rf)
+            phase = np.angle(rf)
         case 'adiabatic':
             type = args[0]  # adiabatic pulse type: 'bir4', 'wurst', 'hyperbolic'
             n = args[1]  # number of samples  (should be a multiple of 4)

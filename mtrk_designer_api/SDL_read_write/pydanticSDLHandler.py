@@ -267,4 +267,14 @@ class PulseSequence(HasObjects, BaseModel):
     objects: dict[str, SerializeAsAny[Object]]
     arrays: dict[str, GradientTemplate]
     equations: dict[str, Equation]
+
+### definition of entire SDL model
+class PulseSequence(BaseModel):
+    file: File = File()
+    settings: Settings = Settings()
+    infos: Info = Info()
+    instructions: dict[str, Instruction] = {}
+    objects: dict[str, SerializeAsAny[Object]] = {}
+    arrays: dict[str, GradientTemplate] = {}
+    equations: dict[str, Equation] = {}
   
