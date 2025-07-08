@@ -301,7 +301,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                           "is not a valid axis name.")
                 start_time = currentBlock.steps[stepIndex].time*1e-6
                 # print("max slew rate: ", system.max_slew)
-                # print("    slew rate: ", max(abs(np.squeeze(np.subtract(gradientArray[1:], gradientArray[:-1]) / system.grad_raster_time))))
+                # print("    slew rate: ", max(abs(np.squeeze(np.subtract(gradientArray[1:], gradientArray[:-1]) / system.grad_raster_time))))                    
                 gradientEvent = pypulseq.make_arbitrary_grad(
                                 channel = gradientAxis,
                                 waveform = np.array(gradientArray),

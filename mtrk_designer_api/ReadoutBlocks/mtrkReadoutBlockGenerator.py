@@ -1,4 +1,4 @@
-import readoutWaveformGenerator as rwg
+import ReadoutBlocks.readoutWaveformGenerator as rwg
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -26,7 +26,7 @@ def add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, r
     blocks, time_before_center = rwg.cartesian(fov, resolution, dt, gamp, gslew, dirx, diry)
     
     ## Ensuring TE is properly set
-    print("time_before_center ", time_before_center)
+    # print("time_before_center ", time_before_center)
     base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
 
     ## Finding insertion block
@@ -178,7 +178,7 @@ def add_radial_readout(base_sequence, insertion_block, previous_block, fov, reso
     blocks, time_before_center = rwg.radial(fov, n_spokes, theta, dt, gamp, gslew)
 
     ## Ensuring TE is properly set
-    print("time_before_center ", time_before_center) 
+    # print("time_before_center ", time_before_center) 
     base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
     
     ## Finding insertion block
@@ -326,7 +326,7 @@ def add_spiral_readout(base_sequence, insertion_block, previous_block, fov, reso
     spiral_array = np.transpose(spiral_array)  # Transpose to get the correct shape
     
     ## Ensuring TE is properly set
-    print("time_before_center ", time_before_center) 
+    # print("time_before_center ", time_before_center) 
     base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
 
     ## Finding insertion block

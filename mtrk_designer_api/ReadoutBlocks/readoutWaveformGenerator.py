@@ -977,7 +977,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
                max(gyprew[0], key=abs), 
                gyprew_startTime]]
     block1_duration = gxprew_startTime + max(gxprew.size, gyprew.size) * dt 
-    print("block1_duration: ", block1_duration*1e3)
+    # print("block1_duration: ", block1_duration*1e3)
 
     block2 = [etl/2-1,
               [gxro[0]/max(gxro[0], key=abs), 
@@ -1011,7 +1011,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
                max(gyblip[0], key=abs), 
                gyblip2_startTime]]
     block2_duration = gyblip2_startTime + gyblip.size * dt
-    print("block2_duration: ", block2_duration*1e3)
+    # print("block2_duration: ", block2_duration*1e3)
 
     block3 = [1,
               [gxro[0]/max(gxro[0], key=abs), 
@@ -1040,7 +1040,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
                1,
                adc2_startTime]]
     block3_duration = gxro2_startTime + gxro.size * dt 
-    print("block3_duration: ", block3_duration*1e3)
+    # print("block3_duration: ", block3_duration*1e3)
 
     block4 = [1,
               [gxrep[0]/max(gxrep[0], key=abs), 
@@ -1054,7 +1054,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
                max(gyrep[0], key=abs), 
                gyrep_startTime]]
     block4_duration = gxrep_startTime + max(gxrep.size, gyrep.size) * dt
-    print("block4_duration: ", block4_duration*1e3)
+    # print("block4_duration: ", block4_duration*1e3)
     
     # returns **blocks** with the following structure: 
     # blocks = [block1, block2, ..., blockN]
@@ -1064,7 +1064,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
     blocks = [block1, block2, block3, block4]
 
     duration = (block1_duration + (etl/2-1) * block2_duration + block3_duration + block4_duration) * 1e2
-    print("Duration: ", duration, "ms")
+    # print("Duration: ", duration, "ms")
 
     time_before_center =  (block1_duration + (etl/4) * block2_duration) * 1e2
 
