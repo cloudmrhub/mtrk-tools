@@ -1,4 +1,5 @@
 import ReadoutBlocks.readoutWaveformGenerator as rwg
+# import readoutWaveformGenerator as rwg
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -319,7 +320,7 @@ def add_radial_readout(base_sequence, insertion_block, previous_block, fov, reso
 def add_spiral_readout(base_sequence, insertion_block, previous_block, fov, resolution):
     gts = 1e-5  # hardware dwell time [s]
     gamp = 20 # max gradient amplitude in mT/m
-    gslew = 140 # max slew rate in mT/m/ms
+    gslew = 200 # max slew rate in T/m/ms
 
     ## Generating spiral trajectory
     blocks, time_before_center, spiral_array, k, t, s = rwg.spiral_arch(fov, resolution, gts, gslew, gamp)
@@ -419,9 +420,18 @@ def add_spiral_readout(base_sequence, insertion_block, previous_block, fov, reso
         ## Creating ADC events, along with their respective objects       
         elif blocks[block_index][index][2] == "adc":
             ## Creating ADC objects
+            adc_samples = int(blocks[block_index][index][1])
+            adc_dwell = 10000
+            ## Adjusting adc_samples and adc_dwell to fit the hardware requirements for Siemens
+            while adc_samples >= 8000:
+                adc_samples /= 2
+                adc_samples = int(adc_samples)
+                adc_dwell *= 2
+            print("adc_samples ", adc_samples, " adc_dwell ", adc_dwell)
+
             adc_object = AdcReadout(duration = blocks[block_index][index][1]*10, 
-                                    samples = int(blocks[block_index][index][1]),
-                                    dwelltime = 10000)   
+                                    samples = adc_samples,
+                                    dwelltime = adc_dwell)   
             ## Checking if the ADC object already exists in the objects section
             if dict(adc_object) in base_sequence.objects.values():
                 object_name = [key for key, value in base_sequence.objects.items() if value == dict(adc_object)][0] 

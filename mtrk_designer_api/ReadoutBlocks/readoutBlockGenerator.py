@@ -86,19 +86,19 @@ def manualReadoutBlockGenerator(readoutType = readoutType, inputFilename = input
 ## Res 128 TE200 TR4000 multi lines
 # inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_multiLines_TE200_TR4000_res128.mtrk'
 ## Res 128 TE60 TR4000 multi lines
-# inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_multiLines_TE60_TR4000_res128.mtrk'
+inputFilename = 'C:/Users/artiga02/ISMRM-2025-Surfing-School-Hands-On-Open-Source-MR/Sequences/base_sequences/base_sequence_singleShot_TE60_TR4000_res128.mtrk'
 ## Res 64 TE60 TR4000 multi lines
 # inputFilename = 'C:/Users/artiga02/mtrk_designer_gui/app/mtrk_designer_api/base_sequence_multiLines_TE60_TR4000_res64.mtrk'
 
-# readoutList = ["cartesian", "radial", "spiral", "epi"]
-# readoutType = readoutList[3] # type of readout to add
-# outputFilename = 'C:/Users/artiga02/Downloads/se2d_' + str(readoutType) + '_longTR.mtrk'
-# insertion_block = "block_spinEcho" # block name to insert 
-# previous_block = "block_refocusing" # previous step name
+readoutList = ["cartesian", "radial", "spiral", "epi"]
+readoutType = readoutList[2] # type of readout to add
+outputFilename = 'C:/Users/artiga02/ISMRM-2025-Surfing-School-Hands-On-Open-Source-MR/Sequences/mtrk/se2d_' + str(readoutType) + '_shortTE.mtrk'
+insertion_block = "block_spinEcho" # block name to insert
+previous_block = "block_refocusing" # previous step name
 
 # ## Testing the automatic readout block generator
-# automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = inputFilename,
-#                          insertion_block = insertion_block, previous_block = previous_block)
+automaticReadoutBlockGenerator(readoutType = readoutType, inputFilename = inputFilename,
+                         insertion_block = insertion_block, previous_block = previous_block)
 
 ## Defining extra parameters for the test
 # fov = 260 # imaging field of view

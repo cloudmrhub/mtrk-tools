@@ -648,20 +648,18 @@ def spiral_arch(fov, resolution, gts, gslew, gamp):
         Bernstein, M.A.; King, K.F.; amd Zhou, X.J. (2004).
         Handbook of MRI Pulse Sequences. Elsevier.
     """
-    fov = fov * 1e-1
-    res = fov/resolution
-    gslew = gslew * 1e2 ## Artificially improved slew rate for testing 
-    gam = 267.522 * 1e6 / 1000  # rad/s/mT
-    gambar = gam / 2 / np.pi  # Hz/mT
-    N = int(fov / res)  # effective matrix size
+
+    print("resolution: ", resolution, "cm")
+    gslew = gslew * 1e2 ## conversion to G/cm/s
+    gambar = 4257 # Hz/Gauss
+    gam = gambar * (2*np.pi) 
     lam = 1 / (2 * np.pi * fov)
     beta = gambar * gslew / lam
 
-    kmax = N / (2 * fov)
     a_2 = (9 * beta / 4) ** (1 / 3)  # rad ** (1/3) / s ** (2/3)
     lamb = 5
-    theta_max = kmax / lam
-    ts = (3 * gam * gamp / (4 * np.pi * lam * a_2**2)) ** 3
+    theta_max = (np.pi * resolution)
+    ts = (3 * gambar * gamp / (2 * lam * a_2**2)) ** 3
     theta_s = 0.5 * beta * ts**2
     theta_s /= lamb + beta / (2 * a_2) * ts ** (4 / 3)
     t_g = np.pi * lam * (theta_max**2 - theta_s**2) / (gam * gamp)
@@ -686,13 +684,13 @@ def spiral_arch(fov, resolution, gts, gslew, gamp):
         k = np.concatenate((k1, k2), axis=0)
 
     else:
-        tacq = 2 * np.pi * fov / 3 * np.sqrt(np.pi / (gam * gslew * res**3))
+        tacq = (2*np.pi * fov/3) * np.sqrt(1/(2*gambar*gslew*(fov/resolution)**3))
         n_t = int(np.round(tacq / gts))
         t_s = np.linspace(0, tacq, n_t)
         theta_1 = beta / 2 * t_s**2
         theta_1 /= lamb + beta / (2 * a_2) * t_s ** (4 / 3)
 
-        k = lam * theta_1 * (np.cos(theta_1) + 1j * np.sin(theta_1))
+        k = lam * theta_1 * (np.cos(theta_1) + 1j * np.sin(theta_1)) 
 
     # end of trajectory calculation; prepare outputs
     g = np.diff(k, 1, axis=0) / (gts * gambar)  # gradient
@@ -710,6 +708,22 @@ def spiral_arch(fov, resolution, gts, gslew, gamp):
     spiral_array = np.transpose(g)
     gx = spiral_array[0] #[::10]
     gy = spiral_array[1] #[::10]
+
+    print("gx last: ", np.abs(gx[-2] - gx[-1])/gts, "G/cm")
+    print("gy last: ", np.abs(gy[-2] - gy[-1])/gts, "G/cm")
+    print(gslew)
+    # if np.abs(gy[-2] - gy[-1])/gts> gslew*1e-1:
+    #     print("Warning: gy last gradient is larger than gslew")
+    #     print("adding a ramp to gy")
+    #     print(int(np.round((gy[-2] - gy[-1])/(gslew*1e-1*gts))))
+    #     # removing the last point
+    #     gy = gy[:-1]
+    #     # adding a ramp
+    #     ramp = np.linspace(gy[-1], 0, int(np.round(gy[-1]/(gslew*1e-1*gts))+1))
+    #     print("ramp ", ramp/max(gy, key=abs))
+    #     gy = np.concatenate((gy, ramp))
+    #     print("new gy last: ", np.abs(gy[-2] - gy[-1])/gts, "G/cm")
+
     gx_startTime = 0
     gy_startTime = 0
     adc_startTime = 0
@@ -837,8 +851,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
     References:
         From Antonis Matakos' contrib to Jeff Fessler's IRT.
     """
-    s = gslew * dt * 1000
-    gslew = gslew * 1000  
+    s = gslew * dt * 1000 
     scaley = 20 # original value 20
 
 
