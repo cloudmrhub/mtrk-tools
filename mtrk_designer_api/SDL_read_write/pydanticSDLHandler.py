@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 from typing_extensions import Literal, Any 
-from pydantic import BaseModel, SerializeAsAny
+from pydantic import BaseModel, SerializeAsAny, Extra, root_validator
 from decimal import Decimal
 
 ### file section
@@ -24,6 +24,16 @@ class File(BaseModel):
 ### settings section
 class Settings(BaseModel):
     readout_os: int = 9999
+
+    class Config:
+        extra = Extra.allow
+
+    @root_validator(pre=True)
+    def check_extra_ints(cls, values):
+        for k, v in values.items():
+            if k != "readout_os" and not isinstance(v, int):
+                raise TypeError(f"Extra setting '{k}' must be an integer.")
+        return values
 
 
 ### infos section
@@ -123,36 +133,36 @@ class Init(Step):
 class Sync(Step):
     action: Literal["sync"] = "sync"
     object: str = "default_object"
-    time: int = 9999
+    time: Union[int, EquationRef] = 9999
 
 
 class Grad(Step):
     action: Literal["grad"] = "grad"
     axis: str = "default_axis"
     object: str = "default_object"
-    time: int = 9999
+    time: Union[int, EquationRef] = 9999
 
 
 class GradWithAmplitude(Grad):
-    amplitude: Union[str, Amplitude] = "default_amplitude"
+    amplitude: Union[str, EquationRef] = "default_amplitude"
 
 
-class Amplitude(BaseModel):
-    type: str = "default_amplitude_type"
+class EquationRef(BaseModel):
+    type: str = "equation"
     equation: str = "default_equation"
 
 
 class Rf(Step):
     action: Literal["rf"] = "rf"
     object: str = "default_object"
-    time: int = 9999
+    time: Union[int, EquationRef] = 9999
     added_phase: AddedPhase
 
 
 class Adc(Step):
     action: Literal["adc"] = "adc"
     object: str = "default_object"
-    time: int = 9999
+    time: Union[int, EquationRef] = 9999
     frequency: int = 9999
     phase: int = 9999
     added_phase: AddedPhase  
@@ -171,7 +181,7 @@ class MdhOption(BaseModel):
 
 class Mark(Step):
     action: Literal["mark"] = "mark"
-    time: int = 9999
+    time: Union[int, EquationRef] = 9999
 
 
 class Submit(Step):

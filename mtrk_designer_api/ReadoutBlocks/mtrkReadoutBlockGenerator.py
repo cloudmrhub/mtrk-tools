@@ -28,7 +28,10 @@ def add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, r
     
     ## Ensuring TE is properly set
     # print("time_before_center ", time_before_center)
-    base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
+    if(type(base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time) == EquationRef):
+        base_sequence.equations[base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time.equation].equation += str(-int(time_before_center*1e2)*10)
+    else:
+        base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
 
     ## Finding insertion block
     for instruction in base_sequence.instructions.keys():
@@ -119,7 +122,7 @@ def add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, r
             ## Creating gradient instructions
             if type(blocks[block_index][index][3]) == str:
                 equationName = "equation_" + str(block_index) + "_" + str(index)
-                variableAmplitude = Amplitude(type = "equation",
+                variableAmplitude = EquationRef(type = "equation",
                                               equation = equationName)
                 base_sequence.equations.update({equationName : {}})
                 equation = blocks[block_index][index][3].replace("counter", "ctr(2)") ## TO DO make counter variable
@@ -180,7 +183,10 @@ def add_radial_readout(base_sequence, insertion_block, previous_block, fov, reso
 
     ## Ensuring TE is properly set
     # print("time_before_center ", time_before_center) 
-    base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
+    if(type(base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time) == EquationRef):
+        base_sequence.equations[base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time.equation].equation += str(-int(time_before_center*1e2)*10)
+    else:
+        base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
     
     ## Finding insertion block
     for instruction in base_sequence.instructions.keys():
@@ -271,7 +277,7 @@ def add_radial_readout(base_sequence, insertion_block, previous_block, fov, reso
             ## Creating gradient instructions
             if type(blocks[block_index][index][3]) == str:
                 equationName = "equation_" + str(block_index) + "_" + str(index)
-                variableAmplitude = Amplitude(type = "equation",
+                variableAmplitude = EquationRef(type = "equation",
                                               equation = equationName)
                 base_sequence.equations.update({equationName : {}})
                 equation = blocks[block_index][index][3].replace("counter", "ctr(2)") ## TO DO make counter variable
@@ -328,7 +334,10 @@ def add_spiral_readout(base_sequence, insertion_block, previous_block, fov, reso
     
     ## Ensuring TE is properly set
     # print("time_before_center ", time_before_center) 
-    base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
+    if(type(base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time) == EquationRef):
+        base_sequence.equations[base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time.equation].equation += str(-int(time_before_center*1e2)*10)
+    else:
+        base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
 
     ## Finding insertion block
     for instruction in base_sequence.instructions.keys():
@@ -488,8 +497,11 @@ def add_epi_readout(base_sequence, insertion_block, previous_block, fov, resolut
     blocks, time_before_center = rwg.mtrk_epi(fov, n, etl, dt, gamp, gslew, offset, dirx, diry)
 
     ## Ensuring TE is properly set
-    print("time_before_center ", time_before_center)
-    base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
+    # print("time_before_center ", time_before_center)
+    if(type(base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time) == EquationRef):
+        base_sequence.equations[base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time.equation].equation += str(-int(time_before_center*1e2)*10)
+    else:
+        base_sequence.instructions[previous_block].steps[findMarkStep(base_sequence, previous_block)].time -= int(time_before_center*1e2)*10
     
     ## Finding insertion block
     for instruction in base_sequence.instructions.keys():
@@ -649,18 +661,29 @@ def add_epi_readout(base_sequence, insertion_block, previous_block, fov, resolut
 
     return base_sequence
 
-def block_duration(base_sequence, block):
-    latest_start_time = 0
-    for step in block.steps:
-        if step.action == "grad":
-            if step.time > latest_start_time:
-                latest_start_time = step.time
+# def block_duration(base_sequence, block):
+#     for variable in base_sequence.settings:
+#         print("Variable :", variable)
+#     latest_start_time = 0
+#     for step in block.steps:
+#         if type(step.time) == EquationRef:
+#             step_time = eval(base_sequence.equations[step.time.equation].equation)
+#         else:
+#             step_time = step.time
+        
+#         if step.action == "grad":
+#             if step_time > latest_start_time:
+#                 latest_start_time = step_time
 
-    longest_duration = 0
-    for step in block.steps:
-        if step.action == "grad" and step.time == latest_start_time:
-            if base_sequence.objects[step.object].duration > longest_duration:
-                longest_duration = base_sequence.objects[step.object].duration
+#     longest_duration = 0
+#     for step in block.steps:
+#         if type(step.time) == EquationRef:
+#             step_time = eval(base_sequence.equations[step.time.equation].equation)
+#         else:
+#             step_time = step.time
+#         if step.action == "grad" and step_time == latest_start_time:
+#             if base_sequence.objects[step.object].duration > longest_duration:
+#                 longest_duration = base_sequence.objects[step.object].duration
 
-    return latest_start_time + longest_duration
+#     return latest_start_time + longest_duration
 
