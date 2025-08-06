@@ -5,6 +5,7 @@
 ################################################################################
 
 import numpy as np
+import re
 import math 
 import pypulseq
 import json
@@ -76,12 +77,14 @@ def fillSequence(sequence_data,
     loopCountersList = []
     mainBlock = sequence_data.instructions["main"]
 
+    variables = sequence_data.settings
     
     stepInfoList = extractStepInformation(
                                         sequence_data = sequence_data, 
                                         currentBlock = mainBlock, 
                                         system = system,
                                         loopCountersList = loopCountersList,
+                                        variables = variables,
                                         seq = seq)
     
     ## TO DO stabilize the code for the case a block contains only blocks/loops
@@ -92,7 +95,8 @@ def fillSequence(sequence_data,
                                         counterRangeList = [])
 
     executeLoopingStructure(counterRangeList, 
-                            0, 
+                            0,
+                            variables, 
                             seq, 
                             system, 
                             loopCountersList, 
@@ -145,13 +149,13 @@ def fillSequence(sequence_data,
 ## Functions to convert from SDL to Pulseq
 ################################################################################
 
-def executeLoopingStructure(counterRangeList, index, seq, system, loopCountersList, stepInfoList, sequence_data):
+def executeLoopingStructure(counterRangeList, index, variables, seq, system, loopCountersList, stepInfoList, sequence_data):
     if type(counterRangeList[0]) == int: 
         counterID = counterRangeList[0]
         counterRange = counterRangeList[1]
         newCounterRangeList = counterRangeList[2]
         for index2 in range(0, counterRange):
-            executeLoopingStructure(newCounterRangeList, index2, seq, system, loopCountersList, stepInfoList, sequence_data)
+            executeLoopingStructure(newCounterRangeList, index2, variables, seq, system, loopCountersList, stepInfoList, sequence_data)
     else:
         for counterRange in counterRangeList:
             ctrID = counterRange[0]
@@ -161,6 +165,7 @@ def executeLoopingStructure(counterRangeList, index, seq, system, loopCountersLi
                                               counterRangeList = [counterRange], 
                                               system = system, 
                                               seq = seq, 
+                                              variables = variables,
                                               loopCountersList = loopCountersList)
                 buildPulseqSequence(seq = seq,
                                 actionIndex = index, 
@@ -169,7 +174,7 @@ def executeLoopingStructure(counterRangeList, index, seq, system, loopCountersLi
 
 
 def extractStepInformation(sequence_data, currentBlock, system, 
-                           loopCountersList, seq):
+                           loopCountersList, variables, seq):
     """
     Extracts step information from the given sequence data and current block.
 
@@ -193,6 +198,20 @@ def extractStepInformation(sequence_data, currentBlock, system,
     rfSpoilingFlag = False
     os_factor = sequence_data.settings.readout_os
     for stepIndex in range(0, len(currentBlock.steps)):
+        if "time" in dict(currentBlock.steps[stepIndex]):
+            if type(currentBlock.steps[stepIndex].time) == EquationRef:
+                equationName = currentBlock.steps[stepIndex].time.equation
+                equationString = sequence_data.equations[equationName].equation
+                equationString = re.sub(r'set\((\w+)\)',
+                       lambda m: str(int(getattr(variables, m.group(1), f"<missing:{m.group(1)}>"))),
+                       equationString)
+                equationString = equationString.replace("cos",
+                                                        "np.cos")
+                equationString = equationString.replace("sin",
+                                                        "np.sin")
+                delay = eval(equationString)
+            else:
+                delay = currentBlock.steps[stepIndex].time
         if "object" in dict(currentBlock.steps[stepIndex]):
             currentObject = sequence_data.objects[
                                            currentBlock.steps[stepIndex].object]
@@ -208,6 +227,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                                    currentBlock = currentBlock.steps[stepIndex], 
                                    system = system,
                                    loopCountersList = loopCountersList,
+                                   variables = variables,
                                    seq = seq)
                 loopEvent = ["loop", loopCounter, loopRange, loopStepInfoList]
                 eventList.append(loopEvent)
@@ -220,6 +240,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                                    currentBlock = sequence_data.instructions[currentBlock.steps[stepIndex].block], 
                                    system = system,
                                    loopCountersList = loopCountersList,
+                                   variables = variables,
                                    seq = seq)
                 eventList.append(["run_block", blockToRun, blockStepInfoList])
 
@@ -253,7 +274,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                                 signal = np.array(rfSignalArray),
                                 flip_angle = alpha * math.pi / 180,
                                 bandwidth = rfBandwidth, 
-                                delay = currentBlock.steps[stepIndex].time*1e-6,
+                                delay = delay*1e-6,
                                 dwell = rfDwellTime*1e-6, 
                                 freq_offset = 0,
                                 no_signal_scaling = False,
@@ -299,7 +320,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 else:
                     print(str(currentBlock.steps[stepIndex].axis) + \
                           "is not a valid axis name.")
-                start_time = currentBlock.steps[stepIndex].time*1e-6
+                start_time = delay*1e-6
                 # print("max slew rate: ", system.max_slew)
                 # print("    slew rate: ", max(abs(np.squeeze(np.subtract(gradientArray[1:], gradientArray[:-1]) / system.grad_raster_time))))
                 gradientEvent = pypulseq.make_arbitrary_grad(
@@ -312,7 +333,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     variableEventsList.append(gradientEvent)
 
             case "adc":
-                adc_delay = currentBlock.steps[stepIndex].time
+                adc_delay = delay
                 adcSamples = currentObject.samples * os_factor
                 adcEvent = pypulseq.make_adc(
                                         num_samples = adcSamples, 
@@ -324,18 +345,18 @@ def extractStepInformation(sequence_data, currentBlock, system,
                     rfSpoilingList.append(eventList.index(adcEvent))
             case "mark":
                 eventList.append(pypulseq.make_delay(
-                                       currentBlock.steps[stepIndex].time*1e-6))
+                                       delay*1e-6))
                 
         if "object" in dict(currentBlock.steps[stepIndex]) or\
             currentBlock.steps[stepIndex].action == "mark":
             if currentBlock.steps[stepIndex].action == "sync":
                 pass
             elif currentBlock.steps[stepIndex].action == "mark": 
-                startTime = currentBlock.steps[stepIndex].time
-                endTime = currentBlock.steps[stepIndex].time
+                startTime = delay
+                endTime = delay
                 timingList.append([startTime, endTime])  
             else:
-                startTime = currentBlock.steps[stepIndex].time
+                startTime = delay
                 endTime = startTime + currentObject.duration
                 timingList.append([startTime, endTime])
 
@@ -537,7 +558,7 @@ def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRange
 
     return counterRangeList
 
-def organizePulseqBlocks(sequence_data, counterRangeList, system, seq, 
+def organizePulseqBlocks(sequence_data, counterRangeList, system, variables, seq, 
                          loopCountersList):
     """
     Organizes the Pulseq blocks based on the given sequence data, counter range list,
@@ -570,6 +591,7 @@ def organizePulseqBlocks(sequence_data, counterRangeList, system, seq,
                    currentBlock = sequence_data.instructions[counter[2]], 
                    system = system,
                    loopCountersList = loopCountersList,
+                   variables = variables,
                    seq = seq)
             normalizedWaveforms = [] ## ???
             if blockStepInfoList[3] != []:
