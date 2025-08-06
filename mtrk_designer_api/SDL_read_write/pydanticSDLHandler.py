@@ -34,6 +34,16 @@ class Settings(BaseModel):
             if k != "readout_os" and not isinstance(v, int):
                 raise TypeError(f"Extra setting '{k}' must be an integer.")
         return values
+    
+    def get(self, key: str) -> int:
+        if hasattr(self, key):
+            return getattr(self, key)
+        raise KeyError(f"Key '{key}' not found in settings.")
+
+    def set(self, key: str, value: int):
+        if not isinstance(value, int):
+            raise TypeError(f"Value for '{key}' must be an integer.")
+        setattr(self, key, value)
 
 
 ### infos section

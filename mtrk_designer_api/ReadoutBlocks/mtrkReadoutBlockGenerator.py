@@ -19,7 +19,7 @@ def findMarkStep(base_sequence, blockName):
 def add_cartesian_readout(base_sequence, insertion_block, previous_block, fov, resolution):
     dt = 1e-5  # hardware dwell time [s]
     gamp = 20 # max gradient amplitude in mT/m
-    gslew = 140 # max slew rate in mT/m/ms
+    gslew = 45 # max slew rate in mT/m/ms
     dirx = -1 # x direction of EPI -1 left to right, 1 right to left # Blocked to -1?
     diry = -1 # y direction of EPI -1 bottom-top, 1 top-bottom
 

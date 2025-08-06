@@ -73,18 +73,18 @@ def se2d_generator():
     grad_slisel_amplitude = round(G_slice * 1e3, 2)  # convert to mT/m
 
     dt = 10  # 10 µs
-    ramp = 90
+    ramp = 400
     plateau = 256 * dt
     grad_slisel_waveform, amp, grad_slisel_ru_us, rd_us, pt_us = trap_grad(ramp, ramp, plateau, dt)
 
     # Generating slice refocusing gradient
     slice_selection_half_area = (((ramp + plateau))/2)*grad_slisel_amplitude
-    grad_sliref_waveform, grad_sliref_amplitude, ru_us, rd_us, pt_us = min_trap_grad(slice_selection_half_area, 22, 200, dt)
+    grad_sliref_waveform, grad_sliref_amplitude, ru_us, rd_us, pt_us = min_trap_grad(slice_selection_half_area, 22, 45, dt)
 
     # Generating crusher gradients
     dephasing = 10 * np.pi
     crusher_gradient_area = (dephasing*1e3) / (2*np.pi*gamma*1e-6 * 5e-3)  # in mT/m/s
-    grad_crush_waveform, grad_crush_amplitude, ru_us, rd_us, pt_us = min_trap_grad(crusher_gradient_area, 22, 150, dt)
+    grad_crush_waveform, grad_crush_amplitude, ru_us, rd_us, pt_us = min_trap_grad(crusher_gradient_area, 22, 45, dt)
     for i, value in enumerate(grad_crush_waveform[0]):
         grad_crush_waveform[0][i] = np.round(value, 4)  # rounding to 4 decimal places for mT/m
 
@@ -422,6 +422,7 @@ def se2d_generator():
     return sequence_data
 
 se2d = se2d_generator()
+
 ### writing of json schema to SDL file with formatting options
 ## WARNING - The path needs to be adapted to your local implementation. 
 with open('se2d.mtrk', 'w') as sdlFileOut:

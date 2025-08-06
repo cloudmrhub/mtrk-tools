@@ -213,6 +213,11 @@ def completeSequenceSettings(sequence_data, settingsInformationList):
     if(settingsInformationList != []):
         sequence_data.settings = Settings(readout_os = \
                                                      settingsInformationList[0])
+    for variable in settingsInformationList[1]:
+        if variable not in sequence_data.settings.model_fields:
+            sequence_data.settings.set(variable, settingsInformationList[1][variable])
+        else:
+            sequence_data.settings.set(variable, settingsInformationList[1][variable])
 
 def completeSequenceInformation(sequence_data, sequenceInfoInformationList):
     """
@@ -287,7 +292,15 @@ def completeInstructionInformation(sequence_data, instructionInformationList):
                                     stepInformationList = \
                                        allStepInformationLists[stepIndex])
         if instructionInformationList[0] != "main" and len(instructionToModify.steps) != 1:
-            mark_event = Mark(time = int(instructionInformationList[3]*100)*10)
+            if type(instructionInformationList[3])!=int and type(instructionInformationList[3])!=float:
+                mark_event = Mark(time = instructionInformationList[3][1])
+                addEquation(sequence_data = sequence_data, 
+                            equationName = mark_event.time.equation)
+                sequence_data.equations[\
+                        mark_event.time.equation].equation = \
+                                                  instructionInformationList[3][0]
+            else:
+                mark_event = Mark(time = int(instructionInformationList[3]*100)*10)
             instructionToModify.steps.append(mark_event)
             submit_event = Submit()
             instructionToModify.steps.append(submit_event)
@@ -374,9 +387,23 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                                           objectName = stepToModify.object,
                                           objectInformationList = \
                                                          stepInformationList[3])
-                stepToModify.time = stepInformationList[4]
-                if(len(stepInformationList) >= 6):
-                    amplitudeAnswer = stepInformationList[5]
+                
+                if stepInformationList[4] == "equation":
+                    stepToModify.time = EquationRef()
+                    stepToModify.time.type = stepInformationList[4]
+                    stepToModify.time.equation = stepInformationList[5]
+                    addEquation(sequence_data = sequence_data, 
+                            equationName = stepToModify.time.equation)
+                    sequence_data.equations[\
+                            stepToModify.time.equation].equation = \
+                                                      stepInformationList[6]
+                    currentIndex = 7
+                else:
+                    stepToModify.time = stepInformationList[4]
+                    currentIndex = 5
+
+                if(len(stepInformationList) >= currentIndex+1):
+                    amplitudeAnswer = stepInformationList[currentIndex]
                     if(amplitudeAnswer=="flip"):
                         ## stepInformationList = [actionName, axisInfo, objectInfo, 
                         ##                        objectInformationList, timeInfo, 
@@ -387,21 +414,15 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                         ##                        objectInformationList, timeInfo, 
                         ##                        amplitudeTypeInfo, 
                         ##                        amplitudeEquationNameInfo]
-                        stepToModify.amplitude = Amplitude()
-                        stepToModify.amplitude.type = stepInformationList[5]
-                        stepToModify.amplitude.equation = stepInformationList[6]
-                        addEquation(sequence_data = sequence_data, 
-                                equationName = stepToModify.amplitude.equation)
-                        if(len(stepInformationList) == 8):
-                            ## stepInformationList = [actionName, axisInfo, 
-                            ##                        objectInfo, 
-                            ##                        objectInformationList, 
-                            ##                        timeInfo, amplitudeTypeInfo, 
-                            ##                        amplitudeEquationNameInfo, 
-                            ##                        equationInfo]
+                        stepToModify.amplitude = EquationRef()
+                        stepToModify.amplitude.type = stepInformationList[currentIndex]
+                        stepToModify.amplitude.equation = stepInformationList[currentIndex + 1]
+                        if len(stepInformationList) >= currentIndex+3:
+                            addEquation(sequence_data = sequence_data, 
+                                        equationName = stepToModify.amplitude.equation)
                             sequence_data.equations[\
                                 stepToModify.amplitude.equation].equation = \
-                                                          stepInformationList[7]
+                                                          stepInformationList[currentIndex + 2]
                 else:
                     # print("No amplitude option added.")
                     pass
@@ -419,10 +440,24 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                                           objectName = stepToModify.object,
                                           objectInformationList = \
                                                          stepInformationList[2])
-                stepToModify.time = stepInformationList[3]
-                stepToModify.added_phase = AddedPhase()
-                stepToModify.added_phase.type = stepInformationList[4]
-                stepToModify.added_phase.float = stepInformationList[5]
+                
+                if(len(stepInformationList) >= 7):
+                    stepToModify.time = EquationRef()
+                    stepToModify.time.type = stepInformationList[3]
+                    stepToModify.time.equation = stepInformationList[4]
+                    addEquation(sequence_data = sequence_data, 
+                            equationName = stepToModify.time.equation)
+                    sequence_data.equations[\
+                            stepToModify.time.equation].equation = \
+                                                      stepInformationList[5]
+                    stepToModify.added_phase = AddedPhase()
+                    stepToModify.added_phase.type = stepInformationList[6]
+                    stepToModify.added_phase.float = stepInformationList[7]
+                else:
+                    stepToModify.time = stepInformationList[3]
+                    stepToModify.added_phase = AddedPhase()
+                    stepToModify.added_phase.type = stepInformationList[4]
+                    stepToModify.added_phase.float = stepInformationList[5]
 
             case "adc":
                 ## stepInformationList = [actionName, objectInfo, 
@@ -439,16 +474,43 @@ def completeStepInformation(sequence_data, stepToModify, stepInformationList):
                                           objectName = stepToModify.object,
                                           objectInformationList = \
                                                          stepInformationList[2])
-                stepToModify.time = stepInformationList[3]
-                stepToModify.frequency = stepInformationList[4]
-                stepToModify.phase= stepInformationList[5]
+
+                # print("+-+- len(stepInformationList) ", len(stepInformationList))
+                # print("+-+- stepInformationList ", stepInformationList)
+                if stepInformationList[3] == "equation":
+                    stepToModify.time = EquationRef()
+                    stepToModify.time.type = stepInformationList[3]
+                    stepToModify.time.equation = stepInformationList[4]
+                    addEquation(sequence_data = sequence_data, 
+                            equationName = stepToModify.time.equation)
+                    sequence_data.equations[\
+                            stepToModify.time.equation].equation = \
+                                                      stepInformationList[5]
+                    currentIndex = 6
+                else:
+                    stepToModify.time = stepInformationList[3]
+                    currentIndex = 4
+
+                stepToModify.frequency = stepInformationList[currentIndex]
+                stepToModify.phase= stepInformationList[currentIndex + 1]
                 stepToModify.added_phase = AddedPhase()
-                stepToModify.added_phase.type = stepInformationList[6]
-                stepToModify.added_phase.float = stepInformationList[7]
-                stepToModify.mdh = stepInformationList[8]
+                stepToModify.added_phase.type = stepInformationList[currentIndex + 2]
+                stepToModify.added_phase.float = stepInformationList[currentIndex + 3]
+                stepToModify.mdh = stepInformationList[currentIndex + 4]
             case "mark":
                 ## stepInformationList = [actionName, timeInfo]
-                stepToModify.time = stepInformationList[1]
+                if stepInformationList[1] == "equation":
+                    stepToModify.time = EquationRef()
+                    stepToModify.time.type = stepInformationList[1]
+                    stepToModify.time.equation = stepInformationList[2]
+                    addEquation(sequence_data = sequence_data, 
+                            equationName = stepToModify.time.equation)
+                    sequence_data.equations[\
+                            stepToModify.time.equation].equation = \
+                                                      stepInformationList[3]
+                else:
+                    stepToModify.time = stepInformationList[1]
+
             case "submit":
                 pass
             case _:

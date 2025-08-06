@@ -119,6 +119,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
         sdlFileOut.write("\n\n") 
     
     instructionHeader = ["Default message", "off"]
+    instructionEndTime = 0
     for boxKey in keys:
         boxList = boxes[boxKey]
         for box in boxList:
@@ -131,6 +132,7 @@ def updateSDLFile(sequence_data, boxes, configurations,
             else:
                 instructionName = boxKey
                 if box["type"] != "Block":
+                    specialTimingFlag = False
                     for value in block_number_to_block_object:
                         if block_number_to_block_object[value]["name"] == boxKey:
                             if block_number_to_block_object[value][\
@@ -140,14 +142,23 @@ def updateSDLFile(sequence_data, boxes, configurations,
                                 printCounter = "off"
                             instructionHeader = [block_number_to_block_object[value]["message"],
                                                  printCounter]
-                
+                        if block_number_to_block_object[value]["name"] == boxKey and \
+                            block_number_to_block_object[value]["use_duration_equation"] == True:
+                            equationEndTime = EquationRef()
+                            equationEndTime.equation = block_number_to_block_object[value]["duration_equation_info"]["name"]
+                            equation = block_number_to_block_object[value]["duration_equation_info"]["expression"]
+                            instructionEndTime = [equation, equationEndTime]
+                            specialTimingFlag = True
+                        else:
+                            if specialTimingFlag == False:
+                                instructionEndTime = block_to_duration[boxKey]
 
             addInstruction(sequence_data, instructionName)
             instructionInformationList = getInstructionInformation(
                                             boxes = boxList,
                                             instructionName = instructionName,
                                             instructionHeader = instructionHeader,
-                                            instructionEndTime = block_to_duration[boxKey])
+                                            instructionEndTime = instructionEndTime)
             completeInstructionInformation(
                             sequence_data = sequence_data, 
                             instructionInformationList = instructionInformationList)
@@ -227,7 +238,8 @@ def getSequenceSettingsInformation(configurations):
         list: List of sequence settings information.
     """
     readoutOsInfo = configurations["settings"]["readout"]
-    settingsInformationList = [readoutOsInfo]
+    variables = configurations["settings"]["variables"]
+    settingsInformationList = [readoutOsInfo, variables]
     return settingsInformationList    
 
 def getSequenceInfoInformation(configurations):
@@ -334,9 +346,20 @@ def getStepInformation(box):
             objectInfo = box["name"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
-            timeInfo = int(float(box["start_time"]))
             stepInformationList.extend([axisInfo, objectInfo, 
-                                        objectInformationList, timeInfo]) 
+                                        objectInformationList])
+            
+            if box["use_equation_time"] == True:
+                timeTypeInfo = "equation"
+                timeEquationNameInfo = box["equation_time_info"]["name"]
+                stepInformationList.extend([timeTypeInfo, 
+                                            timeEquationNameInfo])
+                equationTimeInfo = box["equation_time_info"]["expression"]
+                stepInformationList.extend([equationTimeInfo])
+            else:
+                timeInfo = int(float(box["start_time"]))
+                stepInformationList.extend([timeInfo])
+ 
             if str(box["flip_amplitude"]) == "True":
                 flipAmplitudeInfo = "flip"
                 stepInformationList.extend([flipAmplitudeInfo])
@@ -352,32 +375,61 @@ def getStepInformation(box):
             objectInfo= box["name"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
-            timeInfo = int(float(box["start_time"]))
+            stepInformationList.extend([objectInfo, objectInformationList])
+            if box["use_equation_time"] == True:
+                timeTypeInfo = "equation"
+                timeEquationNameInfo = box["equation_time_info"]["name"]
+                stepInformationList.extend([timeTypeInfo, 
+                                            timeEquationNameInfo])
+                equationTimeInfo = box["equation_time_info"]["expression"]
+                stepInformationList.extend([equationTimeInfo])
+            else:
+                timeInfo = int(float(box["start_time"]))
+                stepInformationList.extend([timeInfo])
             addedPhaseTypeInfo = box["rf_added_phase_type"]
             addedPhaseFloatInfo = box["rf_added_phase_float"]
-            stepInformationList.extend([objectInfo, objectInformationList, 
-                                        timeInfo, addedPhaseTypeInfo, 
+            stepInformationList.extend([addedPhaseTypeInfo, 
                                         addedPhaseFloatInfo])
         
         case "adc":
             objectInfo = box["name"]
             objectInformationList = getObjectInformation(typeInfo = actionName, 
                                                          box = box)
-            timeInfo = int(float(box["start_time"]))
+            stepInformationList.extend([objectInfo, objectInformationList])
+
+            if box["use_equation_time"] == True:
+                timeTypeInfo = "equation"
+                timeEquationNameInfo = box["equation_time_info"]["name"]
+                stepInformationList.extend([timeTypeInfo, 
+                                            timeEquationNameInfo])
+                equationTimeInfo = box["equation_time_info"]["expression"]
+                stepInformationList.extend([equationTimeInfo])
+            else:
+                timeInfo = int(float(box["start_time"]))
+                stepInformationList.extend([timeInfo])
+
             frequencyInfo = box["frequency"]
             phaseInfo = box["phase"]
             addedPhaseTypeInfo = box["adc_added_phase_type"]
             addedPhaseFloatInfo = box["adc_added_phase_float"]
             mdhInfoList = json.loads(box["mdh"])
             # print("mdhInfoList ", mdhInfoList)
-            stepInformationList.extend([objectInfo, objectInformationList, 
-                                        timeInfo, frequencyInfo, phaseInfo,
+            stepInformationList.extend([frequencyInfo, phaseInfo,
                                         addedPhaseTypeInfo,addedPhaseFloatInfo,
                                         mdhInfoList])
             
-        case "mark":
-            timeInfo = int(float(box["start_time"]))
-            stepInformationList.extend([timeInfo])
+        # case "mark":
+        #     print("+-+-+ mark box[equation_time_info]", box["equation_time_info"])
+        #     if box["use_equation_time"] == True:
+        #         timeTypeInfo = "equation"
+        #         timeEquationNameInfo = box["equation_time_info"]["name"]
+        #         stepInformationList.extend([timeTypeInfo, 
+        #                                     timeEquationNameInfo])
+        #         equationTimeInfo = box["equation_time_info"]["expression"]
+        #         stepInformationList.extend([equationTimeInfo])
+        #     else:
+        #         timeInfo = int(float(box["start_time"]))
+        #         stepInformationList.extend([timeInfo])
 
         case "submit":
             pass
