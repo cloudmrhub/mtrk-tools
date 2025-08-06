@@ -496,7 +496,6 @@ def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRange
                 structureList.append([counterID, counterRange, []])
             else: 
                 structureList.append([counterID, counterRange, []])
-
         # Next block
         elif infoList[0] == "run_block":
             ## Ignore block with no events
@@ -506,6 +505,8 @@ def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRange
             ## Use block with events
             else: 
                 subList = []
+                if len(previousInfoList) == 4:
+                    previousInfoList = ["run_block", previousInfoList[1], previousInfoList[3]]
                 for infoIndex in range(0, len(previousInfoList[2][0])):
                     blockInfoList = previousInfoList[2][0][infoIndex]
                     blockName = blockInfoList[1]
