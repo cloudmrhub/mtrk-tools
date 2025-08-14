@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sympy import rf
+# from sympy import rf
 from External import adiabatic
 from External import slr 
 # print(slr.__file__)
