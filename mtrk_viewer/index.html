@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>mtrk &middot; Viewer</title>
+        <link rel="shortcut icon" href="mtrk_icon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="index.css" />
+        <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+    </head>
+    <body>
+      <div id="loader">
+        <img src="mtrk_color.png" alt="Logo">
+      </div>
+        <div class="container">
+            <div class="row">
+                <div id="plot-col" class="col-10">
+                  <!-- for Plotly chart -->
+                    <div id="chart1"></div>
+                  <!-- for SDL file viewer -->
+                    <div class="modal fade" id="fileViewerModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="fileViewerModalLabel">MTRK File Viewer</h5>
+                            <span id="fileViewerFileName"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            <div id="jsonviewer" class="jse-theme-dark"></div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                  <div id="modeSwitch" class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>
+                    <label class="form-check-label" for="flexSwitchCheckChecked">
+                      <i class="fa fa-moon-o theme-icon"></i>
+                    </label>
+                  </div>
+                  <a class="navbar-brand" href="">
+                    <img id="mtrk-logo" src="mtrk_icon.ico" alt="" width="35" height="35" class="d-inline-block align-text-top">
+                    <img id="mtrk-logo-dark" src="mtrk_color.png" alt="" width="35" height="35" class="align-text-top" hidden>
+                    <span id="brandingText">mtrk</span>
+                  </a>
+                  <hr>
+                  <div class="mb-2">
+                    <label for="formFile" class="form-label">Have your own MTRK file?</label>
+                    <input class="form-control form-control-sm" type="file" id="formFile" accept=".mtrk, .json">
+                  </div>
+                  <div id="alert" class="alert alert-danger" role="alert" style="display:none">
+                    Invalid MTRK file!
+                  </div>
+                  <a id="view-file-btn" class="btn btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View SDL File">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-braces" viewBox="0 0 16 16">
+                      <path d="M2.114 8.063V7.9c1.005-.102 1.497-.615 1.497-1.6V4.503c0-1.094.39-1.538 1.354-1.538h.273V2h-.376C3.25 2 2.49 2.759 2.49 4.352v1.524c0 1.094-.376 1.456-1.49 1.456v1.299c1.114 0 1.49.362 1.49 1.456v1.524c0 1.593.759 2.352 2.372 2.352h.376v-.964h-.273c-.964 0-1.354-.444-1.354-1.538V9.663c0-.984-.492-1.497-1.497-1.6M13.886 7.9v.163c-1.005.103-1.497.616-1.497 1.6v1.798c0 1.094-.39 1.538-1.354 1.538h-.273v.964h.376c1.613 0 2.372-.759 2.372-2.352v-1.524c0-1.094.376-1.456 1.49-1.456V7.332c-1.114 0-1.49-.362-1.49-1.456V4.352C13.51 2.759 12.75 2 11.138 2h-.376v.964h.273c.964 0 1.354.444 1.354 1.538V6.3c0 .984.492 1.497 1.497 1.6"/>
+                    </svg>
+                  </a>
+                  <div id="dummy-file-alert" class="alert alert-info" role="alert" style="display:none">
+                    Dummy File Loaded!
+                  </div>
+                  <div id="output-sdl-alert" class="alert alert-success" role="alert" style="display:none">
+                    Designer Output Loaded!
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <div hidden >
+                        <div data-name="popover-content">
+                          <ul>
+                            <li>Scroll to zoom in/out</li>
+                          </ul>
+                        </div>
+                      </div>
+                        <a id="keyboard-shortcuts" tabindex="0" class="btn btn-lg btn-secondary shortcuts-popover" role="button"
+                        data-bs-toggle="popover" data-bs-trigger="focus" title="Shortcuts and Tips">
+                        <i class="fa fa-lightbulb-o"></i></a>
+                      </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+        <script type="module" src="index.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.0.1/math.min.js" integrity="sha512-B82WLflI1EQiR9sGbIV1ddGVvK4ghj1xjMShL7YvcOrHjX2qP72lHztT1DxBVPiz1aTR6mOUJbtwj06uadL2GA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    </body>
+</html>
