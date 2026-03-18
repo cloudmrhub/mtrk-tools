@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>mtrk &middot; Designer</title>
+        <link rel="shortcut icon" href="/static/mtrk_icon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/css/ion.rangeSlider.min.css"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/static/index.css">
+        <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/js/ion.rangeSlider.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+      <div id="loader">
+        <img src="/static/mtrk_color.png" alt="Logo">
+      </div>
+        <div id="body-container" class="container-lg">
+            <div class="row" style="margin-top: 0%">
+              <div id="leftSidebar" class="col-lg-2">
+                <div class="conainer-fluid">
+                  <a class="navbar-brand" href="">
+                    <img id="mtrk-logo" src="/static/mtrk_icon.ico" alt="" width="35" height="35" class="d-inline-block align-text-top">
+                    <img id="mtrk-logo-dark" src="/static/mtrk_color.png" alt="" width="35" height="35" class="align-text-top" hidden>
+                    <span id="brandingText">mtrk</span>
+                  </a>
+                  <div class="mt-1">
+                    <span id="instance-tag" class="has-text-weight-bold tag is-white is-rounded">
+                      <i class="fa fa-bookmark"></i>&nbsp;&nbsp;local</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <select id="block-select" class="form-select" aria-label="Block selection">
+                    <option value="Main" selected>Main</option>
+                  </select>
+                  <button type="button" class="btn btn-secondary" id="add-block-btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Add Block">
+                    <i>&#43;</i>
+                  </button>
+                  <div class="input-group mb-3">
+                    <span id="blockDurationSpan" class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Block Duration (ms)">BD&nbsp;(ms)</span>
+                    <input id="blockDurationInput" placeholder="10" class="form-control" aria-label="Block Duration">
+                    <button id="block-time-btn" type="button" class="btn btn-secondary">&#10003;</button>
+                  </div>
+                  <div>
+                    <a id="settings-btn" class="btn btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Settings">
+                      <i class="fa fa-wrench"></i>
+                    </a>
+                    <a id="arrays-config-btn" class="btn btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configure Arrays">
+                      <i id="arrays-config-icon" class="fa fa-cube"></i>
+                    </a>
+                    <a id="loops-btn" class="btn btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configure Loops">
+                      <i>&#8734;</i>
+                    </a>
+                    <a id="anchor-btn" class="btn btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configure Anchors">
+                      <i class="fa fa-anchor"></i>
+                    </a>
+                  </div>
+                </div>
+                <div class="row objects-group">
+                  <div id="object-btns-group" class="btn-group-vertical" role="group" aria-label="Button group with nested dropdown">
+                    <button id="rf_excitation_btn" type="button" class="btn btn-secondary drag" draggable="true">RF</button>
+                    <button id="gradient_btn" type="button" class="btn btn-secondary drag" draggable="true">Gradient</button>
+                    <button id="adc_readout_btn" type="button" class="btn btn-secondary drag" draggable="true">ADC</button>
+                    <!-- <button id="" type="button" class="btn btn-secondary drag" draggable="false">Object</button> -->
+                  </div>
+                </div>
+                <div class="row blocks-group">
+                  <div id="block-btns-group" class="btn-group-vertical" role="group" aria-label="Button group with nested dropdown">
+                    <!-- <button id="block_tr" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block TR</button> -->
+                    <button id="block_excitation" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block Excitation</button>
+                    <button id="block_refocusing" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block Refocusing</button>
+                    <button id="block_epi" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block EPI</button>
+                    <button id="block_cartesian" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block Cartesian</button>
+                    <button id="block_radial" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block Radial</button>
+                    <button id="block_spiral" type="button" class="btn btn-secondary drag block_btn" draggable="true">Block Spiral</button>
+                  </div>
+                </div>
+                <div id="sliderSection" class="mb-3 mt-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Block Duration Range (ms)">
+                  <input id="blockDurationSlider">
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <div hidden >
+                      <div data-name="popover-content">
+                        <ul>
+                          <li>Keep shift pressed and move cursor to move boxes and/or blocks.</li>
+                          <li>Keep control pressed and click on boxes to select/unselect boxes.</li>
+                          <li>With boxes selected, if add block button is pressed, a block will be created.</li>
+                        </ul>
+                      </div>
+                    </div>
+                      <a id="keyboard-shortcuts" tabindex="0" class="btn btn-lg btn-secondary shortcuts-popover" role="button"
+                      data-bs-toggle="popover" data-bs-trigger="focus" title="Shortcuts and Tips">
+                      <i class="fa fa-lightbulb-o"></i></a>
+                    </div>
+                </div>
+              </div>
+              <div id="plot-col" class="col-lg-8">
+                <div id="rf_chart" class="dropzone"></div>
+                <div id="slice_chart" class="dropzone"></div>
+                <div id="phase_chart" class="dropzone"></div>
+                <div id="readout_chart" class="dropzone"></div>
+                <div id="adc_chart" class="dropzone"></div>
+                <div class="modal fade" id="parametersModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Parameters</h5>
+                        <button id="modal_close_logo_btn" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="parametersForm" action="">
+                          <div class="form-group">
+                            <label for="inputName">Name</label>
+                            <input type="text" class="form-control form-control-sm" id="inputName" placeholder="Ex: Grad Slice Refocus">
+                          </div>
+                          <div class="form-group">
+                            <label for="inputStartTime">Start Time (ms)</label>
+                            <input type="number" class="form-control form-control-sm" id="inputStartTime" placeholder=0>
+                            <div class="rf-param grad-param adc-param">
+                              <input class="form-check-input" type="checkbox" value="" id="useTimeEquationCheck">
+                              <label class="form-check-label" for="useTimeEquationCheck">
+                                Use Equation
+                              </label>
+                              <div class="form-group equation-time-group">
+                                <input type="text" class="form-control form-control-sm" id="inputTimeEquationName" placeholder="Name (Ex: equation_0_5)">
+                                <label for="inputTimeEquationExpression"><i>Use set(x) to use value of x from settings.</i></label>
+                                <input type="text" class="form-control form-control-sm" id="inputTimeEquationExpression" placeholder="Expression (Ex: set(TE)/2 - 1300)">
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-group rf-param grad-param">
+                            <label id="inputAnchorTimeLabel" for="inputAnchorTime">Anchor Time</label>
+                            <div class="row">
+                              <div class="col-7">
+                                <select id="anchor-time-mode-select" class="form-select form-select-sm" aria-label=".form-select-sm example">
+                                  <option selected value="start">Start</option>
+                                  <option value="mid">Mid</option>
+                                  <option value="end">End</option>
+                                  <option value="custom">Custom</option>
+                                </select>
+                              </div>
+                              <div class="col-1">
+                                <a id="save-block-anchor-time-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Use for block anchor time">
+                                  <i class="fa fa-save"></i>
+                                </a>
+                              </div>
+                              <div class="col-4">
+                                <input type="number" class="form-control form-control-sm" id="inputAnchorTime" placeholder=0>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-group rf-param">
+                            <div>RF Type</div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="rfRadios" id="rfExcitationRadio" value="excitation" checked>
+                              <label class="form-check-label" for="rfExcitationRadio">
+                                Excitation
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="rfRadios" id="rfRefocusRadio" value="refocus">
+                              <label class="form-check-label" for="rfRefocusRadio">
+                                Refocusing
+                              </label>
+                            </div>
+                            <label for="inputRfDuration">Duration (ms)</label>
+                            <input type="number" class="form-control form-control-sm" id="inputRfDuration" value="1" placeholder=1>
+                            <label for="inputRfAddedPhaseType">Added Phase Type</label>
+                            <input type="text" class="form-control form-control-sm" id="inputRfAddedPhaseType" placeholder="Ex: ">
+                            <label for="inputRfAddedPhase">Added Phase</label>
+                            <input type="number" class="form-control form-control-sm" id="inputRfAddedPhase" placeholder=0>
+                            <label for="inputRfInitialPhase">Initial Phase</label>
+                            <input type="number" class="form-control form-control-sm" id="inputRfInitialPhase" placeholder=0>
+                            <label for="inputRfThickness">Thickness</label>
+                            <input type="number" class="form-control form-control-sm" id="inputRfThickness" placeholder=1>
+                            <label for="inputRfFlipAngle">Flip Angle</label>
+                            <input type="number" class="form-control form-control-sm" id="inputRfFlipAngle" placeholder=1>
+                          </div>
+                          <div class="form-group grad-param">
+                            <div>Amplitude (mT/m)</div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="exampleRadios" id="constantRadio" value="constant" checked>
+                              <label class="form-check-label" for="constantRadio">
+                                Constant
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="radio" name="exampleRadios" id="variableRadio" value="variable">
+                              <label class="form-check-label" for="variableRadio">
+                                Variable
+                              </label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm" id="inputConstantAmplitude" placeholder=1>
+                            <div id="variableAmplitudeGroup" class="form-row">
+                              <!-- <div class="form-group col">
+                                <label for="inputStepChange">Step Change</label>
+                                <input type="number" class="form-control form-control-sm" id="inputStepChange" placeholder=0>
+                              </div> -->
+                              <!-- <div class="form-group col">
+                                <label for="inputLoopNumber">Loop Number</label>
+                                <input type="number" class="form-control form-control-sm" id="inputLoopNumber" placeholder=0>
+                              </div> -->
+                              <div class="form-group col">
+                                <label for="inputGradEquationName">Equation Name</label>
+                                <input type="text" class="form-control form-control-sm" id="inputGradEquationName" placeholder="Ex: phaseencoding">
+                                <label for="inputGradEquationExpression">Equation Expression (<i>Use ctr(x) to refer the loop number x.</i>)</label>
+                                <input type="text" class="form-control form-control-sm" id="inputGradEquationExpression" placeholder="Ex: 0.3378125*(ctr(1)-64.5)">
+                              </div>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="" id="flipAmplitudeCheck">
+                              <label class="form-check-label" for="flipAmplitudeCheck">
+                                Flip Amplitude
+                              </label>
+                            </div>
+                          </div>
+                          <div class="form-group adc-param">
+                            <label for="inputAdcDuration">Duration (ms)</label>
+                            <input type="number" class="form-control form-control-sm" id="inputAdcDuration" value="1" placeholder=1>
+                            <label for="inputAdcFrequency">Frequency</label>
+                            <input type="number" class="form-control form-control-sm" id="inputAdcFrequency" placeholder=0>
+                            <label for="inputAdcPhase">Phase</label>
+                            <input type="number" class="form-control form-control-sm" id="inputAdcPhase" placeholder=0>
+                            <label for="inputAdcAddedPhaseType">Added Phase Type</label>
+                            <input type="text" class="form-control form-control-sm" id="inputAdcAddedPhaseType" placeholder="Ex: ">
+                            <label for="inputAdcAddedPhase">Added Phase</label>
+                            <input type="number" class="form-control form-control-sm" id="inputAdcAddedPhase" placeholder=0>
+                            <label for="inputAdcSamples">Samples</label>
+                            <input type="number" class="form-control form-control-sm" id="inputAdcSamples" placeholder=36>
+                            <label for="inputAdcDwellTime">Dwell Time</label>
+                            <input type="number" class="form-control form-control-sm" id="inputAdcDwellTime" placeholder=1>
+                            <label for="inputMdh">MDH</label>
+                            <textarea class="form-control" rows="3" aria-label="With textarea" id="inputMdh" placeholder="add valid JSON"></textarea>
+                          </div>
+                          <div class="form-group grad-param rf-param">
+                            <label for="array-dropdown-btn" class="rf-param">Magnitude:</label>
+                            <div class="btn-group">
+                              <button type="button" id="array-dropdown-btn" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Default Array</button>
+                              <ul id="array-dropdown-menu" class="dropdown-menu">
+                              </ul>
+                            </div>
+                          </div>
+                          <div class="form-group rf-param">
+                            <label for="phase-array-dropdown-btn">Phase:</label>
+                            <div class="btn-group">
+                              <button type="button" id="phase-array-dropdown-btn" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Select Array</button>
+                              <ul id="phase-array-dropdown-menu" class="dropdown-menu">
+                              </ul>
+                            </div>
+                          </div>
+                          <div class="form-group grad-param rf-param">
+                            <a id="generate-waveform-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Generate New Waveform">
+                              <i class="fa fa-plus"></i>
+                            </a>
+                            <span for="generate-waveform-btn">Generate Waveform</span>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="delete_object_btn" type="button" class="btn btn-danger">Delete</button>
+                        <div class="btn-group dropup">
+                          <button id="duplicate_object_btn" type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            Duplicate
+                          </button>
+                          <ul class="dropdown-menu">
+                            <h6 class="dropdown-header">Select Axis</h6>
+                            <li><a class="dropdown-item duplicate-dropdown-item">rf</a></li>
+                            <li><a class="dropdown-item duplicate-dropdown-item">slice</a></li>
+                            <li><a class="dropdown-item duplicate-dropdown-item">phase</a></li>
+                            <li><a class="dropdown-item duplicate-dropdown-item">read</a></li>
+                            <li><a class="dropdown-item duplicate-dropdown-item">adc</a></li>
+                          </ul>
+                        </div>
+                        <button id="modal_close_btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="save_changes_btn" type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="waveformModal" tabindex="-1" aria-labelledby="waveformModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="waveformModalLabel">Generate Waveform</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="generateWaveformForm" action="">
+                          <div class="form-group grad-param">
+                            <label for="gradient-type-select">Gradient Type</label>
+                            <div class="row">
+                              <div class="col-8">
+                                <select id="gradient-type-select" class="form-select" aria-label=".form-select example">
+                                  <option selected value="trap">Manual Trapezoid</option>
+                                  <option value="min_trap">Optimal Trapezoid</option>
+                                  <option value="ramp_sampled">Ramp Sampled Optimal Trapezoid</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-group rf-param">
+                            <label for="rf-type-select">RF Type</label>
+                            <div class="row">
+                              <div class="col-6">
+                                <select id="rf-type-select" class="form-select" aria-label=".form-select example">
+                                  <option selected value="slr">SLR</option>
+                                  <option value="sinc">Sinc</option>
+                                  <option value="adiabatic">Adiabatic</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-group grad-param trap-param">
+                            <label for="ramp_up_time">Ramp Up Time (s)</label>
+                            <input type="number" class="form-control" id="ramp_up_time" placeholder=1e-4 value=1e-4>
+                          </div>
+                          <div class="form-group grad-param trap-param">
+                            <label for="ramp_down_time">Ramp Down Time (s)</label>
+                            <input type="number" class="form-control" id="ramp_down_time" placeholder=1e-4 value=1e-4>
+                          </div>
+                          <div class="form-group grad-param trap-param">
+                            <label for="plateau_time">Plateau Time (s)</label>
+                            <input type="number" class="form-control" id="plateau_time" placeholder=256e-5 value=256e-5>
+                          </div>
+                          <div class="form-group grad-param ramp-sampled-param">
+                            <label for="input_area">Area (mT/m/&#181;s)</label>
+                            <input type="number" class="form-control" id="input_area" placeholder=2e-3 value=2e-3>
+                          </div>
+                          <div class="form-group grad-param ramp-sampled-param">
+                            <label for="input_gmax">Gmax (mT/m)</label>
+                            <input type="number" class="form-control" id="input_gmax" placeholder=20 value=20>
+                          </div>
+                          <div class="form-group grad-param ramp-sampled-param">
+                            <label for="input_slew">Slew (T/m/&#181;s)</label>
+                            <input type="number" class="form-control" id="input_slew" placeholder=200 value=200>
+                          </div>
+                          <div class="form-group grad-param trap-param ramp-sampled-param">
+                            <label for="dt">Sample Time / dt (&#181;s)</label>
+                            <input type="number" class="form-control" id="dt" placeholder=1e-5 value=1e-5 disabled>
+                          </div>
+                          <div class="form-group rf-param slr-param">
+                            <label for="tb">RF Pulse Time-Bandwidth Product</label>
+                            <input type="number" class="form-control" id="tb" placeholder=8 value=8>
+                            <label for="n_samples">Number of Samples</label>
+                            <input type="number" class="form-control" id="n_samples" placeholder=512 value=512>
+                            <label for="d1">Magnetization Passband Ripple Level</label>
+                            <input type="number" class="form-control" id="d1" placeholder=0.01 value=0.01>
+                            <label for="d2">Magnetization Stopband Ripple Level</label>
+                            <input type="number" class="form-control" id="d2" placeholder=0.01 value=0.01>
+                            <label for="rf_pulse_type">RF Pulse Type</label>
+                            <select id="rf_pulse_type" class="form-select" aria-label=".form-select example">
+                              <option selected value="st">Small-Tip Excitation</option>
+                              <option value="ex">Pi/2 Excitation</option>
+                              <option value="se">Spin-Echo</option>
+                              <option value="inv">Inversion</option>
+                              <option value="sat">Pi/2 Saturation</option>
+                            </select>
+                            <label for="filter_type">Filter Type</label>
+                            <select id="filter_type" class="form-select" aria-label=".form-select example">
+                              <option selected value="ms">Sinc</option>
+                              <option value="pm">Parks-McClellan Equal-Ripple</option>
+                              <option value="min">Min Phase</option>
+                              <option value="max">Max Phase</option>
+                              <option value="ls">Least Squares</option>
+                            </select>
+                          </div>
+                          <div class="form-group rf-param sinc-param">
+                            <label for="n_samples_sinc">Number of Samples</label>
+                            <input type="number" class="form-control" id="n_samples_sinc" placeholder=64 value=64>
+                            <label for="m_lobes_sinc">Number of Side Lobes</label>
+                            <input type="number" class="form-control" id="m_lobes_sinc" placeholder=2 value=2>
+                          </div>
+                          <div class="form-group rf-param adiabatic-param">
+                            <label for="adiabatic-type-select">Adiabatic Type</label>
+                            <select id="adiabatic-type-select" class="form-select" aria-label=".form-select example">
+                              <option selected value="bir4">BIR-4</option>
+                              <option value="wurst">WURST</option>
+                              <option value="hyperbolic">Hyperbolic</option>
+                            </select>
+                            <label for="n_samples_adiabatic">Number of Samples</label>
+                            <input type="number" class="form-control" id="n_samples_adiabatic" placeholder=512 value=512>
+                            <div class="form-group bir4-param">
+                              <label for="beta_adiabatic_bir4">Beta</label>
+                              <input type="number" class="form-control" id="beta_adiabatic_bir4" placeholder=10 value=10>
+                              <label for="kappa_adiabatic_bir4">Kappa</label>
+                              <input type="number" class="form-control" id="kappa_adiabatic_bir4" placeholder=1.5208379310729538 value=1.5208379310729538>
+                              <label for="theta_adiabatic_bir4">Theta (radians)</label>
+                              <input type="number" class="form-control" id="theta_adiabatic_bir4" placeholder=0.7853981633974483 value=0.7853981633974483>
+                              <label for="dw0_adiabatic_bir4">FM waveform scaling (radians/&#181;s)</label>
+                              <input type="number" class="form-control" id="dw0_adiabatic_bir4" placeholder=61359.23151542564 value=61359.23151542564>
+                            </div>
+                            <div class="form-group wurst-param">
+                              <label for="n_fac_adiabatic_wurst">N Fac</label>
+                              <input type="number" class="form-control" id="n_fac_adiabatic_wurst" placeholder=40 value=40>
+                              <label for="bw_adiabatic_wurst">Bandwidth</label>
+                              <input type="number" class="form-control" id="bw_adiabatic_wurst" placeholder=4000 value=4000>
+                              <label for="dur_adiabatic_wurst">Duration (&#181;s)</label>
+                              <input type="number" class="form-control" id="dur_adiabatic_wurst" placeholder=0.002 value=0.002>
+                            </div>
+                            <div class="form-group hyperbolic-param">
+                              <label for="beta_adiabatic_hyperbolic">Beta</label>
+                              <input type="number" class="form-control" id="beta_adiabatic_hyperbolic" placeholder=800 value=800>
+                              <label for="mu_adiabatic">Mu</label>
+                              <input type="number" class="form-control" id="mu_adiabatic" placeholder=4.9 value=4.9>
+                              <label for="dur_adiabatic_hyperbolic">Duration (&#181;s)</label>
+                              <input type="number" class="form-control" id="dur_adiabatic_hyperbolic" placeholder=0.012 value=0.012>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="waveform_modal_close_btn" type="button" class="btn btn-secondary" data-bs-target="#parametersModal" data-bs-toggle="modal" data-dismiss="modal">Back</button>
+                        <button id="waveform_save_changes_btn" type="button" class="btn btn-primary">Generate</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="arrayConfigModal" tabindex="-1" aria-labelledby="arrayConfigModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="arrayConfigModalLabel">Configure Arrays</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div id="array_manager_chart" class=""></div>
+                        <form id="addArrayForm" action="">
+                          <div class="form-group">
+                            <label for="inputArrayName">Name</label>
+                            <input type="text" class="form-control" id="inputArrayName" placeholder="Ex: grad_100_2660_100">
+                            <div id="inputArrayNameInvalidFeedback" class="invalid-feedback">
+                              Please add a name.
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label for="inputArrayValues">Values (numbers seperated by comma)</label>
+                            <textarea id="inputArrayValues" class="form-control" aria-label="With textarea" placeholder="Ex: 0.1, 0.2, 0.3, 0.4, 0.5"></textarea>
+                            <div id="inputArrayValuesInvalidFeedback" class="invalid-feedback">
+                              Please add values in the required format.
+                            </div>
+                          </div>
+                          <div id="addArrayValidFeedback" class="valid-feedback">
+                            Changes Saved!
+                          </div>
+                          <div class="form-group">
+                            <select id="array-select" class="form-select" aria-label="Array select">
+                              <option selected>Select Array</option>
+                            </select>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button id="save-array-btn" type="button" class="btn btn-primary">Save Array</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="blockModal" tabindex="-1" aria-labelledby="blockModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="blockModalLabel">Block Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="blockForm" action="">
+                          <div class="form-group">
+                            <label for="inputBlockName">Name</label>
+                            <input type="text" class="form-control" id="inputBlockName" placeholder="Ex: Block 1">
+                          </div>
+                          <div class="form-group">
+                            <label for="blockStartTime">Start Time (ms)</label>
+                            <input type="number" class="form-control" id="blockStartTime" placeholder=0>
+                          </div>
+                          <div class="form-group">
+                            <label for="displayBlockDuration">Block Duration (ms)</label>
+                            <input type="text" class="form-control" id="displayBlockDuration" placeholder="10" disabled>
+                          </div>
+                          <div class="form-group">
+                            <input class="form-check-input" type="checkbox" value="" id="useBlockEquationCheck">
+                            <label class="form-check-label" for="useBlockEquationCheck">
+                              Use Equation
+                            </label>
+                          </div>
+                          <div class="form-group block-equation-group">
+                            <label for="inputBlockEquationName">Block Duration Equation</label>
+                            <input type="text" class="form-control form-control-sm" id="inputBlockEquationName" placeholder="Name (Ex: equation_te_event)">
+                            <label for="inputBlockEquationExpression"><i>Use set(x) to use value of x from settings.</i></label>
+                            <input type="text" class="form-control form-control-sm" id="inputBlockEquationExpression" placeholder="Expression (Ex: set(TE) + 1690.0-880)">
+                          </div>
+                          <div class="form-group">
+                            <label for="inputBlockMessage">Message</label>
+                            <input type="text" class="form-control" id="inputBlockMessage" placeholder="Ex: Running Main Loop">
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="printCounterCheck">
+                            <label class="form-check-label" for="printCounterCheck">
+                              Print Counter
+                            </label>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="block_enter_btn" data-bs-toggle="tooltip" data-bs-placement="left" title="Enter Block">
+                          <i id="block_enter_icon" class="fa fa-sign-in" aria-hidden="true"></i>
+                        </button>
+                        <button id="block_delete_object_btn" type="button" class="btn btn-danger">Delete Block</button>
+                        <button id="block_modal_close_btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="block_save_changes_btn" type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="loopsModal" tabindex="-1" aria-labelledby="loopsModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="loopsModalLabel">Configure Loops</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="row">
+                          <div id="nestingCol" class="col-1">
+                            <!-- Space to add group lines -->
+                          </div>
+                          <div id="loopsInputGroup" class="col list-group">
+                            <!-- space to add block list groups. -->
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="loops_modal_close_btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="loops_save_changes_btn" type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="anchorModal" tabindex="-1" aria-labelledby="anchorModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="anchorModalLabel">Configure Anchor Relations</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div id="anchorRelationSection" class="row">
+                          <!-- space to add anchor relation groups. -->
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="add-anchor-btn" class="btn btn-success" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Anchor with Selected Boxes">
+                           Add Anchor Relation
+                        </button>
+                        <button id="anchor_modal_close_btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="anchor_modal_save_changes_btn" type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="eventsModal" tabindex="-1" aria-labelledby="eventsModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="eventsModalLabel">Add Event</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="row">
+                          <div class="form-group">
+                            <label for="event-action-select">Event</label>
+                            <select id="event-action-select" class="form-select" aria-label=".form-select-sm example">
+                              <option selected value="calc">Calculation</option>
+                              <option value="init">Initialization</option>
+                              <option value="sync">Sync</option>
+                            </select>
+                          </div>
+                          <div class="calc-params">
+                            <div class="form-group">
+                              <label for="inputCalcActionType">Type</label>
+                              <input type="text" class="form-control" id="inputCalcActionType" placeholder="Ex: float_rfspoil">
+                              <label for="inputCalcFloat">Float (ms)</label>
+                              <input type="number" class="form-control" id="inputCalcFloat" placeholder=0>
+                              <label for="inputCalcIncrement">Increment (ms)</label>
+                              <input type="number" class="form-control" id="inputCalcIncrement" placeholder=0>
+                            </div>
+                          </div>
+                          <div class="init-params">
+                            <div class="form-group">
+                              <label for="inputInitActionGradients">Gradients</label>
+                              <input type="text" class="form-control" id="inputInitActionGradients" placeholder="Ex: logical">
+                            </div>
+                          </div>
+                          <div class="sync-params">
+                            <div class="form-group">
+                              <label for="inputSyncTime">Time (ms)</label>
+                              <input type="number" class="form-control" id="inputSyncTime" placeholder=0>
+                              <label for="inputSyncDuration">Duration (ms)</label>
+                              <input type="number" class="form-control" id="inputSyncDuration" placeholder=0>
+                              <label for="inputSyncObject">Object</label>
+                              <input type="text" class="form-control" id="inputSyncObject" placeholder="Ex: ttl">
+                              <label for="inputSyncEventParam">Event</label>
+                              <input type="text" class="form-control" id="inputSyncEventParam" placeholder="Ex: osc0">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="delete_event_btn" type="button" class="btn btn-danger">Delete Event</button>
+                        <button id="events_modal_close_btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="events_save_changes_btn" type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="accordion" id="parametersAccordion">
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                File
+                              </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#parametersAccordion">
+                              <div class="accordion-body">
+                                <div class="accordion-input-item">
+                                  <label for="formatConfigInput" class="form-label accordion-input-label">Format</label>
+                                  <input type="text" class="form-control" id="formatConfigInput" placeholder="mtrk-SDL">
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="versionConfigInput" class="form-label accordion-input-label">Version</label>
+                                  <input type="number" class="form-control" id="versionConfigInput" placeholder=1>
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="measurementConfigInput" class="form-label accordion-input-label">Measurement</label>
+                                  <input type="text" class="form-control" id="measurementConfigInput" placeholder="abc">
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="systemConfigInput" class="form-label accordion-input-label">System</label>
+                                  <input type="text" class="form-control" id="systemConfigInput" placeholder="Skyra-XQ">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Settings
+                              </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#parametersAccordion">
+                              <div class="accordion-body">
+                                <div class="accordion-input-item">
+                                  <label for="readoutSettingInput" class="form-label accordion-input-label">Readout OS</label>
+                                  <input type="number" class="form-control" id="readoutSettingInput" placeholder=2>
+                                </div>
+                                <div class="accordion-input-item">
+                                  <span class="form-label accordion-input-label">Variables</span>
+                                  <div id="variables-section">
+                                    <!-- variable groups will be added here. -->
+                                  </div>
+                                  <a id="add-variable-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add New Variable">
+                                    <i class="fa fa-plus"></i>
+                                  </a>
+                                  <!-- <label for="add-variable-btn">Add</label> -->
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Info
+                              </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#parametersAccordion">
+                              <div class="accordion-body">
+                                <div class="accordion-input-item">
+                                  <label for="descriptionInfoInput" class="form-label accordion-input-label">Description</label>
+                                  <input type="text" class="form-control" id="descriptionInfoInput" placeholder="MiniFlash">
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="slicesInfoInput" class="form-label accordion-input-label">Slices</label>
+                                  <input type="number" class="form-control" id="slicesInfoInput" placeholder=1>
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="fovInfoInput" class="form-label accordion-input-label">FOV</label>
+                                  <input type="number" class="form-control" id="fovInfoInput" placeholder=300>
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="seqstringInfoInput" class="form-label accordion-input-label">Seqstring</label>
+                                  <input type="text" class="form-control" id="seqstringInfoInput" placeholder="YARRA">
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="reconstructionInfoInput" class="form-label accordion-input-label">Reconstruction</label>
+                                  <input type="text" class="form-control" id="reconstructionInfoInput" placeholder="%SiemensIceProgs%\\IceProgram2D">
+                                </div>
+                                <div class="accordion-input-item">
+                                  <label for="resolutionInfoInput" class="form-label accordion-input-label">Resolution</label>
+                                  <input type="number" class="form-control" id="resolutionInfoInput" placeholder=128>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="settings_modal_close_btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="settings_save_changes_btn" type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="events-col" class="col-auto">
+                <a id="plot-size-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Maximize/Minimize Plot">
+                  <i id="plot-size-icon" class="fa fa-expand"></i>
+                </a>
+                <!-- placeholder sections for different events -->
+                <section id="calc-events" class="event-section"></section>
+                <section id="init-events" class="event-section"></section>
+                <section id="sync-events" class="event-section"></section>
+                <a id="add-event-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Event">
+                  <i class="fa fa-plus"></i>
+                </a>
+              </div>
+              <div id="rightSidebar" class="col-lg-1">
+                <div id="modeSwitch" class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>
+                  <label class="form-check-label" for="flexSwitchCheckChecked">
+                    <i class="fa fa-moon-o theme-icon"></i>
+                  </label>
+                </div>
+                <a id="undo-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Undo">
+                  <i class="fa fa-undo"></i>
+                </a>
+                <a id="redo-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Redo">
+                  <i class="fa fa-repeat"></i>
+                </a>
+                <a id="reset-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Reset">
+                  <i class="fa fa-trash-o"></i>
+                </a>
+                <div>
+                  <a id="save-plot-btn" class="btn btn-sm btn-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Save Changes">
+                    <i class="fa fa-save"></i>
+                  </a>
+                  <div id="saved-msg" class="alert alert-success d-none" role="alert">
+                    Saved!
+                  </div>
+                </div>
+                <hr>
+                <div class="checkpoint-control">
+                  <p class="d-inline-flex gap-1">
+                    <a id="checkpoint-collapse-btn" class="btn btn-secondary" data-bs-toggle="collapse" href="#checkpointCollapse" role="button" aria-expanded="false" aria-controls="checkpointCollapse" title="Expand Hidden Controls">
+                      <i class="fa fa-eye-slash" aria-hidden="true"></i>
+                    </a>
+                  </p>
+                  <div class="collapse" id="checkpointCollapse">
+                    <div id="checkpointCardBody" class="card card-body">
+                      <div class="mb-3">
+                        <label id="upload-checkpoint-label" for="formFileCheckpoint" class="form-label">
+                          <i class="fa fa-upload checkpoint-icon" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Upload Checkpoint"></i>
+                        </label>
+                        <i id="download-checkpoint-btn" class="fa fa-download checkpoint-icon" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Download Checkpoint"></i>
+                        <input class="form-control form-control-sm" type="file" id="formFileCheckpoint" accept="application/JSON" hidden>
+                      </div>
+                      <div id="checkpoint-alert" class="alert alert-danger" role="alert" style="display:none">
+                        Invalid Checkpoint file!
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="sendToViewerCheck" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configure Viewer Loading" checked>
+                        <label class="form-check-label" for="sendToViewerCheck">
+                          <i class="fa fa-paper-plane" aria-hidden="true"></i>
+                        </label>
+                      </div>
+                      <div class="mt-3">
+                        <a id="report-bug-btn" class="btn btn-sm btn-secondary" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Report Bug"
+                          href="https://github.com/mtrk-dev/mtrk_designer_gui/issues" target="_blank">
+                          <i class="fa fa-bug" aria-hidden="true"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button id="upload-sdl-btn" class="btn btn-secondary" type="submit" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Upload SDL File">
+                  <span id="sdl-load-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  <i id="sdl-upload-icon" class="fa fa-cloud-upload" aria-hidden="true"></i>
+                </button>
+                <input class="form-control form-control-sm" type="file" id="sdlFileInput" accept=".mtrk" hidden>
+                <button id="generate-sdl-btn" class="btn btn-secondary" type="submit" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Generate SDL File">
+                  <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                </button>
+                <span id="version-text">v0.1.1</span>
+              </div>
+            </div>
+        </div>
+        <script src="/static/index.js" charset="utf-8"></script>
+    </body>
+</html>
