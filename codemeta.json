@@ -1,0 +1,14 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "mtrk-dev",
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Eros",
+      "familyName": "Montin"
+    }
+  ],
+  "codeRepository": "https://github.com/mtrk-dev",
+  "license": "MIT"
+}

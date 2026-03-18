@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+title: "mtrk-tools"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Montin
+    given-names: Eros
+    affiliation: NYU Langone Health
+    orcid: "https://orcid.org/0000-0002-1773-0064"
+repository-code: "https://github.com/cloudmrhub/mtrk-tools"
+license: MIT
+version: 0.1.0
+date-released: 2026-03-18
