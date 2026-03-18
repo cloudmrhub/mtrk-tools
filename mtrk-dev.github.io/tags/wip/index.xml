@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Wip on mtrk</title>
+    <link>https://mtrk-dev.github.io/tags/wip/</link>
+    <description>Recent content in Wip on mtrk</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 08 Apr 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://mtrk-dev.github.io/tags/wip/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Ongoing Development Work</title>
+      <link>https://mtrk-dev.github.io/blog/welcome/</link>
+      <pubDate>Wed, 08 Apr 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://mtrk-dev.github.io/blog/welcome/</guid>
+      <description>Welcome to the mtrk website! We decided to put this page online already at this early stage to make the development as transparent as possible. However, please be aware that the project is still under active development and that the programming work has not been completed yet. We will announce on this website when a first stable release is available. In the meantime, feel free to follow or join our development work on Github.</description>
+    </item>
+    
+  </channel>
+</rss>
