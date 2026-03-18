@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block menu %}
+{% include 'inspector_menu.html' %}
+{% endblock %}
+
+{% block plugins_css %}
+<link rel="stylesheet" href="/css/codemirror.css">
+<link rel="stylesheet" href="/css/codemirror_seti.css">
+<link rel="stylesheet" href="/css/codemirror_fullscreen.css">
+<link rel="stylesheet" href="/css/codemirror_simplescrollbars.css">
+<link rel="stylesheet" href="/css/codemirror_foldgutter.css">
+{% endblock %}
+
+
+{% block content %}
+<section class="section">
+    <div class="section-body">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4><a name="a_file"></a>Sequence File</h4>
+                        <div class="card-header-action">
+                            <button class="btn btn-primary" onclick="$('#mtrkLoader').click();">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
+                            <button class="btn btn-primary" id="updateDisplay">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="codeeditor" id="sequencefile"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4><a name="a_arrays"></a>Arrays</h4>
+                        <div class="card-header-action">
+                            <div class="" style="display: flex;">
+                                <select class="form-control" id="arraysModeSelect" style="margin-right: 4px !important;">
+                                    <option>Amplitude</option>
+                                    <option>Phase</option>
+                                </select>
+                                <select class="form-control" id="arraysSelect">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="arrayplotly"></div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h4><a name="a_diagram"></a>Sequence Diagram</h4>
+                        <div class="card-header-action">
+                            <button class="btn btn-primary" id="test">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<input id="mtrkLoader" type="file" style="visibility:hidden" accept=".mtrk">
+{% endblock %}
+
+{% block page_js %}
+<script type="module">  
+    import { MTRK_LOG, MTRK_SetLogToConsole, MTRK_GetLogOutput, MTRK_ClearLogOutput } from '/mtrk/mtrk_common.mjs';
+    import { MTRK_TestSequence, MTRK_RenderSequence } from '/mtrk/mtrk_parser.mjs';
+    
+
+    window.arrayPlotly = document.getElementById('arrayplotly');
+    window.mtrkobj = {};
+    window.filename = "";
+
+
+    $("#mtrkLoader").change(function (e) {
+        document.querySelector(".CodeMirror").CodeMirror.setValue("");
+        var file = e.target.files[0];
+        filename=file.name;
+        console.log(filename);
+        var reader = new FileReader();
+        reader.onload = readerEvent => {
+            document.querySelector(".CodeMirror").CodeMirror.setValue(readerEvent.target.result);
+            $("#updateDisplay").trigger("click");
+        }
+        reader.readAsText(file, 'UTF-8');
+        $("#mtrkLoader").val("");
+    });
+    
+
+    $("#savemtrk").click(function (e) {
+
+        bootbox.prompt({
+            title: "Filename",
+            value: filename,
+            centerVertical: true,
+            callback: function (result) {
+                if (!result) {
+                    return;
+                }
+                filename=result;
+                var content = document.querySelector(".CodeMirror").CodeMirror.getValue();
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+                element.setAttribute('download', filename);
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            }               
+        });
+    });
+ 
+
+    $("#updateDisplay").click(function (e) {
+        if (!updateFile())
+        {
+            return;
+        }
+
+        var $el = $("#arraysSelect");
+        $el.empty();
+        for (var key in mtrkobj.arrays) {
+            $el.append($("<option></option>").attr("value", key).text(key));            
+        }
+
+        $("#arraysSelect").trigger("change");
+    });    
+  
+
+    $('#arraysSelect').on('change', function() {
+        if (mtrkobj.arrays[this.value].type=="complex_float") {
+            $('#arraysModeSelect').show();
+        } else {
+            $('#arraysModeSelect').hide();
+
+        }
+        updatePlot();
+    });    
+
+
+    $('#arraysModeSelect').on('change', function() {
+        updatePlot();
+    });    
+
+
+    function updateFile() {
+        try {
+            mtrkobj = JSON.parse(document.querySelector(".CodeMirror").CodeMirror.getValue());
+        } catch(e) {
+            swal('Invalid', 'Format of sequence file invalid', 'error');
+            clearDisplays();
+            return false;
+        }
+
+        var testResult=MTRK_TestSequence(mtrkobj);
+
+        MTRK_LOG(testResult);
+
+        if (testResult=="") {
+            swal('Valid', 'Sequence file does not have errors', 'success');
+        } else {
+            swal('Invalid', 'Invalid sequence: ' + testResult, 'error');
+            clearDispays();
+            return false;
+        }
+
+        return true;
+    }
+
+
+    function updatePlot() {
+        console.log($('#arraysModeSelect').val());
+
+        var arrayName=$('#arraysSelect').val();
+        window.plotData=mtrkobj.arrays[arrayName].data;
+
+        if (mtrkobj.arrays[arrayName].type=="complex_float") {
+            var offset=0;
+            if ($('#arraysModeSelect').val()=="Phase") {
+                offset=1;
+            }
+
+            var newArray=[];
+            for (var i = offset; i < plotData.length; i=i+2) {
+                newArray.push(plotData[i]);
+            }        
+            plotData=newArray;
+        }
+
+        Plotly.newPlot( arrayPlotly, [{
+        y: plotData }], { margin: { t: 0 } }, { displaylogo: false } );         
+    }
+
+
+    function clearDisplays() {
+        Plotly.purge(arrayPlotly);
+        $('#arraysModeSelect').hide();
+        $("#arraysSelect").empty();
+    }
+
+
+    $("#test").click(function (e) {
+
+        try {
+            mtrkobj = JSON.parse( document.querySelector(".CodeMirror").CodeMirror.getValue());
+        } catch(e) {
+            swal('Invalid', 'Format of sequence file invalid', 'error');
+            clearDisplays();
+            return false;
+        }
+
+        MTRK_ClearLogOutput();
+        MTRK_SetLogToConsole(false);
+        var render=MTRK_RenderSequence(mtrkobj);
+        MTRK_SetLogToConsole(true);
+
+        var text="";       
+        var output=MTRK_GetLogOutput();
+
+        for (var line in output) {
+            text+=output[line]+"<br>";
+        }
+        bootbox.alert({
+            title: "Simulation Log",
+            message: '<p class="text-left mb-0" style="max-height: 600px; overflow-y: scroll;">'+text+'</p>',
+            size: 'large',
+            centerVertical: true
+        });
+    });    
+
+</script>
+{% endblock %}
+
+
+{% block plugins_js %}
+<script src="/js/codemirror.js"></script>
+<script src="/js/codemirror_javascript.js"></script>
+<script src="/js/codemirror_fullscreen.js"></script>
+<script src="/js/codemirror_simplescrollbars.js"></script>
+<script src="/js/codemirror_foldcode.js"></script>
+<script src="/js/codemirror_foldgutter.js"></script>
+<script src="/js/codemirror_brace-fold.js"></script>
+<script src="/js/plotly-latest.min.js"></script>        
+<script src="/js/sweetalert.min.js"></script>
+<script src="/js/bootbox.js"></script>
+{% endblock %}
