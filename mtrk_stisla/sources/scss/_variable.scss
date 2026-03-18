@@ -1,0 +1,39 @@
+$colors: (
+  primary:    		#191d21,
+  secondary:      #abaeb3,
+  success:        #47c363,
+  info:           #33afe9,
+  warning:        #ffa426,
+  danger:         #fc544b,
+  light:          #eaecee,
+  grey:  		      #868e96,
+  whitesmoke:     #f7f9f9,
+  dark:       		#191d21,
+  muted:          #98a6ad,
+  body:           #f4f6f9,
+  font:           #090909,
+  fontdark:       #000000,
+  white:          #ffffff,
+
+  // Form Control
+  formcontrol_normal_background:    #fdfdff,
+  formcontrol_normal_border:        #ededed,
+  formcontrol_focus_background:     #fefeff,
+  formcontrol_focus_border:         #dadada,
+
+  // Utilities
+  section_title_line: #191d21
+);
+
+$font_family:   'Roboto', 'Segoe UI', arial;
+$font_weight:   400;
+$font_size:     14px;
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px
+) !default;
+
