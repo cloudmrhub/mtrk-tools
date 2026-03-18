@@ -1,0 +1,70 @@
+NOSYNGO() 
+
+##-----------------------------------------------------------------------------
+## compiler flags
+##-----------------------------------------------------------------------------
+
+CPPFLAGS (-D_CONSOLE)
+CPPFLAGS (-DBUILD_SEQU)
+CPPFLAGS (-DSEQUENCE_CLASS)
+CPPFLAGS (-DSEQUENCE_CLASS_mtrk)
+CPPFLAGS (-DMRPROT_DEP_OPT)
+CPPFLAGS (-DSEQ_NAMESPACE=SEQ_mtrk)
+
+##-----------------------------------------------------------------------------
+## include paths
+##-----------------------------------------------------------------------------
+
+INCLPATHS (-I /n4_extsw/x86/extsw/MedCom/include)
+
+##-----------------------------------------------------------------------------
+## source files
+##-----------------------------------------------------------------------------
+
+CPPSOURCES (mtrk)
+CPPSOURCES (mtrk_UI)
+CSOURCES(cJSON)
+CPPSOURCES(fparser)
+CPPSOURCES(fpoptimizer)
+CPPSOURCES (mtrk_equations)
+CPPSOURCES (mtrk_api)
+CPPSOURCES (mtrk_b64)
+CPPSOURCES (mtrk_arrays)
+CPPSOURCES (mtrk_objects)
+
+
+##-----------------------------------------------------------------------------
+## link libraries
+##-----------------------------------------------------------------------------
+
+# Base framework
+LDLIBS (MrTrace)
+LDLIBS (UTrace)
+LDLIBS (MrGenericDC)
+LDLIBS (MrParc)
+
+# Parameters
+LDLIBS (MrProt)
+LDLIBS (libSeqSysProp)
+LDLIBS (MeasSections)
+
+# Measurement system
+#LDLIBS (Sequence)
+LDLIBS (libMES)
+LDLIBS (MeasNucleiBase)
+LDLIBS (libSSL)
+
+# Application libraries
+LDLIBS (libSBB)
+LDLIBS (libSeqUtil)
+LDLIBS (libSeqUT)
+LDLIBS (libUICtrl)
+LDLIBS (MrBasicObjects)
+MSDEV_i586_WinNT400(LDLIBS (libUILink))
+
+
+##-----------------------------------------------------------------------------
+## target name
+##-----------------------------------------------------------------------------
+
+LIB(mtrk)
