@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "bento/ubuntu-22.04"
+  config.vm.box = "bento/9bb215b1-b2c0-11f0-8804-5adb906f1608" #"ubuntu-22.04"
   config.vm.provision "docker"
   config.vm.network "forwarded_port", guest: 5010, host: 5010, auto_correct: true, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 6010, host: 6010, auto_correct: true
