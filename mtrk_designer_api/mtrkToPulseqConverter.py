@@ -34,7 +34,7 @@ def mtrkToPulseqConverter(fileToConvert = "test.mtrk", outputFile = "test.seq"):
         sequence_data = PulseSequence(**sdlData)
 
     fillSequence(sequence_data, 
-                 plot=False, 
+                 plot=True, 
                  write_seq=True,
                  seq_filename=outputFile)
 
@@ -64,7 +64,7 @@ def fillSequence(sequence_data,
     ## TO DO add these info to SDL
     system = pypulseq.Opts(max_grad = 28,
                            grad_unit = "mT/m",
-                           max_slew = 200000,
+                           max_slew = 200,
                            slew_unit = "T/m/s",
                            rf_ringdown_time = 20e-6,
                            rf_dead_time = 100e-6,
@@ -133,10 +133,12 @@ def fillSequence(sequence_data,
     ############################################################################
 
     slice_thickness = sequence_data.objects["rf_excitation"].thickness*1e-3
+    if (slice_thickness == 0):
+        slice_thickness = float(sequence_data.infos.dz)*1e-3
     fov = sequence_data.infos.fov*1e-3
     if write_seq:
         # Prepare the sequence output for the scanner
-        seq.set_definition(key="FOV", value=[fov, fov, slice_thickness])
+        seq.set_definition(key="FOV", value=[fov, fov, slice_thickness*sequence_data.infos.slices])
         seq.set_definition(key="Name", value=sequence_data.infos.seqstring)
         seq.set_definition(key="EPI", value=1)
         # seq.set_definition(key="RadiofrequencyRasterTime", value=seq.rfRasterTime)
@@ -156,7 +158,7 @@ def executeLoopingStructure(counterRangeList, indexList, variables, seq, system,
         counterRange = counterRangeList[1]
         if [counterID, counterRange] not in ctrList: ctrList.append([counterID, counterRange])
         newCounterRangeList = counterRangeList[2]
-        # print("+-+-+ Executing loop on counter ", counterID, " with range ", counterRange)
+        print("+-+-+ Executing loop on counter ", counterID, " with range ", counterRange)
         for index2 in range(0, counterRange):
             indexList2 = indexList + [index2]
             executeLoopingStructure(newCounterRangeList, indexList2, variables, seq, system, loopCountersList, stepInfoList, sequence_data, ctrList)
@@ -171,7 +173,7 @@ def executeLoopingStructure(counterRangeList, indexList, variables, seq, system,
                                               seq = seq, 
                                               variables = variables,
                                               loopCountersList = loopCountersList)
-                # print("+-+-+ Building Pulseq sequence for action index ", index)
+               #  print("+-+-+ Building Pulseq sequence for action index ", index)
                 buildPulseqSequence(seq = seq,
                                 indexList = indexList, 
                                 actionList = actionList, 
@@ -263,6 +265,10 @@ def extractStepInformation(sequence_data, currentBlock, system,
                 alpha = currentObject.flipangle
                 sliceThickness = currentObject.thickness*1e-3
                 phaseOffset = currentObject.initial_phase
+                if hasattr(currentObject,"freq_offset"):
+                    freqOffset = currentObject.freq_offset
+                else:
+                    freqOffset = 0
                 for value_counter in range(0, len(currentArray.data)):
                     if value_counter%2 == 0:
                         rfSignalArray.append(currentArray.data[value_counter])
@@ -282,7 +288,7 @@ def extractStepInformation(sequence_data, currentBlock, system,
                                 bandwidth = rfBandwidth, 
                                 delay = delay*1e-6,
                                 dwell = rfDwellTime*1e-6, 
-                                freq_offset = 0,
+                                freq_offset = freqOffset,
                                 no_signal_scaling = False,
                                 max_grad = 0,
                                 max_slew = 0,
@@ -443,8 +449,8 @@ def buildPulseqSequenceBlocks(indexList, seq, stepInfoList, normalizedWaveforms,
         if stepInfoList[3] != []:
             for variableAmplitudeEventIndex in range(0, len(stepInfoList[3])):
                 equationString = stepInfoList[2][variableAmplitudeEventIndex]
-                # print("+-+-+ Evaluating equation: ", equationString)
-                # print("     with counter values: ", ctrList)
+                #print("+-+-+ Evaluating equation: ", equationString)
+                #print("     with counter values: ", ctrList)
                 counterNumberFound = False
                 stringCounterIndex = 0
                 while counterNumberFound == False:
@@ -455,10 +461,10 @@ def buildPulseqSequenceBlocks(indexList, seq, stepInfoList, normalizedWaveforms,
                                      str("ctr(" + str(stringCounterIndex) + ")")
                         counterNumberFound = True
                     stringCounterIndex += 1
-                # print("+-+-+ Replacing ", stringToReplace)
-                # print("+-+-+ index: ", indexList)
-                # print("+-+-+ stringToReplace: ", stringToReplace)
-                # print("+-+-+ replacement value: ", indexList[stringCounterIndex-2])
+                #print("+-+-+ Replacing ", stringToReplace)
+                #print("+-+-+ index: ", indexList)
+                #print("+-+-+ stringToReplace: ", stringToReplace)
+                #print("+-+-+ replacement value: ", indexList[stringCounterIndex-2])
                 index = indexList[stringCounterIndex-2]
                 equationString = equationString.replace(stringToReplace,
                                                             "index")
@@ -520,6 +526,10 @@ def extractSequenceStructure(stepInfoList, counterRange, blockName, counterRange
     previousInfoList = infoList
     structureList = []
     while type(infoList) == list:
+        print(infoList[0])
+        print(infoList[1])
+        if infoList[1] == 'block_pe1':
+            print("block_pe1")
         ## Next loop
         if infoList[0] == "loop":
             previousInfoList = infoList 
@@ -643,10 +653,15 @@ def buildPulseqSequence(seq, indexList, actionList, stepInfoList, ctrList):
 ################################################################################
 ## Converting the file from mtrk to Pulseq format using command line for input
 ################################################################################
-# print("Converting mtrk to Pulseq format")
-# print("mtrk file to convert: ")
-# fileToConvert = input()
-# print("Pulseq file to create: ")
-# outputFile = input()
+#print("Converting mtrk to Pulseq format")
+#print("mtrk file to convert: ")
+#fileToConvert = input()
+#print("Pulseq file to create: ")
+#outputFile = input()
 
-# mtrkToPulseqConverter(fileToConvert, outputFile)
+fileToConvert = "mprage.mtrk"
+outputFile = "mprage.seq"
+#fileToConvert = "se3d.mtrk"
+#outputFile = "se3d.seq"
+
+mtrkToPulseqConverter(fileToConvert, outputFile)

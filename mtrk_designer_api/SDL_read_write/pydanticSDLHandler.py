@@ -50,7 +50,9 @@ class Settings(BaseModel):
 class Info(BaseModel):
     description: str = "default_description"
     slices: int = 9999
-    fov: int = 9999
+    fov: int = 9999 # in [mm]
+    dz: int = 5 # slice thickness in mm
+    is3D: bool = False
     pelines: int = 9999
     seqstring: str = "default_seqstring"
     reconstruction: str = "default_reconstruction"
@@ -240,6 +242,7 @@ class RfExcitation(Object):
     array: str = "default_array"
     duration: int = 9999
     initial_phase: int = 9999
+    freq_offset: Union[int, EquationRef] = 0
     thickness: int = 9999
     flipangle: int = 9999
     purpose: str = "default_purpose"

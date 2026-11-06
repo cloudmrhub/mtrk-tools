@@ -37,9 +37,9 @@ def trap_grad(ramp_up, ramp_down, plateau, dt):
     # make attack and decay ramps
     ramp_up_pts = int(np.ceil(ramp_up / dt))
     # print(f"Ramp up points: {ramp_up_pts}, Ramp down points: {int(np.ceil(ramp_down / dt))}")
-    ramp_up = np.linspace(0, ramp_up_pts, num=ramp_up_pts + 1) / ramp_up_pts * np.max(flat)
+    ramp_up = np.linspace(0, ramp_up_pts-1, num=ramp_up_pts) / ramp_up_pts * np.max(flat)
     ramp_down_pts = int(np.ceil(ramp_down / dt))
-    ramp_down = np.linspace(ramp_down_pts, 0, num=ramp_down_pts + 1) / ramp_down_pts * np.max(flat)
+    ramp_down = np.linspace(ramp_down_pts-1, 0, num=ramp_down_pts) / ramp_down_pts * np.max(flat)
 
     trap = np.concatenate((ramp_up, np.squeeze(flat), ramp_down))
 
@@ -104,9 +104,9 @@ def min_trap_grad(area, gmax, slew, dt):
     print("plateau points", (len(normalized_trap) - 2 * ramppts))
     print("amplitude", amplitude)
 
-    ramp_up_time = ramppts * dt * 1e6  # convert to us
-    ramp_down_time = ramppts * dt * 1e6  # convert to us
-    plateau_time = (len(normalized_trap) - 2 * ramppts) * dt * 1e6  # convert to us
+    ramp_up_time = ramppts * dt * 1e6  # convert to 1e-6 us
+    ramp_down_time = ramppts * dt * 1e6  # convert to 1e-6 us
+    plateau_time = (len(normalized_trap) - 2 * ramppts) * dt * 1e6  # convert to 1e-6 us
 
     return np.expand_dims(normalized_trap, axis=0), amplitude, int(ramp_up_time), int(ramp_down_time), int(plateau_time)
 
@@ -132,7 +132,7 @@ def ramp_sampled_trap_grad(area, gmax, slew, dt, *args):
 
     """
 
-    slew = slew * 1e3  # convert slew rate to mT/m/s
+    slew = slew * 1e-3  # convert slew rate to mT/m/s
 
     if len(args) < 5:
         # in case we are making a rewinder
@@ -260,6 +260,10 @@ def pulse_designer(pulse_type, args):
             rf = envelope * np.exp(1j * phase_value)
             magnitude = np.abs(rf)
             phase = np.angle(rf)
+        case 'block':
+            n = args[0] # number of samples
+            magnitude = np.ones(n)
+            phase = np.zeros(n)
         case 'sinc':
             n = args[0]  # number of samples  
             m = args[1]  # number of side lobes

@@ -350,19 +350,20 @@ def spiral_varden(fov, res, gts, gslew, gamp, densamp, dentrans, nl, rewinder=Fa
 
     return g, k, t, s, dens
 
-def cartesian(fov, n, dt, gamp, gslew, dirx=-1, diry=1):
+def cartesian(fov, n, dt, gamp, gslew, infos, dirx=-1, diry=1, dirz=1):
     r"""Basic cartesian single-line readout designer.
 
     Args:
-        fov (float): imaging field of view in cm.
+        fov (float): imaging field of view in mm.
         n (int): # of pixels (square). resolution??
         etl (int): echo train length.
         dt (float): sample time in s.
         gamp (float): max gradient amplitude in mT/m.
         gslew (float): max slew rate in mT/m/ms.
-        offset (int): used for multi-shot EPI goes from 0 to #shots-1
-        dirx (int): x direction of EPI -1 left to right, 1 right to left
-        diry (int): y direction of EPI -1 bottom-top, 1 top-bottom
+        infos (Info): structure with sequence information
+        dirx (int): x direction, -1 left to right, 1 right to left
+        diry (int): y direction, -1 posterior-anterior, 1 anterior-posterior
+        dirz (int): z direction, -1 feet-head, 1 head-feet
 
     Returns:
         tuple: (g, k, t, s) tuple containing
@@ -376,14 +377,15 @@ def cartesian(fov, n, dt, gamp, gslew, dirx=-1, diry=1):
     References:
         Adapted fron EPI version. 
     """
-    part_num = 64 # for 3D
+    is3D = infos.is3D
+    
     s = gslew * dt * 1000
     scaley = 20 # original value 20
 
 
     # make the various gradient waveforms
-    gamma = 4.2575  # kHz/Gauss
-    g = (1 / (1000 * dt)) / (gamma * fov)  # Gauss/cm
+    gamma = 42.577e6  # Hz/T
+    g = (1 / (dt)) / (gamma * fov * 1e-3 ) * 1e3 # mT/m
     if g > gamp:
         g = gamp
         print("max g reduced to {}".format(g))
@@ -393,81 +395,61 @@ def cartesian(fov, n, dt, gamp, gslew, dirx=-1, diry=1):
     gxro = g * np.ones((1, n))  # plateau of readout trapezoid
     areapd = np.sum(gxro) * dt
 
-    ramp = np.expand_dims(np.linspace(s, g, int(g / s)), axis=0)
-    gxro = np.concatenate(
-        (np.expand_dims(np.array([0]), axis=1), ramp, gxro, np.fliplr(ramp)),
-        axis=1,
-    )
+    ramp = np.expand_dims(np.linspace(0, g, int(np.ceil(g / s))+1), axis=0)
+    gxro = dirx * np.concatenate((ramp, gxro, np.fliplr(ramp)),axis=1)
 
     # x prewinder. make sure res_kpre is even. Handle even N by changing prew.
     if n % 2 == 0:
         area = (np.sum(gxro) - dirx * g) * dt
     else:
         area = np.sum(gxro) * dt
-    gxprew = dirx * trap_grad(area / 2, gamp, gslew * 1000, dt)[0]
+    gxprew = trap_grad(area / 2, gamp, gslew * 1000, dt)[0]
 
-    gxprew = np.concatenate(
+    gxprew = -1 * dirx * np.concatenate(
         (np.zeros((1, (gxprew.size + ramp.size) % 2)), gxprew), axis=1
     )
-
+    
+    #areagx = area
+    #gxrep = dirx * trap_grad(-areagx, gamp, gslew * 1000, dt)[0]
 
     # phase-encode trapezoids before/after gx
     # handle even N by changing prewinder
-    if n % 2 == 0:
-        areayprew = areapd / 2 - g * dt
-    else:
-        areayprew = (areapd - g * dt) / 2 - g * dt
+    areayprew = 1/2 * (n-1) / (gamma * fov * 1e-3 ) *1e3 # in mT/m*s
 
     gyprew = diry * trap_grad(areayprew, gamp, gslew  * 1000, dt)[0]
     gyprew = np.concatenate((np.zeros((1, gyprew.size % 2)), gyprew), axis=1)
 
-    gxro = -dirx * gxro
-
     # add rephasers at end of gx and gy readout
-    areagy = -areayprew  # units = G/cm*s
-    gyrep = trap_grad(areagy, gamp, gslew * 1000, dt)[0]
-    # gy = np.concatenate((gy, gyrep), axis=1)
+    areayrew = -1 * diry * areayprew  # units = G/cm*s
+    gyrep = trap_grad(areayrew, gamp, gslew * 1000, dt)[0]
 
     ##for 3D
-    # partition-encode trapezoids
-    gslab = g * np.ones((1, part_num))  # test for 5 slabs
-    areapdz = np.sum(gslab) * dt
-    if part_num % 2 == 0:
-        areazprew = areapdz / 2 - g * dt
-    else:
-        areazprew = (areapdz - g * dt) / 2 - g * dt
-    gzprew = diry * trap_grad(areazprew, gamp, gslew  * 1000, dt)[0]
-    gzprew = np.concatenate((np.zeros((1, gzprew.size % 2)), gzprew), axis=1)
+    if is3D:
+        # slice direction 3D encode trapezoids
+        fovz = infos.slices * infos.dz
+        areazprew = 1/2 * (infos.slices-1) / (gamma * fovz * 1e-3 ) *1e3 # in mT/m*s
+        gzprew = dirz * trap_grad(areazprew, gamp, gslew  * 1000, dt)[0]
+        gzprew = dirz * np.concatenate((np.zeros((1, gzprew.size % 2)), gzprew), axis=1)
+        
+        # add rephasers at end of gx and gy readout
+        areazrew = -1 * dirz * areazprew  # units = G/cm*s
+        gzrep = trap_grad(areazrew, gamp, gslew * 1000, dt)[0]
     ##for 3D
-    
-
-    areagx = area
-    gxrep = trap_grad(-areagx, gamp, gslew * 1000, dt)[0]
 
     ## Prepare dynamic phase encoding
-    sign = 1
-    if areayprew<0:
-        sign = -1
     gyprew_max_ampl = max(abs(gyprew[0]))
     step = gyprew_max_ampl / n
-    gyprew_equation = str(sign) + "*(" + str(gyprew_max_ampl) + "-" + str(2*step) +"*counter3)"
 
-    sign = 1
-    if areagy<0:
-        sign = -1
-    gyrep_max_ampl = max(abs(gyrep[0]))
-    step = gyprew_max_ampl / n
-    gyrep_equation = str(sign) + "*(" + str(gyrep_max_ampl) + "-" + str(2*step) +"*counter3)"
+    gyprew_equation = str(diry) + "*(" + str(gyprew_max_ampl) + "-" + str(2*step) +"*counterPE)"
+    gyrep_equation = "-1*" + str(diry) + "*(" + str(gyprew_max_ampl) + "-" + str(2*step) +"*counterPE)"
 
     ##for 3D
-    # Prepare dynamic partition encoding
-    signz = 1
-    if areazprew<0:
-        signz = -1
-    gzprew_max_ampl = max(abs(gzprew[0]))
-    stepz = gzprew_max_ampl / part_num # for part_num slabs
-    gzprew_equation = str(signz) + "*(" + str(gzprew_max_ampl) + "-" + str(2*stepz) +"*counter2)"
-    ##for 3D
+    if is3D:
+        # Prepare dynamic partition encoding
+        gzprew_max_ampl = max(abs(gzprew[0]))
+        stepz = gzprew_max_ampl / infos.slices # for slabs
+        gzprew_equation = str(dirz) + "*(" + str(gzprew_max_ampl) + "-" + str(2*stepz) +"*counter3D)"
+        gzrep_equation = "-1*" + str(dirz) + "*(" + str(gzprew_max_ampl) + "-" + str(2*stepz) +"*counter3D)"
     
     # prepare blocks for mtrk
     gxprew_startTime = 0
@@ -489,11 +471,6 @@ def cartesian(fov, n, dt, gamp, gslew, dirx=-1, diry=1):
                "phase", 
                gyprew_equation, 
                gyprew_startTime],
-              [gzprew[0]/max(gzprew[0], key=abs),  ##for 3D
-               gzprew.size,
-               "slice", 
-               gzprew_equation, 
-               gzprew_startTime],
               [gxro[0]/max(gxro[0], key=abs), 
                gxro.size,
                "read", 
@@ -513,13 +490,25 @@ def cartesian(fov, n, dt, gamp, gslew, dirx=-1, diry=1):
                gyrep.size,
                "phase", 
                gyrep_equation, 
-               gyrep_startTime]]  
+               gyrep_startTime]]
+    if is3D:
+        block1.append([gzprew[0]/max(gzprew[0], key=abs),  ##for 3D
+               gzprew.size,
+               "slice", 
+               gzprew_equation, 
+               gzprew_startTime])
+        block1.append([gzrep[0]/max(gzrep[0], key=abs),  ##for 3D
+               gzrep.size,
+               "slice", 
+               gzrep_equation, 
+               gyrep_startTime])
     
     blocks = [block1]
 
-    time_before_center = (gxro_startTime + (gxro.size/2) *dt) * 1e2
+    time_before_center = (adc1_startTime * 1e2 + (adc.size/2) *dt * 1e3)
+    time_after_center = gyrep_startTime * 1e2 + (gyrep.size)*dt * 1e3 - time_before_center
 
-    return blocks, time_before_center
+    return blocks, time_before_center, time_after_center
 
 def radial(fov, n_spokes, theta, dt, gamp, gslew):
     r"""Basic radial single-line readout designer.
@@ -552,7 +541,7 @@ def radial(fov, n_spokes, theta, dt, gamp, gslew):
 
 
     # make the various gradient waveforms
-    gamma = 4.2575  # kHz/Gauss
+    gamma = 4.2577  # kHz/Gauss
     g = (1 / (1000 * dt)) / (gamma * fov)  # Gauss/cm
     if g > gamp:
         g = gamp
@@ -605,7 +594,7 @@ def radial(fov, n_spokes, theta, dt, gamp, gslew):
     gyro_startTime = (prew.size+1) * 10e-5
     adc1_startTime = gxro_startTime + (ramp.size + 1) * 10e-5 # 
     gxrew_startTime = gyro_startTime + (ro.size+1) * 10e-5
-    gyrew_startTime = gyro_startTime + (ro.size+1) * 10e-5
+    gyrep_startTime = gyro_startTime + (ro.size+1) * 10e-5
     # gxrep_startTime = gxro_startTime + ( gxro.size * 10e-5 ) 
 
     block1 = [1, 
@@ -643,7 +632,7 @@ def radial(fov, n_spokes, theta, dt, gamp, gslew):
                prew.size,
                "phase", 
                gyprew_equation, 
-               gyrew_startTime]
+               gyrep_startTime]
               ]  
     
     blocks = [block1]
@@ -887,7 +876,7 @@ def mtrk_epi(fov, n, etl, dt, gamp, gslew, offset=0, dirx=-1, diry=1):
 
 
     # make the various gradient waveforms
-    gamma = 4.2575  # kHz/Gauss
+    gamma = 4.2577  # kHz/Gauss
     g = (1 / (1000 * dt)) / (gamma * fov)  # Gauss/cm
     if g > gamp:
         g = gamp

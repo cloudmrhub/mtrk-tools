@@ -1,0 +1,502 @@
+{
+    "file": {
+        "format": "Custom!",
+        "version": 1,
+        "measurement": "mprage_3d",
+        "system": "Skyra-XQ"
+    },
+    "settings": {
+        "readout_os": 2,
+        "TE": 4000,
+        "TRi": 10000,
+        "TR": 300000,
+        "TI": 140000
+    },
+    "infos": {
+        "description": "3D T1 MPRAGE Sequence",
+        "slices": 8,
+        "fov": 256,
+        "dz": 4,
+        "is3D": true,
+        "pelines": 32,
+        "seqstring": "MPRAGE",
+        "reconstruction": "%SiemensIceProgs%\\IceProgram3D"
+    },
+    "instructions": {
+        "main": {
+            "print_counter": "on",
+            "print_message": "Running main loop",
+            "steps": [{
+                "action": "loop",
+                "counter": 1,
+                "range": 1,
+                "steps": [{
+                    "action": "run_block",
+                    "block": "block_pe1_loop"
+                }]
+            }]
+        },
+        "block_pe1_loop": {
+            "print_counter": "on",
+            "print_message": "Looping over TI-events (pe1)",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "loop",
+                "counter": 3,
+                "range": 32,
+                "steps": [{
+                    "action": "run_block",
+                    "block": "block_pe1"
+                }]
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_pe1": {
+            "print_counter": "on",
+            "print_message": "Phase Encoding",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "run_block",
+                "block": "block_TI"
+            },
+            {
+                "action": "run_block",
+                "block": "block_pe2_loop"
+            },
+            {
+                "action": "run_block",
+                "block": "block_recovery"
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_TI": {
+            "print_counter": "on",
+            "print_message": "Inversion pulse, spoilers and TI",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "rf",
+                "object": "rf_prep_obj",
+                "time": 0,
+                "added_phase": {
+                    "type": "float",
+                    "float": "0"
+                }
+            },
+            {
+                "action": "grad",
+                "axis": "read",
+                "object": "grad_spoil_x_obj",
+                "time": 510
+            },
+            {
+                "action": "grad",
+                "axis": "phase",
+                "object": "grad_spoil_y_obj",
+                "time": 510
+            },
+            {
+                "action": "grad",
+                "axis": "slice",
+                "object": "grad_spoil_z_obj",
+                "time": 510
+            },
+            {
+                "action": "mark",
+                "time": {
+                    "type": "equation",
+                    "equation": "equation_ti_event"
+                }
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_pe2_loop": {
+            "print_counter": "on",
+            "print_message": "Looping over pe2-lines",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "loop",
+                "counter": 2,
+                "range": 8,
+                "steps": [{
+                    "action": "run_block",
+                    "block": "block_pe2"
+                }]
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_pe2": {
+            "print_counter": "on",
+            "print_message": "Running inner TR, slice encoding",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "run_block",
+                "block": "block_GRE"
+            },
+            {
+                "action": "run_block",
+                "block": "block_cartesian"
+            },
+            {
+                "action": "run_block",
+                "block": "block_spoiler"
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_GRE": {
+            "print_counter": "on",
+            "print_message": "GRE block (RF + TE)",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "rf",
+                "object": "rf_excitation",
+                "time": 0,
+                "added_phase": {
+                    "type": "float",
+                    "float": "0"
+                }
+            },
+            {
+                "action": "mark",
+                "time": {
+                    "type": "equation",
+                    "equation": "equation_te_event"
+                }
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_spoiler": {
+            "print_counter": "on",
+            "print_message": "Spoiler and inner TR block",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "grad",
+                "axis": "read",
+                "object": "grad_spoil_x_obj",
+                "time": 0
+            },
+            {
+                "action": "grad",
+                "axis": "phase",
+                "object": "grad_spoil_y_obj",
+                "time": 0
+            },
+            {
+                "action": "grad",
+                "axis": "slice",
+                "object": "grad_spoil_z_obj",
+                "time": 0
+            },
+            {
+                "action": "mark",
+                "time": {
+                    "type": "equation",
+                    "equation": "equation_tri_event"
+                }
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_recovery": {
+            "print_counter": "on",
+            "print_message": "Recovery delay block",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "mark",
+                "time": {
+                    "type": "equation",
+                    "equation": "equation_tr_event"
+                }
+            },
+            {
+                "action": "submit"
+            }]
+        },
+        "block_cartesian": {
+            "print_counter": "on",
+            "print_message": "Running cartesian readout",
+            "steps": [{
+                "action": "init",
+                "gradients": "logical"
+            },
+            {
+                "action": "grad",
+                "axis": "read",
+                "object": "grad_object_0_1",
+                "time": 0
+            },
+            {
+                "action": "grad",
+                "axis": "phase",
+                "object": "grad_object_0_2",
+                "time": 0,
+                "amplitude": {
+                    "type": "equation",
+                    "equation": "equation_0_2"
+                }
+            },
+            {
+                "action": "grad",
+                "axis": "read",
+                "object": "grad_object_0_3",
+                "time": 280
+            },
+            {
+                "action": "adc",
+                "object": "adc_object_0_4",
+                "time": 350,
+                "frequency": 0,
+                "phase": 0,
+                "added_phase": {
+                    "type": "float",
+                    "float": "0.0"
+                },
+                "mdh": {
+                    "line": {
+                        "type": "counter",
+                        "counter": 0,
+                        "target": null
+                    },
+                    "first_scan_slice": {
+                        "type": "counter",
+                        "counter": 0,
+                        "target": 0
+                    },
+                    "last_scan_slice": {
+                        "type": "counter",
+                        "counter": 0,
+                        "target": 64
+                    }
+                }
+            },
+            {
+                "action": "grad",
+                "axis": "phase",
+                "object": "grad_object_0_2",
+                "time": 1040,
+                "amplitude": {
+                    "type": "equation",
+                    "equation": "equation_0_5"
+                }
+            },
+            {
+                "action": "grad",
+                "axis": "slice",
+                "object": "grad_object_0_6",
+                "time": 0,
+                "amplitude": {
+                    "type": "equation",
+                    "equation": "equation_0_6"
+                }
+            },
+            {
+                "action": "grad",
+                "axis": "slice",
+                "object": "grad_object_0_6",
+                "time": 1040,
+                "amplitude": {
+                    "type": "equation",
+                    "equation": "equation_0_7"
+                }
+            },
+            {
+                "action": "submit"
+            }]
+        }
+    },
+    "objects": {
+        "rf_prep_obj": {
+            "type": "rf",
+            "duration": 500,
+            "array": "rf_prep",
+            "initial_phase": 0,
+            "freq_offset": 0,
+            "thickness": 32,
+            "flipangle": 90,
+            "purpose": "preparation"
+        },
+        "rf_excitation": {
+            "type": "rf",
+            "duration": 300,
+            "array": "rf_exc",
+            "initial_phase": 0,
+            "freq_offset": 0,
+            "thickness": 32,
+            "flipangle": 12,
+            "purpose": "excitation"
+        },
+        "grad_spoil_x_obj": {
+            "type": "grad",
+            "duration": 580,
+            "array": "grad_spoil_x",
+            "tail": 0,
+            "amplitude": 27.310301281781683
+        },
+        "grad_spoil_y_obj": {
+            "type": "grad",
+            "duration": 380,
+            "array": "grad_spoil_y",
+            "tail": 0,
+            "amplitude": 25.529194676448096
+        },
+        "grad_spoil_z_obj": {
+            "type": "grad",
+            "duration": 580,
+            "array": "grad_spoil_z",
+            "tail": 0,
+            "amplitude": 27.310301281781683
+        },
+        "grad_object_0_1": {
+            "type": "grad",
+            "duration": 280,
+            "array": "grad_array_0_1",
+            "tail": 0,
+            "amplitude": -22.60872318723389
+        },
+        "grad_object_0_2": {
+            "type": "grad",
+            "duration": 280,
+            "array": "grad_array_0_2",
+            "tail": 0,
+            "amplitude": 1.0
+        },
+        "grad_object_0_3": {
+            "type": "grad",
+            "duration": 760,
+            "array": "grad_array_0_3",
+            "tail": 0,
+            "amplitude": 9.174554336848535
+        },
+        "adc_object_0_4": {
+            "type": "adc",
+            "duration": 640,
+            "samples": 64,
+            "dwelltime": 10000
+        },
+        "grad_object_0_6": {
+            "type": "grad",
+            "duration": 260,
+            "array": "grad_array_0_6",
+            "tail": 0,
+            "amplitude": 1.0
+        }
+    },
+    "arrays": {
+        "rf_prep": {
+            "encoding": "text",
+            "type": "complex_float",
+            "size": 25,
+            "data": [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]
+        },
+        "rf_exc": {
+            "encoding": "text",
+            "type": "complex_float",
+            "size": 15,
+            "data": [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]
+        },
+        "grad_spoil_x": {
+            "encoding": "text",
+            "type": "float",
+            "size": 58,
+            "data": [0.0, 0.07142857142857142, 0.14285714285714285, 0.21428571428571427, 0.2857142857142857, 0.35714285714285715, 0.42857142857142855, 0.5, 0.5714285714285714, 0.6428571428571429, 0.7142857142857143, 0.7857142857142857, 0.8571428571428571, 0.9285714285714287, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9285714285714287, 0.8571428571428571, 0.7857142857142857, 0.7142857142857143, 0.6428571428571429, 0.5714285714285714, 0.5, 0.42857142857142855, 0.35714285714285715, 0.2857142857142857, 0.21428571428571427, 0.14285714285714285, 0.07142857142857142, 0.0]
+        },
+        "grad_spoil_y": {
+            "encoding": "text",
+            "type": "float",
+            "size": 38,
+            "data": [0.0, 0.07142857142857142, 0.14285714285714285, 0.21428571428571427, 0.2857142857142857, 0.3571428571428572, 0.42857142857142855, 0.5, 0.5714285714285714, 0.6428571428571429, 0.7142857142857144, 0.7857142857142857, 0.8571428571428571, 0.9285714285714287, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9285714285714287, 0.8571428571428571, 0.7857142857142857, 0.7142857142857144, 0.6428571428571429, 0.5714285714285714, 0.5, 0.42857142857142855, 0.3571428571428572, 0.2857142857142857, 0.21428571428571427, 0.14285714285714285, 0.07142857142857142, 0.0]
+        },
+        "grad_spoil_z": {
+            "encoding": "text",
+            "type": "float",
+            "size": 58,
+            "data": [0.0, 0.07142857142857142, 0.14285714285714285, 0.21428571428571427, 0.2857142857142857, 0.35714285714285715, 0.42857142857142855, 0.5, 0.5714285714285714, 0.6428571428571429, 0.7142857142857143, 0.7857142857142857, 0.8571428571428571, 0.9285714285714287, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9285714285714287, 0.8571428571428571, 0.7857142857142857, 0.7142857142857143, 0.6428571428571429, 0.5714285714285714, 0.5, 0.42857142857142855, 0.35714285714285715, 0.2857142857142857, 0.21428571428571427, 0.14285714285714285, 0.07142857142857142, 0.0]
+        },
+        "grad_array_0_1": {
+            "encoding": "text",
+            "type": "float",
+            "size": 28,
+            "data": [0.0, 0.07692307692307693, 0.15384615384615385, 0.23076923076923078, 0.3076923076923077, 0.38461538461538464, 0.46153846153846156, 0.5384615384615384, 0.6153846153846154, 0.6923076923076923, 0.7692307692307693, 0.8461538461538461, 0.9230769230769231, 1.0, 1.0, 0.9230769230769231, 0.8461538461538461, 0.7692307692307693, 0.6923076923076923, 0.6153846153846154, 0.5384615384615384, 0.46153846153846156, 0.38461538461538464, 0.3076923076923077, 0.23076923076923078, 0.15384615384615385, 0.07692307692307693, 0.0]
+        },
+        "grad_array_0_2": {
+            "encoding": "text",
+            "type": "float",
+            "size": 28,
+            "data": [0.0, 0.07692307692307693, 0.15384615384615385, 0.23076923076923075, 0.3076923076923077, 0.38461538461538464, 0.4615384615384615, 0.5384615384615384, 0.6153846153846154, 0.6923076923076923, 0.7692307692307693, 0.8461538461538461, 0.923076923076923, 1.0, 1.0, 0.923076923076923, 0.8461538461538461, 0.7692307692307693, 0.6923076923076923, 0.6153846153846154, 0.5384615384615384, 0.4615384615384615, 0.38461538461538464, 0.3076923076923077, 0.23076923076923075, 0.15384615384615385, 0.07692307692307693, 0.0]
+        },
+        "grad_array_0_3": {
+            "encoding": "text",
+            "type": "float",
+            "size": 76,
+            "data": [0.0, 0.19999999999999998, 0.39999999999999997, 0.6, 0.7999999999999999, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.7999999999999999, 0.6, 0.39999999999999997, 0.19999999999999998, 0.0]
+        },
+        "grad_array_0_6": {
+            "encoding": "text",
+            "type": "float",
+            "size": 26,
+            "data": [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.41666666666666663, 0.5, 0.5833333333333334, 0.6666666666666666, 0.75, 0.8333333333333333, 0.9166666666666665, 1.0, 1.0, 0.9166666666666665, 0.8333333333333333, 0.75, 0.6666666666666666, 0.5833333333333334, 0.5, 0.41666666666666663, 0.3333333333333333, 0.25, 0.16666666666666666, 0.08333333333333333, 0.0]
+        }
+    },
+    "equations": {
+        "equation_ti_event": {
+            "equation": "set(TI) - set(TE) + 250.0 - 150.0"
+        },
+        "equation_te_event": {
+            "equation": "set(TE)  + 150.0-670"
+        },
+        "equation_tri_event": {
+            "equation": "set(TRi) - set(TE)  - 150.0-650"
+        },
+        "equation_tr_event": {
+            "equation": "set(TR) +set(TE) - set(TI)  - 8*set(TRi) - 250.0 + 150.0"
+        },
+        "equation_0_2": {
+            "equation": "-1*(20.642747257909203-0.6450858518096626*ctr(3))"
+        },
+        "equation_0_5": {
+            "equation": "-1*-1*(20.642747257909203-0.6450858518096626*ctr(3))"
+        },
+        "equation_0_6": {
+            "equation": "-1*(19.760578571673765-4.940144642918441*ctr(2))"
+        },
+        "equation_0_7": {
+            "equation": "-1*-1*(19.760578571673765-4.940144642918441*ctr(2))"
+        }
+    }
+}
